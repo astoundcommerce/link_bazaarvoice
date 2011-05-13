@@ -1,0 +1,53 @@
+<!--- TEMPLATENAME: reviews.isml
+Embeds the container that reviews are injected to and the javascript that accesses the review content.
+ ---> 
+<isscript>
+     importScript('int_bazaarvoice:libBazaarvoice.ds');
+     importPackage( dw.io );
+     
+     // Determine if we are rendering on a product or category page.
+     var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
+     
+     // Obtain SmartSEO content      
+     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "reviews", bvSubject, "");  
+</isscript>
+<!-- Reviews -->
+<div id="BVReviewsContainer">
+    <isif condition="${content}">
+        "cartridge/templates/default/bv/display/rr/reviews.isml"
+    </isif>
+</div>
+<script type="text/javascript" language="javascript">
+    function getRRDisplayCode() {
+        try {
+            <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRDisplayCodeJavascript')}" encoding="off" >
+        }catch(e){
+            //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
+        }
+        return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRDefaultDisplayCode')}";
+    }
+    function getRRDisplayType() {
+        try {
+            <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRDisplayTypeJavascript')}" encoding="off" >
+        } catch (e) {
+            //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
+        }
+        return "";
+    }
+
+    var configData = {};
+    configData.displayCode = getRRDisplayCode();
+    configData.productId = "${bvSubject.bvExternalSubjectID}";
+    configData.summaryContainerDiv = "BVCustomerRatings";
+    configData.contentContainerDiv = "BVReviewsContainer";
+    configData.onEvent = function(json) {
+        <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRROnEventJavascript')}" encoding="off" >
+    };
+    if (getRRDisplayType() != "") {
+        configData.displayType = getRRDisplayType();
+    }
+                
+          
+    $BV.ui("rr", "show_reviews", configData);
+</script>       
+<!-- End Reviews -->

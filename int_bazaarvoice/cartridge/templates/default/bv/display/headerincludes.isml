@@ -1,0 +1,23 @@
+<!--- TEMPLATENAME: headerincludes.isml --->
+<isscript>
+     importScript('int_bazaarvoice:libBazaarvoice.ds');
+     var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl();
+     
+     // Determine if we are rendering on a product or category page.
+     var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
+     
+</isscript>
+<script type="text/javascript" src="${bvApiUrl}/bvapi.js"></script>
+<script type="text/javascript" language="javascript">
+    var queryString = "?";
+    queryString += ("${bvSubject.bvSubjectType}" == "product") ? "pid=" : "cid=";
+    queryString += "${bvSubject.bvExternalSubjectID}";
+
+    var profileDisplayContainerStartNodeName = "Bazaarvoice-ProfileDisplay"
+    var configData = {};
+    //Active Profiles display container will use a different submission container than the one used for other BV products (to allow for customized styling)
+    if ("${pdict.CurrentRequest.httpPath}".substr(-profileDisplayContainerStartNodeName.length) !== profileDisplayContainerStartNodeName) {
+        configData.submissionContainerUrl = "${dw.system.Site.current.preferences.custom.bvSubmissionURL}" + queryString;
+    }
+    $BV.configure("global", configData);
+</script>

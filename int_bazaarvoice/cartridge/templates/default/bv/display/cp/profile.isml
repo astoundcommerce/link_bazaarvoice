@@ -1,0 +1,58 @@
+<!--- TEMPLATENAME: profile.isml
+Embeds the container that a profile is injected into and the javascript that accesses the profile content.
+ --->
+<isscript>
+     importScript('int_bazaarvoice:libBazaarvoice.ds');
+     
+     // Is link render enabled?
+     var bvCPRenderEditProfileLink : Boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvCPRenderEditProfileLink");
+     
+     // Is current visitor logged in?
+     var isLoggedIn : Boolean = !empty(pdict.CurrentCustomer) ? pdict.CurrentCustomer.authenticated : false;
+     
+     //Is current visitor viewing their own profile page?
+     var viewingOwnPage : Boolean = isLoggedIn && (!empty(pdict.CurrentCustomer.profile) ? (pdict.CurrentCustomer.profile.customerNo === pdict.CurrentHttpParameterMap.user.stringValue) : false);  
+     
+     //Get current visitor's nickname? (so that we can compute the User Authentication String token)
+     var nickname : String = !empty(pdict.CurrentCustomer.profile) ? ('bvDisplayName' in pdict.CurrentCustomer.profile.custom ? pdict.CurrentCustomer.profile.custom.bvDisplayName : pdict.CurrentCustomer.profile.firstName) : ''
+
+     var editProfileHref : String = "";
+     var renderLink : Boolean = false;
+     if (bvCPRenderEditProfileLink && isLoggedIn && viewingOwnPage) {
+        renderLink = true;
+        editProfileHref = getBazaarVoiceHelper().getActiveProfilesEditProfileLink(pdict.CurrentCustomer.profile.customerNo, nickname);
+     }
+          
+</isscript>
+
+<isif condition="${renderLink == true}">
+    <div id="editmyprofile">
+        <a href="${editProfileHref}">${Resource.msg('product.editmyprofile','product',null)}</a>
+    </div>
+</isif>
+
+<!-- Active Profiles -->
+<div id="BVCPHeaderContainer"></div>
+<div id="BVCPBodyAContainer"></div>
+<div id="BVCPBodyBContainer"></div>
+<div id="BVCPFooterContainer"></div>
+
+<script type="text/javascript" language="javascript">
+    function getCPDisplayCode() {
+        try {
+            <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvCPDisplayCodeJavascript')}" encoding="off" >
+        }catch(e){
+            //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
+        }
+        return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvCPDefaultDisplayCode')}";
+    }
+    
+    var configData = {};
+    configData.displayCode = getCPDisplayCode();
+    configData.profileId = "${pdict.CurrentHttpParameterMap.user.stringValue}";
+    configData.onEvent = function(json) {
+        <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvCPOnEventJavascript')}" encoding="off" >
+    };
+    $BV.ui("cp", "show_profile", configData);
+</script>       
+<!-- End Active Profiles -->

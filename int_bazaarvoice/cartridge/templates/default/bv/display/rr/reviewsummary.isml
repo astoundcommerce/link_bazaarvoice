@@ -1,0 +1,11 @@
+<!--- TEMPLATENAME: reviewsummary.isml --->
+<isscript>
+     importScript('int_bazaarvoice:libBazaarvoice.ds');
+     
+     // Determine if we are rendering on a product or category page.
+     var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
+     
+     var bvUrl = getBazaarVoiceHelper().getBvUrl(false, "reviews");
+</isscript>
+<div id="BVCustomerRatings"></div>
+<div id="BVRRLinkContainer"><a href="${bvUrl}/${bvSubject.bvExternalSubjectID}/reviews.htm">Read all ${bvSubject.bvExternalSubjectName} reviews</a></div>

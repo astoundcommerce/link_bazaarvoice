@@ -1,0 +1,16 @@
+<isscript>
+     importScript('int_bazaarvoice:libBazaarvoice.ds');
+     
+     var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl();
+     
+     var bvFacebookXdReceiverUrl = dw.system.Site.getCurrent().getCustomPreferenceValue("bvFacebookXdReceiverUrl");
+</isscript>
+<script type="text/javascript" src="${bvApiUrl}/bvapi.js"></script>
+<script type="text/javascript" language="javascript">
+    var configData = {};
+    configData.userToken = "${pdict.bvoiceUser || ''}";
+    if ("${bvFacebookXdReceiverUrl}" != "null") {
+        configData.facebookXdChannelUrl = "${bvFacebookXdReceiverUrl}";
+    }
+    $BV.configure("global", configData);
+</script>

@@ -1,0 +1,10 @@
+<iscontent type="text/html" charset="UTF-8" compact="true"/>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+    <head><title>Bazaarvoice Feed Status Notification</title></head>
+<body>
+<div style="font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: x-small; color: Black;">
+    <isprint value="${pdict.message}"/>,
+</div>
+</body>
+</html>

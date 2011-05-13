@@ -1,0 +1,196 @@
+/**
+* 
+* bvImportRatingFeed.ds
+*
+* process feed for the BazaarVoice. The feed will be FTPed to the BV FTP server
+* 
+* Product Rating data feed from BV 
+* 
+*<?xml version="1.0" encoding="UTF-8"?>
+*	<Feed xmlns="http://www.bazaarvoice.com/PRR/SyndicationFeed/1.3" name="ClientName" extractDate="2008-06-21T05:41:54.477-05:00">
+*	<Product id="01">
+*		<Source>ClientName</Source>
+*		<ExternalId>01</ExternalId>
+*		<Name>Product 1</Name>
+*		<Description>Product description from product feed.</Description>
+*		<Brand>Brand</Brand>
+*		<NumQuestions>0</NumQuestions>
+*		<NumAnswers>0</NumAnswers>
+*		<CategoryItems>
+*			<CategoryItem id="001">
+*				<ExternalId>001</ExternalId>
+*				<CategoryId>206470</CategoryId>
+*				<CategoryName>Category 1</CategoryName>
+*			</CategoryItem>
+*		</CategoryItems>
+*		<ProductPageUrl>http://www.client.com/dynamic/product.cfm?productID=2</ProductPageUrl>
+*		<ProductReviewsUrl>http://reviews.client.com/0000/2/reviews.htm</ProductReviewsUrl>
+*		<ImageUrl>http://images.client.com/images.jpg</ImageUrl>
+*		<ReviewStatistics>
+*			<AverageOverallRating>4.84</AverageOverallRating>
+*			<OverallRatingRange>5</OverallRatingRange>
+*			<TotalReviewCount>25</TotalReviewCount>
+*			<RatingsOnlyReviewCount>11</RatingsOnlyReviewCount>
+*			<RecommendedCount>25</RecommendedCount>
+*			<AverageRatingValues>
+*				<AverageRatingValue id="AverageFit">
+*					<AverageRating>4.72</AverageRating>
+*					<RatingDimension id="AverageFit" displayType="SLIDER">
+*						<ExternalId>AverageFit</ExternalId>
+*						<RatingRange>7</RatingRange>
+*						<Label1>Small</Label1>
+*						<Label1>Large</Label1>
+*					</RatingDimension>
+*				</AverageRatingValue>
+*			</AverageRatingValues>
+*			<RatingDistribution>
+*				<RatingDistributionItem>
+*					<RatingValue>4</RatingValue>
+*					<Count>4</Count>
+*				</RatingDistributionItem>
+*				<RatingDistributionItem>
+*					<RatingValue>5</RatingValue>
+*					<Count>21</Count>
+*				</RatingDistributionItem>
+*			</RatingDistribution>
+*		</ReviewStatistics>
+*	</Product>
+*	<Product id="02">				
+*	.....
+*	</product>
+*	....
+*</Feed>	
+*  
+* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
+* where
+*   <paramUsageType> can be either 'input' or 'output'
+*   <paramName> can be any valid parameter name
+*   <paramDataType> identifies the type of the parameter
+*   <paramComment> is an optional comment
+*
+* @output output : String output of the script
+* @output Processed : String number of Records Successfully processed
+* @output Failed : String number of records failed  
+* @output notifyToEmailId : String 
+* @output message : String
+*/
+ 
+ importPackage( dw.system );
+ importPackage( dw.order );
+ importPackage( dw.util );
+ importPackage( dw.web );
+ importPackage( dw.net );
+ importPackage( dw.catalog );
+ importPackage( dw.object );
+ importScript('libBazaarvoice.ds');
+ var OUT_XML_FORMAT : String = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n{0}"; 
+ var MESSAGE_TEMPLATE : String = "[Job Details][STATUS=  {0}][Message= {1}][Host = {2}][User = {3}][Password= *******][Target FTP Folder= {5}][File Name= {6}]";
+ var TRUE="true";
+ var FALSE="false"; 
+ /**
+ * Function: execute
+ *
+ * Main function of the script. 
+ */
+function execute(pdict: PipelineDictionary): Number {
+    var BazaarVoiceHelper = getBazaarVoiceHelper();
+    pdict.notifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
+    var rootXML : XML = new XML(<products></products>);
+    var pXML =  <product>
+                    <ID></ID>
+                    <bvAverageRating></bvAverageRating>
+                    <bvReviewCount></bvReviewCount>
+                    <processed></processed>
+                </product>;  
+    var sXML =  <status>
+                    <TotalProcessed></TotalProcessed>
+                    <TotalFailed></TotalFailed>
+                </status>;	          
+    try {
+        var ftpClient: SFTPClient = new SFTPClient();
+        var host: String = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
+        var user: String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
+        var pwd: String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
+        var fpath: String = Site.getCurrent().getCustomPreferenceValue("bvInlineRatingsFeedPath");
+        var fname: String = Site.getCurrent().getCustomPreferenceValue("bvInlineRatingsFeedFileName");
+        trace("Host: " + host);
+        trace("User: " + user);
+        trace("Path: " + fpath);
+        trace("File Name: " + fname);
+        if (!ftpClient.connect(host, user, pwd)) {
+            Logger.debug("Error while trying to connect to ftp server.");
+            pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while trying to connect to BV FTP server.", host, user, pwd, fpath, fname);
+            return PIPELET_ERROR;
+        }
+        if (!ftpClient.cd(fpath)) {
+            Logger.debug("Error while trying to access remote path \'" + fpath + "\'.");
+            ftpClient.disconnect();
+            trace("Error while trying to access remote path \'" + fpath + "\'.");
+            pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while accessing folder on BV FTP Server.", host, user, pwd, fpath, fname);
+            return PIPELET_ERROR;
+        }
+        var content: String = ftpClient.get(fname);
+        if (empty(content)) {
+            trace("Content from BV is empty");
+            pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "No Content Found on BV FTP server.", host, user, pwd, fpath, fname);
+            return PIPELET_ERROR;
+        }
+        var ratingFeedXML: XML = new XML(content);
+        var ns: Namespace = new Namespace(ratingFeedXML.namespace());
+        var iProcessed: Number = new Number(0);
+        var iFailed: Number = new Number(0);
+        var id: String = "";
+        var bvAverageRating: String = "";
+        var bvReviewCount: String = "";
+        var bvRatingRange: String = "";
+        for each(var rateXML: XML in ratingFeedXML.ns::Product) {
+            id = "";
+            bvAverageRating = "";
+            bvReviewCount = "";
+            bvRatingRange = "";
+            if (!empty(rateXML.ns::ExternalId.toString())) {
+                id = rateXML.ns::ExternalId.toString();
+                if (!empty(rateXML.ns::ReviewStatistics.ns::AverageOverallRating.toString())) {
+                    bvAverageRating = rateXML.ns::ReviewStatistics.ns::AverageOverallRating.toString();
+                }
+                if (!empty(rateXML.ns::ReviewStatistics.ns::TotalReviewCount.toString())) {
+                    bvReviewCount = rateXML.ns::ReviewStatistics.ns::TotalReviewCount.toString();
+                }
+                if (!empty(rateXML.ns::ReviewStatistics.ns::OverallRatingRange.toString())) {
+                    bvRatingRange = rateXML.ns::ReviewStatistics.ns::OverallRatingRange.toString();
+                }
+                var product: Product = ProductMgr.getProduct(BazaarVoiceHelper.decodeId(id));
+                if (product != null) {
+                    product.custom.bvAverageRating = bvAverageRating;
+                    product.custom.bvReviewCount = bvReviewCount;
+                    product.custom.bvRatingRange = bvRatingRange;
+                    pXML.processed = TRUE;
+                    iProcessed++;
+                    //for xml out log
+                    pXML.ID = id;
+                    pXML.bvAverageRating = bvAverageRating;
+                    pXML.bvReviewCount = bvReviewCount;
+                } else {
+                    pXML.processed = FALSE;
+                    iFailed++;
+                }
+                rootXML.products += pXML;
+            }
+        }
+        sXML.TotalProcessed = iProcessed;
+        sXML.TotalFailed = iFailed;
+        rootXML.status += sXML;
+        pdict.Processed = iProcessed.toString();
+        pdict.Failed = iFailed.toString();
+        trace("Total Record Updated: " + iProcessed.toString());
+        trace("Total Record Failed: " + iFailed.toString());
+        trace("update details: " + StringUtils.format(OUT_XML_FORMAT, rootXML));
+        pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "SUCCESS", "Import Processed - Connecton Details", host, user, pwd, fpath, fname);
+    } catch (ex) {
+        trace("[BV_Process_Rating_FeedFromBV_Test][Exception Processing Updates]" + host + "," + user + "," + fpath + "," + fname + "," + ex);
+        pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Exception=" + ex, host, user, pwd, fpath, fname);
+        return PIPELET_ERROR;
+    }
+    pdict.output = StringUtils.format(OUT_XML_FORMAT, rootXML);
+    return PIPELET_NEXT;
+}

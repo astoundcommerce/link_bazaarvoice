@@ -1,0 +1,95 @@
+/**
+ * Demandware Script File
+ *
+ * @output message : String
+ */
+importPackage(dw.system);
+importPackage(dw.util);
+importPackage(dw.net);
+importPackage(dw.io);
+importPackage(dw.catalog);
+var MESSAGE_TEMPLATE: String = "[Job Details][STATUS=  {0}][Message= {1}][Host = {2}][User = {3}][Password= *********][Target FTP Folder= {5}][File Name= {6}]";
+
+function execute(pdict: PipelineDictionary): Number {
+    try {
+        var ftpClient: SFTPClient = new SFTPClient();
+        var host: String = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
+        var user: String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
+        var pwd: String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
+        var fpath: String = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedPath");
+        var fname: String = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedFileName");
+        trace("Host: " + host);
+        trace("User: " + user);
+        trace("Path: " + fpath);
+        trace("File Name: " + fname);
+        var smartSEOEnabled: Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableSmartSEO");
+        if (!smartSEOEnabled) {
+            trace("SmartSEO is not enabled in the demandware customer configuration.");
+            pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "SmartSEO is not enabled for this client.", host, user, pwd, fpath, fname);
+            return PIPELET_ERROR;
+        }
+        if (!ftpClient.connect(host, user, pwd)) {
+            Logger.debug("Error while trying to connect to ftp server.");
+            pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while trying to connect to BV FTP server.", host, user, pwd, fpath, fname);
+            return PIPELET_ERROR;
+        }
+        if (!ftpClient.cd(fpath)) {
+            Logger.debug("Error while trying to access remote path \'" + fpath + "\'.");
+            ftpClient.disconnect();
+            trace("Error while trying to access remote path \'" + fpath + "\'.");
+            pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while accessing folder on BV FTP Server.", host, user, pwd, fpath, fname);
+            return PIPELET_ERROR;
+        }
+        var zipFile: File = new File(new File(File.TEMP), fname);
+        // this will delete an existing zip
+        if (zipFile.exists()) {
+            zipFile.remove();
+        }
+        // try to find the new one
+        var fileFound: Boolean = ftpClient.getBinary(fname, zipFile);
+        var extractsDir: File = new File(new File(File.IMPEX), "smartSEO");
+        if (!fileFound) {
+            if (!(extractsDir.exists() && extractsDir.isDirectory())) {
+                trace("No currently extracted files available");
+                pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "Failure trying to download Smart SEO archive from the Bazaarvoice SFTP server. Unable to find cached Smart SEO content.", host, user, pwd, fpath, fname);
+                return PIPELET_ERROR;
+            }
+            var staleDays: Number = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOMaxStaleDays");
+            var lastMod: Calendar = new Calendar(new Date(extractsDir.lastModified()));
+            var tooManyDaysAgo: Calendar = new Calendar(new Date());
+            tooManyDaysAgo.add(Calendar.DATE, -(staleDays));
+            trace("No Content Found on BV FTP server");
+            if (lastMod.after(tooManyDaysAgo)) {
+                // OK, log something and don't delete the files
+                trace("The extracted files are less than " + staleDays + " days old and will be retained.");
+                // set message for email
+                pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "Failure trying to download Smart SEO archive from the Bazaarvoice SFTP server. The most recent extracted files are less than " + staleDays + " days old and will be retained.", host, user, pwd, fpath, fname);
+            } else {
+                // TOO OLD, log something and delete the files
+                trace("The extracted files are more than " + staleDays + " days old and will be deleted.");
+                recursiveRemove(extractsDir);
+                // set message for email
+                pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "Failure trying to download Smart SEO archive from the Bazaarvoice SFTP server. The most recent extracted files are more than " + staleDays + " days old and will be deleted.", host, user, pwd, fpath, fname);
+            }
+            return PIPELET_ERROR;
+        }
+        recursiveRemove(extractsDir); // this should rm -r the existing extracts directory
+        extractsDir.mkdirs(); // this should mkdir the extracts dir and any necessary parents
+        zipFile.unzip(extractsDir); // this will throw an exception if the unzip fails
+    } catch (ex) {
+        trace("[BV_Process_Rating_FeedFromBV_Test][Exception Processing Updates]" + host + "," + user + "," + fpath + "," + fname + "," + ex);
+        pdict.message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "There was an error while attempting to download and parse the Smart SEO feed archive from the Bazaarvoice SFTP server: " + ex, host, user, pwd, fpath, fname);
+        return PIPELET_ERROR;
+    }
+    return PIPELET_NEXT;
+}
+// File.remove only works on empty directories, this is like rm -r.
+
+function recursiveRemove(rootFile: File): Boolean {
+    if (rootFile.isDirectory()) {
+        for each(var childFile: File in rootFile.listFiles()) {
+            return recursiveRemove(childFile);
+        }
+    }
+    return rootFile.remove();
+}
