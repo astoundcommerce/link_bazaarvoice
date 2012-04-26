@@ -1,0 +1,91 @@
+/**
+ * Demandware Script File
+ *
+ * @output Message : String
+ */
+importPackage(dw.system);
+importPackage(dw.util);
+importPackage(dw.net);
+importPackage(dw.io);
+importPackage(dw.catalog);
+var MESSAGE_TEMPLATE: String = "[Job Details][STATUS=  {0}][Message= {1}][Host = {2}][User = {3}][Password= *********][Target FTP Folder= {5}][File Name= {6}]";
+
+function execute(pdict: PipelineDictionary): Number {
+    try {
+        var ftpClient: SFTPClient = new SFTPClient();
+        var host: String = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
+        var user: String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
+        var pwd: String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
+        var fpath: String = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedPath");
+        var fname: String = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedFileName");
+
+        var smartSEOEnabled: Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableSmartSEO");
+        if (!smartSEOEnabled) {
+
+            pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "SmartSEO is not enabled for this client.", host, user, pwd, fpath, fname);
+        }
+        if (!ftpClient.connect(host, user, pwd)) {
+
+            pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while trying to connect to BV FTP server.", host, user, pwd, fpath, fname);
+        }
+        if (!ftpClient.cd(fpath)) {
+
+            ftpClient.disconnect();
+
+            pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while accessing folder on BV FTP Server.", host, user, pwd, fpath, fname);
+        }
+        var zipFile: File = new File(new File(File.TEMP), fname);
+        // this will delete an existing zip
+        if (zipFile.exists()) {
+            zipFile.remove();
+        }
+        // try to find the new one
+        var fileFound: Boolean = ftpClient.getBinary(fname, zipFile);
+        var extractsDir: File = new File(new File(File.IMPEX), "smartSEO");
+        if (!fileFound) {
+        	pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "No Content Found on BV FTP server", host, user, pwd, fpath, fname);
+            if (extractsDir.exists() && extractsDir.isDirectory()) {         
+		        var staleDays: Number = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOMaxStaleDays");
+		        var lastMod: Calendar = new Calendar(new Date(extractsDir.lastModified()));
+		        var tooManyDaysAgo: Calendar = new Calendar(new Date());
+		        tooManyDaysAgo.add(Calendar.DATE, -(staleDays));
+
+		        if (lastMod.after(tooManyDaysAgo)) {
+		            // set message for email
+		            pdict.Message += StringUtils.format(MESSAGE_TEMPLATE, "INFO", "The most recent extracted files are less than " + staleDays + " days old and will be retained.", host, user, pwd, fpath, fname);
+		        } else {
+		            recursiveRemove(extractsDir);
+		            // set message for email
+		            pdict.Message += StringUtils.format(MESSAGE_TEMPLATE, "INFO", "The most recent extracted files are more than " + staleDays + " days old and will be deleted.", host, user, pwd, fpath, fname);
+		        }
+            }else{
+            	pdict.Message += "No file and directory found on the site either!";
+            	
+            }
+        }else{
+		    if(extractsDir.exists()){
+		        recursiveRemove(extractsDir); // this should rm -r the existing extracts directory
+		    }else{
+		        extractsDir.mkdirs(); // this should mkdir the extracts dir and any necessary parents
+		    }
+		    zipFile.unzip(extractsDir); // this will throw an exception if the unzip fails
+		    pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "SUCCESS", "new SEO content is extracted in directory! ", host, user, pwd, fpath, fname);
+        }
+        
+    } catch (ex) {
+        pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "There was an error while attempting to download and parse the Smart SEO feed archive from the Bazaarvoice SFTP server: " + ex.message, host, user, pwd, fpath, fname);
+        return PIPELET_ERROR;
+    }
+    
+    return PIPELET_NEXT;
+}
+// File.remove only works on empty directories, this is like rm -r.
+
+function recursiveRemove(rootFile: File): Boolean {
+    if (rootFile.isDirectory()) {
+        for each(var childFile: File in rootFile.listFiles()) {
+            return recursiveRemove(childFile);
+        }
+    }
+    return rootFile.remove();
+}

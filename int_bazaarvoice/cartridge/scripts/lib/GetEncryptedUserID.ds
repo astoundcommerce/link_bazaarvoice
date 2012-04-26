@@ -1,0 +1,25 @@
+/**
+* This script is used to determine the User Authentication String that has to be 
+* passed to Bazaarvoice to in order write content.  
+*
+*@input customerNo : String the customer ID of the currently active user
+*@input displayName : String the displayName or nickname of the customer
+*@output reviewerID: String User Authentication String token that is to be generated for content submission
+*/
+importPackage( dw.system );
+importPackage( dw.crypto );
+importPackage( dw.util );
+importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	/* Helper Class */
+	var bazaarVoiceHelper = getBazaarVoiceHelper();
+
+	if (!empty(pdict.customerNo) && !empty(pdict.displayName) ){
+	    pdict.reviewerID = bazaarVoiceHelper.encryptReviewerId(pdict.customerNo, pdict.displayName);
+	}
+    return PIPELET_NEXT;
+}
+

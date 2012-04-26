@@ -1,0 +1,51 @@
+<iscomment>
+    This template implements the Bazaarvoice submission container page for Active Profiles.
+</iscomment>
+
+<isscript>
+     importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
+     
+     var bvUrl = getBazaarVoiceHelper().getBvUrl(true, "activeprofiles");
+</isscript>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <iscomment>Include all important information globally , e.g. meta-data, link information, and javascript.</iscomment>
+    <isinclude template="components/header/htmlhead"/>
+
+    <iscomment>Add page type specific header information here.</iscomment>
+    <link href="${URLUtils.staticURL('/css/print.css')}" type="text/css" rel="stylesheet" media="print" />
+    <link href="${URLUtils.staticURL('/css/submissioncontainer.css')}" type="text/css" rel="stylesheet" />
+
+    <iscomment>search specific javascript</iscomment>
+    <script src="${URLUtils.staticURL('/js/searchresults.js')}" type="text/javascript"></script>
+    <script src="${URLUtils.staticURL('/js/compare.js')}" type="text/javascript"></script>
+    
+    <isinclude template="bv/submit/headerincludes"/>
+</head>
+<body>
+<div id="container" class="pt_account">
+    <isinclude template="components/header/header"/>
+    <div id="main">
+        <div id="BVSubmissionContainer"><img src="${bvUrl}/bv_sub_loading_60.gif" id="BVLoaderImage" width="60" height="60" alt="Loading..."/></div>
+            
+        <script type="text/javascript" language="javascript">
+            function getCPDisplayCode() {
+                try {
+                    <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvCPDisplayCodeJavascript')}" encoding="off" >
+                }catch(e){
+                    //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
+                }
+                return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvCPDefaultDisplayCode')}";
+            }
+            var configData = {};
+            configData.displayCode = getCPDisplayCode();
+            $BV.ui("submission_container", configData);
+        </script>
+    </div>
+    <isinclude template="components/footer/footer"/>
+</div>
+</body>
+</html>
