@@ -161,7 +161,7 @@ function execute(pdict: PipelineDictionary): Number {
 			
 			while(products.hasNext()){
 				var product : Product = products.next();
-				if(productIds.indexOf(product.ID) == -1 && product.custom.bvReviewCount == "1"){
+				if(productIds.indexOf(product.ID) == -1 && (!empty(product.custom.bvAverageRating) || !empty(product.custom.bvReviewCount) || !empty(product.custom.bvRatingRange))){
 					product.custom.bvAverageRating = "";
 					product.custom.bvReviewCount = "";
 					product.custom.bvRatingRange = "";
