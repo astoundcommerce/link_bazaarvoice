@@ -1,0 +1,870 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvSentInPPEFeed">
+                <display-name xml:lang="x-default">Whether order already sent in Bazaarvoice PPE feed or not</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Custom">
+                <display-name xml:lang="x-default">Custom Attribute</display-name>
+                <attribute attribute-id="bvSentInPPEFeed"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="Product">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvAverageRating">
+                <display-name xml:lang="x-default">Bazaarvoice Average Rating</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRatingRange">
+                <display-name xml:lang="x-default">Bazaarvoice Rating Range</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvReviewCount">
+                <display-name xml:lang="x-default">Bazaarvoice Review Count</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSmartSEOFile">
+                <display-name xml:lang="x-default">Bazaarvoice Smart SEO Filename</display-name>
+                <type>string</type>
+                <localizable-flag>false</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Custom">
+                <display-name xml:lang="x-default">Custom Attribute</display-name>
+                <attribute attribute-id="bvAverageRating"/>
+                <attribute attribute-id="bvReviewCount"/>
+                <attribute attribute-id="bvSmartSEOFile"/>
+                <attribute attribute-id="bvRatingRange"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="Profile">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvDisplayName">
+                <display-name xml:lang="x-default">Name to appear in public Bazaarvoice reviews</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Custom">
+                <display-name xml:lang="x-default">Custom Attribute</display-name>
+                <attribute attribute-id="bvDisplayName"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvAADefaultDisplayCode">
+                <display-name xml:lang="x-default">Bazaarvoice Ask &amp; Answer Default Display Code</display-name>
+                <description xml:lang="x-default">The display code for your Bazaarvoice A&amp;A implementation.  For example: 1234-en_us</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvAADisplayCodeJavascript">
+                <display-name xml:lang="x-default">Display Code Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a valid Bazaarvoice DisplayCode to be used for display and submission of A&amp;A.  
+                This preference exists so that you may customize which DisplayCode is used based upon data available client-side.  Typically this is used to select
+                a locale-specific DisplayCode.  In the event of an error processing this javascript or that it returns nothing, the default display code specified
+                above will be used.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    //no-op
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvAADisplayTypeJavascript">
+                <display-name xml:lang="x-default">Display Type Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a value of "mobile" or an empty string, "", depending 
+                on whether or not you want to set the displayType for A&amp;A display to a mobile device or for a full browser client.  
+                This preference exists so that you may customize which displayType is used based upon data available client-side.  See your Bazaarvoice 
+                Implementation manual for further information on the displayType configuration parameter.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    var userAgent = navigator.userAgent.toLowerCase();
+                    var isMobileDevice = (userAgent.search("iphone") &gt; -1 || userAgent.search("android") &gt; -1 || userAgent.search("blackberry") &gt; -1);
+                    return (isMobileDevice ? "mobile" : "");
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvAAOnEventJavascript">
+                <display-name xml:lang="x-default">A&amp;A OnEvent javascript callback</display-name>
+                <description xml:lang="x-default">The Bazaarvoice JavaScript onEvent callback enables you to track certain actions that occur with 
+                Bazaarvoice UI components. For example, the event callback can be used to pass tracking information into your web analytics system or otherwise change
+                the behavior of your page depending on the information it passes back about the User-Generated-Content available on the page. This code will be wrapped
+                in a javascript function(json){...} block.  See your Bazaarvoice Implementation manual for further information.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    if (json.eventSource == "Display") {
+                                if (json.attributes.numQuestions == 0) {
+                                    var bvQACntr = document.getElementById("BVQAContainer");
+                                
+                                    if (bvQACntr) { bvQACntr.style.display = "none"; }
+                                }
+                        }
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvAASubDomain">
+                <display-name xml:lang="x-default">Bazaarvoice A&amp;A Sub Domain</display-name>
+                <description xml:lang="x-default">The sub domain name for the Bazaarvoice Ask &amp; Answer.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>answers</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvAPIHostname">
+                <display-name xml:lang="x-default">Bazaarvoice Javascript API Hostname</display-name>
+                <description xml:lang="x-default">The domain from which bvapi.js is hosted.  For example: &lt;clientname&gt;.ugc.bazaarvoice.com</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>&lt;clientname&gt;.ugc.bazaarvoice.com</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvAdminEmail">
+                <display-name xml:lang="x-default">Bazaavoice Administrator Email</display-name>
+                <description xml:lang="x-default">The email address of the Bazaarvoice administrator. This is where feed notifications are sent.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCPDefaultDisplayCode">
+                <display-name xml:lang="x-default">Bazaarvoice Active Profiles Default Display Code</display-name>
+                <description xml:lang="x-default">The display code for your Bazaarvoice Active Profiles implementation.  For example: 1234-en_us</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCPDisplayCodeJavascript">
+                <display-name xml:lang="x-default">Display Code Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a valid Bazaarvoice DisplayCode to be used for display and submission of ActiveProfiles.  
+                This preference exists so that you may customize which DisplayCode is used based upon data available client-side.  Typically this is used to select
+                a locale-specific DisplayCode.  In the event of an error processing this javascript or that it returns nothing, the default display code specified
+                above will be used.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    //no-op
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCPDisplayTypeJavascript">
+                <display-name xml:lang="x-default">Display Type Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a value of "mobile" or an empty string, "", depending 
+                on whether or not you want to set the displayType for Active Profiles display and submission to a mobile device or for a full browser client.  
+                This preference exists so that you may customize which displayType is used based upon data available client-side.  See your Bazaarvoice 
+                Implementation manual for further information on the displayType configuration parameter.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    var userAgent = navigator.userAgent.toLowerCase();
+                    var isMobileDevice = (userAgent.search("iphone") &gt; -1 || userAgent.search("android") &gt; -1 || userAgent.search("blackberry") &gt; -1);
+                    return (isMobileDevice ? "mobile" : "");
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCPOnEventJavascript">
+                <display-name xml:lang="x-default">Active Profiles OnEvent javascript callback</display-name>
+                <description xml:lang="x-default">The Bazaarvoice JavaScript onEvent callback enables you to track certain actions that occur with 
+                Bazaarvoice UI components. For example, the event callback can be used to pass tracking information into your web analytics system or otherwise change
+                the behavior of your page depending on the information it passes back about the User-Generated-Content available on the page. This code will be wrapped
+                in a javascript function(json){...} block.  See your Bazaarvoice Implementation manual for further information.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    // no-op
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCPRenderEditProfileLink">
+                <display-name xml:lang="x-default">Render Edit Profile Link</display-name>
+                <description xml:lang="x-default">By default, Bazaarvoice code will always render the "Edit My Profile" link on the Active Profiles display container
+                page, regardless of whether or not the current visitor is logged in or whether or not they are viewing their own profile page.  Enabling this option will render
+                a link on the container page outside of the injected code that will only be visible if the current visitor is logged in and viewing their own profile page. When
+                this option is enabled, it is advised that the "Edit My Profile" link that is injected by Bazaarvoice be disabled.  Contact your Implementation Engineer
+                to have the link removed.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCPSubDomain">
+                <display-name xml:lang="x-default">Bazaarvoice Active Profiles Sub Domain</display-name>
+                <description xml:lang="x-default">The sub domain name for the Bazaarvoice Active Profiles.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>ugc</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCustomerName">
+                <display-name xml:lang="x-default">Bazaarvoice Customer Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvDisplayCode">
+                <display-name xml:lang="x-default">Bazaarvoice Display Code</display-name>
+                <description xml:lang="x-default">The display code for your Bazaarvoice implementation.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>6725</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvDocumentDomain">
+                <display-name xml:lang="x-default">Bazaarvoice Document Domain</display-name>
+                <description xml:lang="x-default">The domain from which your store will be hosted and Bazaarvoice content will be injected.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>demandware.net</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableAA">
+                <display-name xml:lang="x-default">Bazaarvoice A&amp;A</display-name>
+                <description xml:lang="x-default">Turn on Bazaarvoice Ask &amp; Answer. This will enable display of A&amp;A content on your product and category pages.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableInlineRatings">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Ratings</display-name>
+                <description xml:lang="x-default">Turn on Inline Ratings. This will enable importing ratings feeds from the Bazaarvoice SFTP server and display them as inline star ratings in search results.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableProductFeed">
+                <display-name xml:lang="x-default">Bazaarvoice Product Feed</display-name>
+                <description xml:lang="x-default">Turn on Product Feed generation. This will enable generation of a product feed to be sent to the Bazaarvoice SFTP server.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnablePurchaseFeed">
+                <display-name xml:lang="x-default">Enable Purchase Feed</display-name>
+                <description xml:lang="x-default">Turn on Purchase Feed generation. This will enable generation of a purchase feed to be sent to the Bazaarvoice FTP server to be used to send post-interaction emails to your customers, in order to solicit review submission.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableRR">
+                <display-name xml:lang="x-default">Bazaarvoice R&amp;R</display-name>
+                <description xml:lang="x-default">Turn on Bazaarvoice Ratings &amp; Reviews. This will enable display of R&amp;R content on your product pages.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableRRComments">
+                <display-name xml:lang="x-default">Bazaarvoice R&amp;R Comments</display-name>
+                <description xml:lang="x-default">Turn on display of Bazaarvoice Ratings &amp; Reviews Comments. This will enable display of R&amp;R comments on your product pages.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableSY">
+                <display-name xml:lang="x-default">Bazaarvoice Stories</display-name>
+                <description xml:lang="x-default">Turn on Bazaarvoice Stories. This will enable display of Stories content on your product and category pages.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableSYComments">
+                <display-name xml:lang="x-default">Bazaarvoice Stories Comments</display-name>
+                <description xml:lang="x-default">Turn on display of Bazaarvoice Stories Comments. This will enable display of Stories comments on your product and category pages.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>true</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableSmartSEO">
+                <display-name xml:lang="x-default">Bazaarvoice Smart SEO</display-name>
+                <description xml:lang="x-default">Turn on Smart SEO. This will enable importing Smart SEO archives from the Bazaarvoice SFTP server and present them to search engine crawlers on product pages.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEncodingKey">
+                <display-name xml:lang="x-default">Bazaarvoice Encoding Key</display-name>
+                <description xml:lang="x-default">Key used to encode Bazaarvoice user authentication string.  Provided by your Implementation Engineer</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvExportFileName">
+                <display-name xml:lang="x-default">Bazaarvoice Product Feed Export File Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvFTPExportFilePath">
+                <display-name xml:lang="x-default">Bazaarvoice FTP Export File Path</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvFTPHost">
+                <display-name xml:lang="x-default">Bazaarvoice FTP Host</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>sftp-stg.bazaarvoice.com</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvFTPPassword">
+                <display-name xml:lang="x-default">Bazaarvoice FTP Password</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvFTPRatingFeedFileName">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Rating Feed Filename</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvFTPRatingFeedPath">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Rating Feed Path</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>feeds</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvFacebookXdReceiverUrl">
+                <display-name xml:lang="x-default">Facebook cross-domain channel policy file URL</display-name>
+                <description xml:lang="x-default">For example, http://www.yourdomain.com/path/to/facebook_xd_receiver.htm</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvHostDomain">
+                <display-name xml:lang="x-default">Host Domain</display-name>
+                <description xml:lang="x-default">The domain from which your store will be hosted and Bazaarvoice content will be injected. For example: yourdomain.com</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvInlineRatingFeedFileName">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Rating Feed Filename</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>bv_[client]_ratings.xml</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvInlineRatingFeedPath">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Rating Feed Path</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>feeds</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvInlineRatingsFeedFileName">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Rating Feed Filename</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>bv_[client]_ratings.xml</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvInlineRatingsFeedPath">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Rating Feed Path</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>feeds</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvProductFeedExportFileName">
+                <display-name xml:lang="x-default">Bazaarvoice Product Feed Export File Name</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>productfeed.xml</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvProductFeedExportPath">
+                <display-name xml:lang="x-default">Bazaarvoice FTP Export File Path</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>import-inbox</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvProfileHostName">
+                <display-name xml:lang="x-default">Bazaarvoice Profiles Host Name</display-name>
+                <description xml:lang="x-default">The Hostname for Bazaarvoice user profiles</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>ugc</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvPurchaseFeedDelayDaysSinceEvent">
+                <display-name xml:lang="x-default">Days to Wait after Trigger Event</display-name>
+                <description xml:lang="x-default">This value represents the number of days to wait after the triggering event until including the transaction in the exported feed.</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>1</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvPurchaseFeedFileName">
+                <display-name xml:lang="x-default">FTP Upload Filename</display-name>
+                <description xml:lang="x-default">This is the filename of the exported purchase feed xml sent to Bazaarvoice SFTP servers. A timestamp will be automatically appended to the filename using a YYYY-MM-DD format. Example: bazaarvoice-order-data-2012-12-31.xml</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>bazaarvoice-order-data.xml</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvPurchaseFeedNumDaysLookback">
+                <display-name xml:lang="x-default">Number of Days Worth of Transactions in Past to Retrieve</display-name>
+                <description xml:lang="x-default">This value represents the number of days of historical transactions to include in the feed.  This cartridge keeps track of which Orders have already been included in a previous purchase feed in an effort to avoid sending duplicate emails to customers for the same order.  This number should be larger than how long it typically takes to send out a shipment.</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>30</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvPurchaseFeedPath">
+                <display-name xml:lang="x-default">FTP Upload Path</display-name>
+                <description xml:lang="x-default">Typically, this should be "/ppe/inbox".</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>/ppe/inbox</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvPurchaseFeedTriggeringEvent">
+                <display-name xml:lang="x-default">Triggering Event</display-name>
+                <description xml:lang="x-default">This determines whether to use the purchase date or ship date when calculating which purchases to include in the purchase feed.</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Shipping</display>
+                        <value>shipping</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Purchase</display>
+                        <value>purchase</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvQAShowQuestionsTabJavascript">
+                <display-name xml:lang="x-default">Show Q&amp;A Tab Javascript function</display-name>
+                <description xml:lang="x-default">
+				This preference value is expected to be a valid client-side javascript. In the event that Bazaarvoice Q&amp;A are displayed behind a tab, this javascript will be used by Bazaarvoice to open the tab in the event that the "Read all Q&amp;A" link is clicked by an end user.
+				</description>
+				<type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRRDefaultDisplayCode">
+                <display-name xml:lang="x-default">Bazaarvoice Ratings &amp; Reviews Default Display Code</display-name>
+                <description xml:lang="x-default">The display code for your Bazaarvoice R&amp;R implementation.  For example: 1234-en_us</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRRDisplayCodeJavascript">
+                <display-name xml:lang="x-default">Display Code Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a valid Bazaarvoice DisplayCode to be used for display and submission of Reviews.  
+                This preference exists so that you may customize which DisplayCode is used based upon data available client-side.  Typically this is used to select
+                a locale-specific DisplayCode.  In the event of an error processing this javascript or that it returns nothing, the default display code specified
+                above will be used.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    //no-op
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRRDisplayTypeJavascript">
+                <display-name xml:lang="x-default">Display Type Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a value of "mobile" or an empty string, "", depending 
+                on whether or not you want to set the displayType for R&amp;R display to a mobile device or for a full browser client.  
+                This preference exists so that you may customize which displayType is used based upon data available client-side.  Contact your Bazaarvoice 
+                Implementation Engineer for further information on the displayType configuration parameter.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    var userAgent = navigator.userAgent.toLowerCase();
+                    var isMobileDevice = (userAgent.search("iphone") &gt; -1 || userAgent.search("android") &gt; -1 || userAgent.search("blackberry") &gt; -1);
+                    return (isMobileDevice ? "mobile" : "");
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRRHostName">
+                <display-name xml:lang="x-default">Bazaarvoice R&amp;R Hostname</display-name>
+                <description xml:lang="x-default">The host name for the Bazaarvoice Ratings and Reviews.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>reviews</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRROnEventJavascript">
+                <display-name xml:lang="x-default">R&amp;R OnEvent javascript callback</display-name>
+                <description xml:lang="x-default">The Bazaarvoice JavaScript onEvent callback enables you to track certain actions that occur with 
+                Bazaarvoice UI components. For example, the event callback can be used to pass tracking information into your web analytics system or otherwise change
+                the behavior of your page depending on the information it passes back about the User-Generated-Content available on the page. This code will be wrapped
+                in a javascript function(json){...} block.  See your Bazaarvoice Implementation manual for further information.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    if (json.eventSource == "Display") {
+                                if (json.attributes.numReviews == 0) {
+                                    var bvRevCntr = document.getElementById("BVReviewsContainer");
+                                    var bvSVPLink = document.getElementById("BVRRLinkContainer");
+                                    
+                                    if (bvRevCntr) { bvRevCntr.style.display = "none"; }
+                                    if (bvSVPLink) { bvSVPLink.style.display = "none"; }
+                                }
+                    }
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRRShowReviewsTabJavascript">
+                <display-name xml:lang="x-default">Show Reviews Tab Javascript function</display-name>
+                <description xml:lang="x-default">
+				This preference value is expected to be a valid client-side javascript. In the event that Bazaarvoice reviews are displayed behind a tab, this javascript will be used by Bazaarvoice to open the tab in the event that the "Read all reviews" link is clicked by an end user.
+				</description>
+				<type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRRSubDomain">
+                <display-name xml:lang="x-default">Bazaarvoice R&amp;R Sub Domain</display-name>
+                <description xml:lang="x-default">The sub domain name for the Bazaarvoice Ratings and Reviews.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>reviews</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYDefaultDisplayCode">
+                <display-name xml:lang="x-default">Bazaarvoice Stories Default Display Code</display-name>
+                <description xml:lang="x-default">The display code for your Bazaarvoice Stories implementation.  For example: 1234-en_us</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYDisplayCodeJavascript">
+                <display-name xml:lang="x-default">Display Code Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a valid Bazaarvoice DisplayCode to be used for display and submission of Stories.  
+                This preference exists so that you may customize which DisplayCode is used based upon data available client-side.  Typically this is used to select
+                a locale-specific DisplayCode.  In the event of an error processing this javascript or that it returns nothing, the default display code specified
+                above will be used.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    //no-op
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYDisplayFormatJavascript">
+                <display-name xml:lang="x-default">Stories Display Format Javascript Function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block, therefore your code must return a value of "show_grid" or "show_stories" depending 
+                on whether or not you want to display the Stories grid or list views.  This preference exists so that you may customize which view is 
+                displayed based upon other data in the browser. "show_grid" is the default display type if nothing is provided here.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>return "show_grid";</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYDisplayTypeJavascript">
+                <display-name xml:lang="x-default">Display Type Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a value of "mobile" or an empty string, "", depending 
+                on whether or not you want to set the displayType for stories display to a mobile device or for a full browser client.  
+                This preference exists so that you may customize which displayType is used based upon data available client-side.  See your Bazaarvoice 
+                Implementation manual for further information on the displayType configuration parameter.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    var userAgent = navigator.userAgent.toLowerCase();
+                    var isMobileDevice = (userAgent.search("iphone") &gt; -1 || userAgent.search("android") &gt; -1 || userAgent.search("blackberry") &gt; -1);
+                    return (isMobileDevice ? "mobile" : "");
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYOnEventJavascript">
+                <display-name xml:lang="x-default">Stories OnEvent javascript callback</display-name>
+                <description xml:lang="x-default">The Bazaarvoice JavaScript onEvent callback enables you to track certain actions that occur with 
+                Bazaarvoice UI components. For example, the event callback can be used to pass tracking information into your web analytics system or otherwise change
+                the behavior of your page depending on the information it passes back about the User-Generated-Content available on the page. This code will be wrapped
+                in a javascript function(json){...} block.  See your Bazaarvoice Implementation manual for further information.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    if (json.eventSource == "Display") {
+                                if (json.attributes.numStories == 0) {
+                                    var bvSYCntr = document.getElementById("BVSYContainer");
+                                
+                                    if (bvSYCntr) { bvSYCntr.style.display = "none"; }
+                                }
+                    }
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYShowStoriesTabJavascript">
+                <display-name xml:lang="x-default">Show Stories Tab Javascript function</display-name>
+                <description xml:lang="x-default">
+				This preference value is expected to be a valid client-side javascript. In the event that Bazaarvoice stories are displayed behind a tab, this javascript will be used by Bazaarvoice to open the tab in the event that the "Read all stories" link is clicked by an end user.
+				</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYSmartSEOPageFormat">
+                <display-name xml:lang="x-default">Bazaarvoice Stories SmartSEO Page Format</display-name>
+                <description xml:lang="x-default">If you have enabled SmartSEO, this preference determines which type of pre-rendered content will be injected
+                into the page.  Valid options are "stories" and "storiesgrid", corresponding to the list and grid views of stories, respectively.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>stories</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSYSubDomain">
+                <display-name xml:lang="x-default">Bazaarvoice Stories Sub Domain</display-name>
+                <description xml:lang="x-default">The sub domain name for the Bazaarvoice Stories.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>stories</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSmartSEOFeedFileName">
+                <display-name xml:lang="x-default">Bazaarvoice Smart SEO Feed Filename</display-name>
+                <description xml:lang="x-default">This is the filename of the Smart SEO zip archive on Bazaarvoice SFTP servers. Usually this value is bv_client_smartseo.zip, with "client" replaced with the customer name.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>bv_[customer]_smartseo.zip</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSmartSEOFeedPath">
+                <display-name xml:lang="x-default">Bazaarvoice Smart SEO Feed Path</display-name>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>feeds</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSmartSEOMaxStaleDays">
+                <display-name xml:lang="x-default">Bazaarvoice Smart SEO Maximum Content Staleness</display-name>
+                <description xml:lang="x-default">This value represents the maximum age in days to use cached content if new content is not available on import.</description>
+                <type>int</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+                <default-value>5</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvStaging">
+                <display-name xml:lang="x-default">Bazaarvoice Staging</display-name>
+                <description xml:lang="x-default">Bazaarvoice staging URL string.  This is used to append the bvstaging to Bazaarvoice URLs.  Its value should be set to "/" for the production context and "/bvstaging" for the sandbox and staging contexts.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <default-value>/bvstaging</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSubmissionDisplayTypeJavascript">
+                <display-name xml:lang="x-default">Display Type Javascript function</display-name>
+                <description xml:lang="x-default">This preference value is expected to be valid client-side javascript.  The Bazaarvoice cartridge 
+                will wrap this javascript in a function(){...} block.  Your code must return a value of "mobile" or an empty string, "", depending 
+                on whether or not you want to set the displayType for the reviews submission container to a mobile device or for a full browser client.  
+                This preference exists so that you may customize which displayType is used based upon data available client-side.  See your Bazaarvoice 
+                Implementation manual for further information on the displayType configuration parameter.</description>
+                <type>text</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>
+                    var userAgent = navigator.userAgent.toLowerCase();
+                    var isMobileDevice = (userAgent.search("iphone") &gt; -1 || userAgent.search("android") &gt; -1 || userAgent.search("blackberry") &gt; -1);
+                    return (isMobileDevice ? "mobile" : "");
+                </default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvSubmissionURL">
+                <display-name xml:lang="x-default">Bazaarvoice Submission URL</display-name>
+                <description xml:lang="x-default">The URL of the Bazaarvoice review submission page.  This should point to the Start node of the SubmissionContainer pipeline.  For example: http://yourdomain.com/on/demandware.store/Sites-SiteGenesis-Site/default/Bazaarvoice-SubmissionContainer</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Bazaarvoice General">
+                <display-name xml:lang="x-default">Bazaarvoice General Settings</display-name>
+                <attribute attribute-id="bvCustomerName"/>
+                <attribute attribute-id="bvAPIHostname"/>
+                <attribute attribute-id="bvHostDomain"/>
+                <attribute attribute-id="bvStaging"/>
+                <attribute attribute-id="bvFacebookXdReceiverUrl"/>
+                <attribute attribute-id="bvSubmissionURL"/>
+                <attribute attribute-id="bvSubmissionDisplayTypeJavascript"/>
+                <attribute attribute-id="bvAdminEmail"/>
+                <attribute attribute-id="bvEncodingKey"/>
+                <attribute attribute-id="bvFTPHost"/>
+                <attribute attribute-id="bvFTPPassword"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoiceRR">
+                <display-name xml:lang="x-default">Bazaarvoice R&amp;R Settings</display-name>
+                <attribute attribute-id="bvEnableRR"/>
+                <attribute attribute-id="bvRRDefaultDisplayCode"/>
+                <attribute attribute-id="bvRRDisplayCodeJavascript"/>
+                <attribute attribute-id="bvRRSubDomain"/>
+                <attribute attribute-id="bvRROnEventJavascript"/>
+                <attribute attribute-id="bvRRDisplayTypeJavascript"/>
+                <attribute attribute-id="bvRRShowReviewsTabJavascript"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoiceAA">
+                <display-name xml:lang="x-default">Bazaarvoice A&amp;A Settings</display-name>
+                <attribute attribute-id="bvEnableAA"/>
+                <attribute attribute-id="bvAADefaultDisplayCode"/>
+                <attribute attribute-id="bvAADisplayCodeJavascript"/>
+                <attribute attribute-id="bvAASubDomain"/>
+                <attribute attribute-id="bvAAOnEventJavascript"/>
+                <attribute attribute-id="bvQAShowQuestionsTabJavascript"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoiceSY">
+                <display-name xml:lang="x-default">Bazaarvoice Stories Settings</display-name>
+                <attribute attribute-id="bvEnableSY"/>
+                <attribute attribute-id="bvSYDefaultDisplayCode"/>
+                <attribute attribute-id="bvSYDisplayCodeJavascript"/>
+                <attribute attribute-id="bvSYSubDomain"/>
+                <attribute attribute-id="bvSYDisplayFormatJavascript"/>
+                <attribute attribute-id="bvSYOnEventJavascript"/>
+                <attribute attribute-id="bvSYSmartSEOPageFormat"/>
+                <attribute attribute-id="bvSYShowStoriesTabJavascript"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoiceProductFeed">
+                <display-name xml:lang="x-default">Bazaarvoice Product Feed Export Settings</display-name>
+                <attribute attribute-id="bvEnableProductFeed"/>
+                <attribute attribute-id="bvProductFeedExportPath"/>
+                <attribute attribute-id="bvProductFeedExportFileName"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoiceCP">
+                <display-name xml:lang="x-default">Bazaarvoice Active Profiles Settings</display-name>
+                <attribute attribute-id="bvCPDefaultDisplayCode"/>
+                <attribute attribute-id="bvCPDisplayCodeJavascript"/>
+                <attribute attribute-id="bvCPSubDomain"/>
+                <attribute attribute-id="bvCPOnEventJavascript"/>
+                <attribute attribute-id="bvCPRenderEditProfileLink"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoicePurchaseFeed">
+                <display-name xml:lang="x-default">Bazaarvoice Purchase Feed Settings</display-name>
+                <attribute attribute-id="bvEnablePurchaseFeed"/>
+                <attribute attribute-id="bvPurchaseFeedPath"/>
+                <attribute attribute-id="bvPurchaseFeedFileName"/>
+                <attribute attribute-id="bvPurchaseFeedTriggeringEvent"/>
+                <attribute attribute-id="bvPurchaseFeedDelayDaysSinceEvent"/>
+                <attribute attribute-id="bvPurchaseFeedNumDaysLookback"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoiceInlineRating">
+                <display-name xml:lang="x-default">Bazaarvoice Inline Rating Settings</display-name>
+                <attribute attribute-id="bvEnableInlineRatings"/>
+                <attribute attribute-id="bvInlineRatingsFeedPath"/>
+                <attribute attribute-id="bvInlineRatingsFeedFileName"/>
+            </attribute-group>
+            <attribute-group group-id="BazaarvoiceSmartSEO">
+                <display-name xml:lang="x-default">Bazaarvoice Smart SEO Settings</display-name>
+                <attribute attribute-id="bvEnableSmartSEO"/>
+                <attribute attribute-id="bvSmartSEOFeedPath"/>
+                <attribute attribute-id="bvSmartSEOFeedFileName"/>
+                <attribute attribute-id="bvSmartSEOMaxStaleDays"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+</metadata>

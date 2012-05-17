@@ -1,0 +1,256 @@
+/**
+*
+* @output Message : String
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.util );
+importPackage( dw.web );
+importPackage( dw.net );
+importPackage( dw.catalog );
+importPackage( dw.object );
+importPackage( dw.io );
+importPackage( dw.content );
+
+importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
+
+var XML_NAMESPACE : String = "http://www.bazaarvoice.com/xs/PRR/PostPurchaseFeed/4.9";
+//var MESSAGE_TEMPLATE : String = "[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}]";
+var CUSTOM_FLAG : String = "bvSentInPPEFeed";
+
+var bvHelper = getBazaarVoiceHelper();
+ 
+function execute( pdict : PipelineDictionary ) : Number {
+    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed");
+    if (!purchaseFeedEnabled) {
+       //If the feed isn't enabled, just return.
+       pdict.Message = "Purchase Feed is not enabled!";
+       return PIPELET_NEXT;
+    }
+    
+    //Establish whom to notify if this export fails
+    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail");
+    
+    var date : Date = new Date();
+    var filename : String = "PurchaseFeed-" 
+                                + date.getFullYear() 
+                                + bvHelper.insertLeadingZero(date.getMonth() + 1) 
+                                + bvHelper.insertLeadingZero(date.getDate() + 1) 
+                                + bvHelper.insertLeadingZero(date.getHours() + 1) 
+                                + bvHelper.insertLeadingZero(date.getMinutes() + 1) 
+                                + bvHelper.insertLeadingZero(date.getMilliseconds()) + ".xml"; 
+    var file : File = new File(File.TEMP + "/" + filename);
+    
+    try {
+        
+        /* Create an output stream */
+        var xsw : XMLStreamWriter = initFeed(file);
+        
+        /* Process Orders */
+        var numOrdersExported = writeOrders(xsw);
+        
+        // Write the closing Feed element, then flush & close the stream
+        bvHelper.finalizeFeed(xsw);
+            
+        var destinationPath : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedPath");
+        var uploadFilename : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedFileName");
+        var destinationFilename : String = uploadFilename.substr(0, uploadFilename.length - 4) + "-" + StringUtils.formatCalendar(Site.getCalendar(), "yyyy-MM-dd") + ".xml";
+        
+        
+        // Don't bother uploading if no orders are in the feed
+        if (numOrdersExported > 0) {
+            var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+            pdict.Message = ret;
+        }else {
+        	pdict.Message = "No order to export!";
+        }
+            
+    } catch(ex) {
+        Logger.error("[exception caught]" + ex.message);
+        return PIPELET_ERROR;    
+    } finally {
+        if (file.exists()) {
+            file.remove();
+        }
+    }        
+    
+    return PIPELET_NEXT;
+}
+
+function writeOrders(xsw : XMLStreamWriter) : Number { 
+    
+    var numDaysLookback : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedNumDaysLookback");
+    
+    var numDaysLookbackStartDate : Date = null;
+    var helperCalendar = new Calendar();
+    helperCalendar.add(Calendar.DATE, (-1 * numDaysLookback));  //Subtract numDaysLookback days from the current date.
+    numDaysLookbackStartDate = helperCalendar.getTime();
+    
+    var queryString : String = "status = {0} AND paymentStatus = {1} AND creationDate >= {2}";
+    var orderItr : SeekableIterator = OrderMgr.queryOrders(queryString, "orderNo ASC", Order.ORDER_STATUS_COMPLETED, Order.PAYMENT_STATUS_PAID, numDaysLookbackStartDate);
+
+    var orderCtr = 0;
+    while(orderItr.hasNext()) {
+    	var order : Order = orderItr.next();
+    	if (shouldIncludeOrder(order)) {
+            orderCtr++;
+            writeOrder(xsw, order);
+            order.custom[CUSTOM_FLAG] = true;
+    	}
+    }
+    orderItr.close();
+    
+    return orderCtr; 
+}
+
+
+
+function writeOrder(xsw : XMLStreamWriter, order : Order) { 
+    
+    var emailAddress : String = order.getCustomerEmail();
+    var locale : String = order.getCustomerLocaleID();
+    var userName : String = order.getCustomerName();
+    var userID : String = order.getCustomerNo();
+    var txnDate : Date = getTransactionDate(order);
+    
+    var lineItems : Collection = order.getAllProductLineItems();
+    
+    xsw.writeStartElement("Interaction");
+	    
+	    bvHelper.writeElement(xsw, "EmailAddress", emailAddress);
+	    if (locale && locale !== "default") { bvHelper.writeElement(xsw, "Locale", locale); }
+	    if (userName) { bvHelper.writeElement(xsw, "UserName", userName); }
+	    if (userID) { bvHelper.writeElement(xsw, "UserID" , userID); }
+	    if (txnDate) { bvHelper.writeElement(xsw, "TransactionDate", txnDate.toISOString()); }
+	    
+	    xsw.writeStartElement("Products");
+	    for each(var lineItem : ProductLineItem in lineItems) {
+	        var prod : Product = lineItem.getProduct();
+	        
+	        if (!prod) {
+	        	// Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
+	        	continue;
+	        }
+	        
+	        var externalID : String = bvHelper.replaceIllegalCharacters(prod.variant ? prod.variationModel.master.ID : prod.ID);
+	        var name : String = prod.name;
+	        var price : Number = lineItem.getPriceValue();
+	        var prodImage : MediaFile = prod.getImage('medium');
+	        var prodImageUrl : String = null;
+	        if (prodImage) {
+	        	prodImageUrl = prodImage.getAbsURL();
+	        }  
+	        
+	        
+	        xsw.writeStartElement("Product");
+	           bvHelper.writeElement(xsw, "ExternalId", externalID);
+	           if (name) { bvHelper.writeElement(xsw, "Name", name); }
+	           if (price) { bvHelper.writeElement(xsw, "Price", price); }
+	           if (prodImageUrl) { bvHelper.writeElement(xsw, "ImageUrl" , prodImageUrl); }
+	        xsw.writeEndElement();    
+	    }
+	    xsw.writeEndElement();
+    xsw.writeEndElement();
+}
+
+function shouldIncludeOrder(order : Order) : Boolean {
+	var triggeringEvent : String = getTriggeringEvent();
+    var delayDaysSinceEvent : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedDelayDaysSinceEvent");
+    
+    // Have we already included this order in a previous feed?  If so, don't re-export it.
+    var custAttribs : CustomAttributes = order.getCustom();
+    if ((CUSTOM_FLAG in custAttribs) && (custAttribs[CUSTOM_FLAG] === true)) {
+    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order already exported.");
+    	return false;
+    }
+    
+    //Depending on the Triggering Event, we have a different set of criteria that must be met.
+    var thresholdTimestamp : Date = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
+    if (triggeringEvent === "shipping") {
+    	//Is this order fully shipped?
+    	if (order.getShippingStatus() !== Order.SHIPPING_STATUS_SHIPPED) {
+    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Not completely shipped.");
+    		return false;
+    	}
+    	
+    	//Are we outside of the delay period?
+    	var latestItemShipDate : Date = getLatestShipmentDate(order);
+    	if (latestItemShipDate.getTime() > thresholdTimestamp.getTime()) {
+    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
+    		return false;
+    	}
+    	
+    } else if (triggeringEvent === "purchase") {
+    	//We need to see if the order placement timestamp of this order is outside of the delay period
+    	var orderPlacementDate : Date = order.getCreationDate();
+    	if (orderPlacementDate.getTime() > thresholdTimestamp.getTime()) {
+    	   Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
+    	   return false;
+    	}
+    }
+    
+    // Finally, ensure we have everything on this order that would be required in the output feed
+    
+    // Nothing fancy, but do we have what basically looks like a legit email address?
+    if (!order.getCustomerEmail().match(/@/)) {
+    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". No valid email address.");
+    	return false;
+    }
+    
+    // Does the order have any line items ?
+    if (order.getAllProductLineItems().getLength() < 1) {
+    	Logger.debug("BV - Skipping order:" + order.getOrderNo() + ". No items in this order.");
+    	return false;
+    }
+    
+	return true;
+}
+
+function initFeed(file : File) : XMLStreamWriter {
+    var fw : FileWriter = new FileWriter(file, "UTF-8");
+    var xsw : XMLIndentingStreamWriter = new XMLIndentingStreamWriter(fw);
+    
+    xsw.writeStartDocument("UTF-8", "1.0");
+    xsw.writeStartElement("Feed");
+       xsw.writeAttribute("xmlns", XML_NAMESPACE);
+       
+    return xsw;
+}
+
+function getTransactionDate(order : Order) : Date {
+    var txnDate : Date = order.getCreationDate();
+    
+    var triggeringEvent : String = getTriggeringEvent();
+    if (triggeringEvent === "shipping") {
+        txnDate = getLatestShipmentDate(order);
+    }
+    
+    return txnDate;
+}
+
+function getTriggeringEvent() : String {
+    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent");
+    if (!triggeringEvent) {
+        triggeringEvent = "shipping";
+    } else {
+        triggeringEvent = triggeringEvent.toString().toLowerCase();
+    }
+    return triggeringEvent;
+}
+
+function getDelayDaysThresholdTimestamp(delayDaysSinceEvent : Number) : Date {
+    var helperCalendar = new Calendar();
+    helperCalendar.add(Calendar.DATE, (-1 * delayDaysSinceEvent));  //Subtract delayDaysSinceEvent days from the current date.
+    return helperCalendar.getTime();
+}
+
+function getLatestShipmentDate(order : Order) : Date {
+	var latestShipment : Number = 0; // initialize to epoch
+	
+	var shipments : Collection = order.getShipments();
+	for each(var shipment : Shipment in shipments) {
+        latestShipment = Math.max(latestShipment.getTime(), shipment.getCreationDate().getTime());
+    }
+    
+    return new Date(latestShipment);
+}

@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?demandware-pipeline version="2.0"?>
+
+<pipeline type="job">
+  <branch basename="_ANONYMOUS_BRANCH_1">
+    <segment>
+      <node>
+        <text-node>
+          <description>Import rating feed to catalog.  This allows product rating summary data to be displayed on category and other pages.</description>
+        </text-node>
+        <node-display width="2" x="1" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ImportRatingFeed">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="ImportRatingFeed" secure="false"/>
+        <node-display x="1" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node custom-name="bvImportRatingsFeed.ds" pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="feeds/bvImportRatingFeed.ds"/>
+          <config-property key="Timeout" value="3600"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="xml" key="output"/>
+          <key-binding alias="Failed" key="Failed"/>
+          <key-binding alias="Processed" key="Processed"/>
+          <key-binding alias="notifyToEmailId" key="notifyToEmailId"/>
+          <key-binding alias="message" key="message"/>
+          <key-binding alias="Message" key="Message"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+                <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+                <key-binding alias="&quot;Rating Feed Import Status&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="null" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+              </pipelet-node>
+              <node-display x="1" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+                <config-property key="InvalidatePageCache" value="true"/>
+                <config-property key="InvalidateStaticCache" value="false"/>
+                <key-binding alias="null" key="SiteID"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <stop-node name="ERROR"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+          <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+          <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+          <key-binding alias="&quot;Rating Feed Import Status&quot;" key="MailSubject"/>
+          <key-binding alias="null" key="LocaleID"/>
+          <key-binding alias="null" key="MailCC"/>
+          <key-binding alias="null" key="MailBCC"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+          <config-property key="InvalidatePageCache" value="true"/>
+          <config-property key="InvalidateStaticCache" value="false"/>
+          <key-binding alias="null" key="SiteID"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_3">
+    <segment>
+      <node>
+        <text-node>
+          <description>Export catalog to Bazaarvoice.  This export contains product data that is displayed on the review landing page, submission form and microsite.</description>
+        </text-node>
+        <node-display width="2" x="4" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_4">
+    <segment>
+      <node>
+        <text-node>
+          <description>Import SmartSEO zipfiles if the feature is turned on.</description>
+        </text-node>
+        <node-display x="7" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ExportProductCatalog">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="ExportProductCatalog" secure="false"/>
+        <node-display x="4" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="feeds/bvExportProductFeed.ds"/>
+          <config-property key="Timeout" value="3600"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="xml" key="output"/>
+          <key-binding alias="notifyToEmailID" key="notifyToEmailId"/>
+          <key-binding alias="message" key="message"/>
+          <key-binding alias="Message" key="Message"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+                <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+                <key-binding alias="&quot;Product Feed Export Status&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="null" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+              </pipelet-node>
+              <node-display x="1" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+                <config-property key="InvalidatePageCache" value="false"/>
+                <config-property key="InvalidateStaticCache" value="false"/>
+                <key-binding alias="null" key="SiteID"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <stop-node name="ERROR"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+          <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+          <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+          <key-binding alias="&quot;Product Feed Export Status&quot;" key="MailSubject"/>
+          <key-binding alias="null" key="LocaleID"/>
+          <key-binding alias="null" key="MailCC"/>
+          <key-binding alias="null" key="MailBCC"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+          <config-property key="InvalidatePageCache" value="false"/>
+          <config-property key="InvalidateStaticCache" value="false"/>
+          <key-binding alias="null" key="SiteID"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ImportSmartSEO">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="ImportSmartSEO" secure="false"/>
+        <node-display x="7" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="feeds/bvImportSmartSEOFeed.ds"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="Message" key="Message"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+                <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+                <key-binding alias="&quot;SmartSEO Feed Import Status&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="null" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+              </pipelet-node>
+              <node-display x="1" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+                <config-property key="InvalidatePageCache" value="false"/>
+                <config-property key="InvalidateStaticCache" value="false"/>
+                <key-binding alias="null" key="SiteID"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <stop-node name="ERROR"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+          <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+          <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+          <key-binding alias="&quot;SmartSEO Feed Import Status&quot;" key="MailSubject"/>
+          <key-binding alias="null" key="LocaleID"/>
+          <key-binding alias="null" key="MailCC"/>
+          <key-binding alias="null" key="MailBCC"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+          <config-property key="InvalidatePageCache" value="false"/>
+          <config-property key="InvalidateStaticCache" value="false"/>
+          <key-binding alias="null" key="SiteID"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_7">
+    <segment>
+      <node>
+        <text-node>
+          <description>Export purchase data and deliver to Bazaarvoice to use for Post Interaction Emails that generate additional review volume.</description>
+        </text-node>
+        <node-display width="2" x="10" y="0"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="ExportPurchaseData">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="ExportPurchaseData" secure="false"/>
+        <node-display x="10" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="true"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="feeds/bvExportPurchaseFeed.ds"/>
+          <config-property key="Timeout" value="3600"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+          <key-binding alias="Message" key="Message"/>
+          <key-binding alias="NotifyEmailId" key="NotifyToEmailId"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in">
+            <transition-display>
+              <bend-point relative-to="source" x="2" y="0"/>
+              <bend-point relative-to="target" x="0" y="-1"/>
+            </transition-display>
+          </transition>
+          <segment>
+            <node>
+              <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+                <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+                <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+                <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+                <key-binding alias="&quot;Purchase Feed Export Status&quot;" key="MailSubject"/>
+                <key-binding alias="null" key="LocaleID"/>
+                <key-binding alias="null" key="MailCC"/>
+                <key-binding alias="null" key="MailBCC"/>
+              </pipelet-node>
+              <node-display x="1" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+                <config-property key="InvalidatePageCache" value="false"/>
+                <config-property key="InvalidateStaticCache" value="false"/>
+                <key-binding alias="null" key="SiteID"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="0" y="1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
+              <stop-node name="ERROR"/>
+              <node-display x="0" y="1"/>
+            </node>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
+          <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
+          <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
+          <key-binding alias="dw.system.Site.getCurrent().getCustomPreferenceValue(&quot;bvAdminEmail&quot;)" key="MailTo"/>
+          <key-binding alias="&quot;Purchase Feed Export Status&quot;" key="MailSubject"/>
+          <key-binding alias="null" key="LocaleID"/>
+          <key-binding alias="null" key="MailCC"/>
+          <key-binding alias="null" key="MailBCC"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
+          <config-property key="InvalidatePageCache" value="false"/>
+          <config-property key="InvalidateStaticCache" value="false"/>
+          <key-binding alias="null" key="SiteID"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+</pipeline>

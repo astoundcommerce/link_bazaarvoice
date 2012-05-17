@@ -1,0 +1,291 @@
+/**
+ *
+ * A library file for BazaarVoice communication.
+ *
+ * It cannot be used as a pipelet.
+ *
+ */
+importPackage(dw.system);
+importPackage(dw.order);
+importPackage(dw.rpc);
+importPackage(dw.util);
+importPackage(dw.value);
+importPackage(dw.crypto);
+importPackage(dw.io);
+importPackage(dw.net);
+
+/**
+ * Used building output as Hex
+ */
+var DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+var USER_STRING_TEMPLATE: String = "date={0}&userid={1}&username={2}";
+var MESSAGE_TEMPLATE : String = "[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}]";
+
+var CONST_SMARTSEO_BVRRP = "bvrrp";
+var CONST_SMARTSEO_BVQAP = "bvqap";
+var CONST_SMARTSEO_BVSYP = "bvsyp";
+
+var BazaarVoiceHelper = {
+
+    replaceIllegalCharacters: function (rawId: String): String {
+        return rawId.replace("&", "_and_");
+    },
+
+    decodeId: function (id: String) {
+        if (id.indexOf("_and_") != -1) {
+            return id.replace("_and_", "&");
+        } else {
+            return id;
+        }
+    },
+
+    md5: function (data: String) {
+        var digest: MessageDigest = new MessageDigest(MessageDigest.DIGEST_MD5);
+        return digest.digest(data);
+    },
+
+    encodeHex: function (data: String) {
+        var l: Number = data.length;
+        var out: String = "";
+        // two characters form the hex value.
+        for (var i = 0; i < l; i++) {
+            out += DIGITS[(0xF0 & data.charCodeAt(i)) >>> 4];
+            out += DIGITS[0x0F & data.charCodeAt(i)];
+        }
+        return out;
+    },
+
+    encryptReviewerId: function (reviewerId: String, reviewerNickname: String) {
+        if (!empty(reviewerId) && !empty(reviewerNickname)) {
+            var dateAndreviewerId: String = StringUtils.format(USER_STRING_TEMPLATE, StringUtils.formatCalendar(new Calendar(), 'yyyyMMdd'), reviewerId, reviewerNickname);
+
+            var sharedKey: String = Site.getCurrent().getCustomPreferenceValue("bvEncodingKey");
+            var md5String: String = BazaarVoiceHelper.md5(sharedKey + dateAndreviewerId);
+            var hexUserID: String = BazaarVoiceHelper.encodeHex(dateAndreviewerId);
+
+            return md5String + hexUserID;
+        }
+        return null;
+    },
+
+    getBvUrl: function (isStatic: boolean, bvProduct : String): String {
+        var protocol = request.httpProtocol;
+        var hostSubdomain = BazaarVoiceHelper.getSubDomainForBVProduct(bvProduct);
+        var hostDomain = Site.getCurrent().getCustomPreferenceValue("bvHostDomain");
+        var bvStaging = BazaarVoiceHelper.getBvStaging();
+        var bvDefaultDisplayCode = BazaarVoiceHelper.getDisplayCodeForBVProduct(bvProduct);
+        var stat = "";
+        if (isStatic) {
+            stat = "static/";
+        }
+
+        return protocol + "://" + hostSubdomain + "." + hostDomain + bvStaging + stat + bvDefaultDisplayCode;
+    },
+
+    getBvApiHostUrl: function (): String {
+        var protocol = request.httpProtocol;
+        var bvApiHostname = Site.getCurrent().getCustomPreferenceValue("bvAPIHostname");
+        var bvStaging = BazaarVoiceHelper.getBvStaging();
+        var bvDefaultDisplayCode = BazaarVoiceHelper.getDefaultDisplayCode();
+
+        return protocol + "://" + bvApiHostname + bvStaging + "static/" + bvDefaultDisplayCode;
+    },
+
+    getBvStaging: function (): String {
+        var bvStaging = Site.getCurrent().getCustomPreferenceValue("bvStaging");
+        if (bvStaging == "") {
+            bvStaging = "/";
+        } else {
+            //Add the leading slash if it doesn't already have it
+            if (bvStaging.match("^\/") != "/") {
+                bvStaging = "/" + bvStaging;
+            }
+            //Add the trailing slash if it doesn't already have it
+            if (bvStaging.match("\/$") != "/") {
+                bvStaging = bvStaging + "/";
+            }
+        }
+        return bvStaging;
+    }, 
+    
+    getExternalSubjectForPage: function(pdict : PipelineDictionary) : Object {
+        var ret = {};
+        
+        var bvExternalSubjectID = null;
+        if (pdict.Product != null) {
+            ret.bvSubjectType = "product";
+            ret.bvExternalSubjectName = (pdict.Product.variant) ? pdict.Product.variationModel.master.name : pdict.Product.name;
+            bvExternalSubjectID = (pdict.Product.variant) ? pdict.Product.variationModel.master.ID : pdict.Product.ID;
+        } else if (pdict.Category != null) {
+            ret.bvSubjectType = "category";
+            ret.bvExternalSubjectName = pdict.Category.name;
+            bvExternalSubjectID = pdict.Category.ID;
+        } else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.deepestCommonCategory != null ) {
+            ret.bvSubjectType = "category";
+            ret.bvExternalSubjectName = pdict.ProductSearchResult.deepestCommonCategory.displayName;
+            bvExternalSubjectID = pdict.ProductSearchResult.deepestCommonCategory.ID;
+        }
+
+        if (bvExternalSubjectID != null) {
+            ret.bvExternalSubjectID = BazaarVoiceHelper.replaceIllegalCharacters(bvExternalSubjectID);
+        }
+        
+        return ret;
+    }, 
+    
+    getSmartSEOContent: function(pdict : PipelineDictionary, bvProduct : String, bvSubject : Object, pageFormat : String) : String {
+        var baseFolder : String = "smartSEO/";
+        
+        var content : String = null;
+        var smartSEOEnabled = Site.getCurrent().getCustomPreferenceValue("bvEnableSmartSEO");
+        if (smartSEOEnabled) {
+            var displayCode = BazaarVoiceHelper.getDisplayCodeForBVProduct(bvProduct);
+            if (pageFormat != "") {
+            	pageFormat += "/";
+            }     
+            var smartSEOFile : File = new File(new File(File.IMPEX),baseFolder + displayCode + "/" + bvProduct + "/" + bvSubject.bvSubjectType + "/1/" + pageFormat + bvSubject.bvExternalSubjectID + ".htm");
+            
+            if (!empty(pdict.CurrentHttpParameterMap)) {
+                if (pdict.CurrentHttpParameterMap.isParameterSubmitted(CONST_SMARTSEO_BVRRP)) {
+                    smartSEOFile = new File(new File(File.IMPEX), baseFolder + pdict.CurrentHttpParameterMap.get(CONST_SMARTSEO_BVRRP).stringValue);
+                }else if (pdict.CurrentHttpParameterMap.isParameterSubmitted(CONST_SMARTSEO_BVQAP)) {
+                    smartSEOFile = new File(new File(File.IMPEX), baseFolder + pdict.CurrentHttpParameterMap.get(CONST_SMARTSEO_BVQAP).stringValue);
+                }else if (pdict.CurrentHttpParameterMap.isParameterSubmitted(CONST_SMARTSEO_BVSYP)) {
+                    smartSEOFile = new File(new File(File.IMPEX), baseFolder + pdict.CurrentHttpParameterMap.get(CONST_SMARTSEO_BVSYP).stringValue);
+                }
+            }
+
+            if (smartSEOFile.exists()) {
+                var reader : FileReader = new FileReader(smartSEOFile);
+                content = reader.getString();
+                reader.close();
+            }
+
+            //Replace any occurrences of "{INSERT_PAGE_URI}" with product or category page URL, ensuring that it ends with either ? or & as appropriate.
+            if (content) {
+                var currentPage = pdict.CurrentRequest.getHttpProtocol()+'://'+pdict.CurrentRequest.getHttpHost()+pdict.CurrentRequest.getHttpPath();
+                currentPage += "?";
+                if (!empty(pdict.CurrentRequest.getHttpQueryString())) {
+                	for each(var param : String in pdict.CurrentHttpParameterMap.getParameterNames()){
+                		if (param != CONST_SMARTSEO_BVRRP && param != CONST_SMARTSEO_BVQAP && param != CONST_SMARTSEO_BVSYP) {
+                			currentPage += param + "=" + pdict.CurrentHttpParameterMap.get(param) + "&";
+                		}
+                	}
+                }
+                
+                content = content.replace(/{INSERT_PAGE_URI}/g, currentPage);
+            }
+        }
+        return content;
+    }, 
+    
+    getDefaultDisplayCode: function() : String {
+        var dc : String = BazaarVoiceHelper.getDisplayCodeForBVProduct("reviews");
+        if (!dc) {
+            dc = BazaarVoiceHelper.getDisplayCodeForBVProduct("questions");
+        }
+        if (!dc) {
+            dc = BazaarVoiceHelper.getDisplayCodeForBVProduct("stories");
+        }
+        if (!dc) {
+            dc = BazaarVoiceHelper.getDisplayCodeForBVProduct("activeprofiles");
+        }
+        return dc;
+    },
+    
+    getDisplayCodeForBVProduct: function(bvProduct : String) : String {
+        if (bvProduct == "questions") {
+            return Site.getCurrent().getCustomPreferenceValue("bvAADefaultDisplayCode");
+        } else if (bvProduct == "stories") {
+            return Site.getCurrent().getCustomPreferenceValue("bvSYDefaultDisplayCode");
+        } else if (bvProduct == "activeprofiles") {
+            return Site.getCurrent().getCustomPreferenceValue("bvCPDefaultDisplayCode");
+        }
+    
+        // Default to RR display code
+        return Site.getCurrent().getCustomPreferenceValue("bvRRDefaultDisplayCode");
+    }, 
+    
+    getSubDomainForBVProduct: function(bvProduct : String) : String {
+        if (bvProduct == "questions") {
+            return Site.getCurrent().getCustomPreferenceValue("bvAASubDomain");
+        } else if (bvProduct == "stories") {
+            return Site.getCurrent().getCustomPreferenceValue("bvSYSubDomain");
+        } else if (bvProduct == "activeprofiles") {
+            return Site.getCurrent().getCustomPreferenceValue("bvCPSubDomain");
+        }
+        
+        // Default to RR display code
+        return Site.getCurrent().getCustomPreferenceValue("bvRRSubDomain");
+    },
+    
+    getActiveProfilesEditProfileLink: function(customerNo : String, customerNick : String) : String {
+        //Construct a URL that looks like the following.
+        //http://ugc.int-demandware.bazaarvoice.com/bvstaging/profiles/6725/editprofile.htm?user=[TO-DO: REPLACE WITH ENCODED USER]
+     
+        var protocol = request.httpProtocol;
+        var bvCPSubDomain = Site.getCurrent().getCustomPreferenceValue("bvCPSubDomain");
+        var bvHostDomain = Site.getCurrent().getCustomPreferenceValue("bvHostDomain");
+        var bvStaging = BazaarVoiceHelper.getBvStaging();
+        var bvCPDefaultDisplayCode = Site.getCurrent().getCustomPreferenceValue("bvCPDefaultDisplayCode");
+        var bvUAS = BazaarVoiceHelper.encryptReviewerId(customerNo, customerNick);
+        
+        return protocol + "://" + bvCPSubDomain + "." + bvHostDomain + bvStaging + "profiles/" + bvCPDefaultDisplayCode + "/editprofile.htm?user=" + bvUAS;
+    },
+    
+    finalizeFeed: function(xsw : XMLStreamWriter) {
+        xsw.writeEndElement();  //</Feed>
+        xsw.writeEndDocument();
+   
+        xsw.flush();
+        xsw.close();
+    },
+
+    writeElement: function(xsw : XMLStreamWriter, elementName : String, chars : String) {
+        xsw.writeStartElement(elementName);
+        xsw.writeCharacters(chars);
+        xsw.writeEndElement();
+    },
+
+    insertLeadingZero: function(nb : Number) : String {
+        if(nb < 10) {
+            return "0"+nb;
+        } else {
+            return ""+nb;
+        }
+    },
+    
+    uploadFile: function(destinationPath : String, destinationFilename : String, localFile : File, pdict : PipelineDictionary) : String {
+    	var ftpClient : SFTPClient = new SFTPClient();
+        var host  : String = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
+        var user  : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
+        var pwd   : String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
+        
+        if(!ftpClient.connect(host, user, pwd)) {
+            return StringUtils.format(MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server.",host, user, "XXXXX", destinationPath, destinationFilename);            
+
+        } 
+        
+        if( !ftpClient.cd(destinationPath)) {      
+            ftpClient.disconnect();        
+            return StringUtils.format(MESSAGE_TEMPLATE,"ERROR", "Error while accessing folder on BV FTP Server.",host, user, "XXXXX", destinationPath, destinationFilename);            
+
+        }
+                
+        // send file to server
+        ftpClient.del(destinationFilename);
+        var success = ftpClient.putBinary(destinationFilename, localFile);
+        ftpClient.disconnect();
+        return StringUtils.format(MESSAGE_TEMPLATE,"SUCCESS", "Export Processed - Connecton Details" ,host, user, "XXXXX", destinationPath, destinationFilename);
+    
+    }
+
+};
+
+
+
+// Helper method to export the helper
+
+function getBazaarVoiceHelper() {
+    return BazaarVoiceHelper;
+}
