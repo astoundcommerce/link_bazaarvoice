@@ -6,7 +6,7 @@
 <div style="font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: x-small; color: Black;">
 
 	<isif condition="${pdict.Message != null && !empty(pdict.Message)}">
-    	<isprint value="${pdict.Message}"/>
+    	<isprint value="${pdict.Message}" encoding="off"/>
    	<iselse>
 		<isprint value="${pdict.ScriptLog}"/>
    	</iselse>

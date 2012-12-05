@@ -1,0 +1,36 @@
+/**
+* LocalizedProdut.ds
+*
+*	Base object for the LocalizedProduct.
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+
+function Product_Object()
+{
+	var _productId : String;
+	var _localeMap : LinkedHashMap;
+
+	this.create = function(pid : String){
+		_localeMap = new LinkedHashMap();
+  		_productId = pid;
+	};
+	
+	this.getProductId = function()
+	{
+		return _productId ;
+	};	
+	
+	this.getLocaleMap = function()
+	{
+		return _localeMap;
+	};
+	
+	this.setLocaleMap = function(localeMap : LinkedHashMap)
+	{
+		_localeMap = localeMap;
+	};
+	
+	return PIPELET_NEXT;
+}

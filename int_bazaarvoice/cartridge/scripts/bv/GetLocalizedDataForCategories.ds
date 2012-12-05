@@ -1,0 +1,55 @@
+/**
+* GetLocalizedDataForCategories.ds
+* Get localized product information for the request locale.
+* put in the locale map in the product object
+*
+*
+* @input CategoryObjects : dw.util.Iterator
+* @input LocaleID : String
+*
+* @output CategoryObjects : dw.util.Iterator
+*/
+importPackage( dw.system );
+importPackage( dw.catalog );
+importPackage( dw.util );
+importPackage( dw.web );
+importPackage( dw.content );
+
+ importScript( "int_bazaarvoice:/model/LocalizedCategory.ds" );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	var categoryObjects : Collection = pdict.CategoryObjects.asList();
+	var catObjList : Collection = new ArrayList();
+	var localeID : String = pdict.LocaleID;
+	
+	for each( var catObject in categoryObjects){
+		var category : Category = CatalogMgr.getCategory(catObject.getCategoryId());
+		
+		var localeMap = catObject.getLocaleMap();
+		
+		var key : String = localeID;
+		var map : HashMap = localeMap.containsKey(key)? localeMap.get(key) : new HashMap();
+				
+	    var urlAction : URLAction = new URLAction('Search-Show', Site.getCurrent().getID(), localeID);
+		map.put("CategoryPageURL", URLUtils.http(urlAction, URLParameter('cgid', category.ID)));
+		
+		var catImage : MediaFile = category.getImage();    
+	    if(catImage){
+	    	map.put("ImageURL", catImage.getAbsURL());
+	    }
+				
+		
+		
+		if(!map.empty){
+			localeMap.put(key, map);
+		}		
+		catObject.setLocaleMap(localeMap);
+		catObjList.add(catObject);
+	}
+	
+	pdict.CategoryObjects = catObjList.iterator();
+	
+    return PIPELET_NEXT;
+}

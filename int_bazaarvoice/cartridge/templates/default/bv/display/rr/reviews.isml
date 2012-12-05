@@ -9,9 +9,9 @@ Embeds the container that reviews are injected to and the javascript that access
      var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
      
      // Obtain SmartSEO content      
-     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "reviews", bvSubject, "");
+     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "reviews", pdict.RRDisplayCode, bvSubject, "");
 
-     var bvUrl = getBazaarVoiceHelper().getBvUrl(false, "reviews");
+     var bvUrl = getBazaarVoiceHelper().getBvUrl(false, "reviews", pdict.RRDisplayCode);
 </isscript>
 <!-- Reviews -->
 <div id="BVReviewsContainer">
@@ -20,13 +20,14 @@ Embeds the container that reviews are injected to and the javascript that access
     </isif>
 </div>
 <script type="text/javascript" language="javascript">
+
     function getRRDisplayCode() {
         try {
             <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRDisplayCodeJavascript')}" encoding="off" />
         }catch(e){
             //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
         }
-        return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRDefaultDisplayCode')}";
+        return '${pdict.RRDisplayCode}';
     }
     function getRRDisplayType() {
         try {

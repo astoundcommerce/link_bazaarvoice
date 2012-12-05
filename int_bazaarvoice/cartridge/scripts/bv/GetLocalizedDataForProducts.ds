@@ -1,0 +1,69 @@
+/**
+* GetLocalizedDataForProducts.ds
+* Get localized product information for the request locale.
+* put in the locale map in the product object
+*
+*
+* @input ProductObjects : dw.util.Iterator
+* @input LocaleID : String
+*
+* @output ProductObjects : dw.util.Iterator
+*/
+importPackage( dw.system );
+importPackage( dw.catalog );
+importPackage( dw.util );
+importPackage( dw.web );
+importPackage( dw.content );
+
+importScript( "int_bazaarvoice:/model/LocalizedProduct.ds" );
+importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var productObjects : Collection = pdict.ProductObjects.asList();
+	var pObjList : Collection = new ArrayList();
+	var localeID : String = pdict.LocaleID;
+	
+	for each(var prodObj in productObjects){
+
+		var product : Product = ProductMgr.getProduct(prodObj.getProductId());
+		
+		var localeMap = prodObj.getLocaleMap();
+		
+		var key : String = localeID;
+		var map : HashMap = localeMap.containsKey(key)? localeMap.get(key) : new HashMap();
+		
+
+		map.put("Name", product.name);		
+
+		map.put("Description", product.shortDescription? product.shortDescription : product.name);
+		
+		
+		var action : URLAction = new URLAction('Product-Show', Site.getCurrent().getID(), localeID);
+		map.put("ProductPageURL", URLUtils.http(action, URLParameter('pid',product.ID)));
+		
+		
+		var IMAGE_SIZE : String = Site.getCurrent().getCustomPreferenceValue("bvProductImageType");
+		
+		if(!empty(IMAGE_SIZE)){
+			IMAGE_SIZE = BV_Constants.BV_DEFAULTIMAGETYPE;
+		}
+		var prodImage : MediaFile = product.getImage(IMAGE_SIZE)? product.getImage(IMAGE_SIZE) : product.getImage(BV_Constants.BV_DEFAULTIMAGETYPE);    
+	    if(prodImage){
+	    	map.put("ImageURL", prodImage.getAbsURL());
+	    }
+				
+		
+		if(!map.empty){
+			localeMap.put(key, map);
+		}
+		
+
+		prodObj.setLocaleMap(localeMap);
+		pObjList.add(prodObj);
+	}
+	
+	pdict.ProductObjects = pObjList.iterator();
+
+    return PIPELET_NEXT;
+}

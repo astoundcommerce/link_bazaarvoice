@@ -205,6 +205,15 @@
       </node>
       <simple-transition/>
       <node>
+        <call-node start-name-ref="Bazaarvoice-GetDisplayCode"/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
         <decision-node condition-key="CurrentHttpParameterMap.bvcontenttype.stringValue == &quot;PROFILE_SUBMISSION&quot;" condition-operator="expr"/>
         <node-display x="0" y="1"/>
         <branch basename="b2" source-connector="yes">
@@ -451,7 +460,57 @@
       </node>
     </segment>
   </branch>
-  <branch basename="_ANONYMOUS_BRANCH_7">
+  <branch basename="GetDisplayCode">
+    <segment>
+      <node>
+        <start-node call-mode="private" name="GetDisplayCode" secure="false"/>
+        <node-display x="12" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="bv/GetDisplayCodes.ds"/>
+          <key-binding alias="CurrentRequest.locale" key="CurrentLocale"/>
+          <key-binding alias="AADisplayCode" key="AADisplayCode"/>
+          <key-binding alias="RRDisplayCode" key="RRDisplayCode"/>
+          <key-binding alias="SYDisplayCode" key="SYDisplayCode"/>
+          <key-binding alias="ScriptLog" key="ScriptLog"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="error">
+          <transition target-connector="in1" target-path="./+1">
+            <transition-display>
+              <bend-point relative-to="source" x="1" y="0"/>
+              <bend-point relative-to="target" x="1" y="0"/>
+            </transition-display>
+          </transition>
+        </branch>
+      </node>
+      <transition target-connector="in1" target-path="./+1"/>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
+      <node>
+        <end-node/>
+        <node-display x="0" y="1"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_8">
     <segment>
       <node>
         <text-node>

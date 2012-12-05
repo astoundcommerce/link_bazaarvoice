@@ -1,0 +1,236 @@
+/**
+* GetDisplayCode.ds
+*
+* @input CurrentLocale : String
+*
+* @output RRDisplayCode : String
+* @output AADisplayCode : String
+* @output SYDisplayCode : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+
+importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
+importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+   var bvHelper = getBazaarVoiceHelper();
+
+   var currentLocale : String = pdict.CurrentLocale;
+   var defaultLocale : String = Site.getCurrent().getDefaultLocale();
+   var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
+   var rrDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvRRDisplayCodeMapping");
+   var aaDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvAADisplayCodeMapping");
+   var syDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvSYDisplayCodeMapping");
+   
+   var rrDisplayCode : String = "";
+   var aaDisplayCode : String = "";
+   var syDisplayCode : String = "";
+   
+
+   var regFull : RegExp = /^\d{4}-[a-z]{2}_[a-zA-Z]{2}$/;
+   var regDigit : RegExp = /^\d{4}$/;
+   var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+   var regDefault : RegExp = /default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+
+   //Get rr displaycode for current locale
+   if(rrDCArray.length > 1){
+		var index = 0;
+		//var dupArray : Array = bvHelper.checkForDuplicateDisplayCodes(rrDCArray);
+		
+		for each(var item : String in rrDCArray){
+			item = item.replace(/[\s|\"]/g,"");
+							
+			if(regDigit.test(item) && currentLocale.equals(defaultLocale)){
+				Logger.error("Site Preferences bvRRDisplayCodeMapping has invalid input " + item);
+			}else if(regFull.test(item) && currentLocale.equals(defaultLocale)){
+				rrDisplayCode = item;
+				break;
+			}else if(regPair.test(item)){				
+				var a = item.split(":");			
+				if(allowedLocales.indexOf(a[0]) != -1){
+					if(a[0] == currentLocale){
+						rrDisplayCode = a[1];
+						break;
+					}
+				}else{
+					Logger.error("Site Preferences bvRRDisplayCodeMapping has inactive locale " + a[0]);
+				}
+			}else if(regDefault.test(item) && currentLocale.equals(defaultLocale)){
+				rrDisplayCode = item;
+				break;
+			}
+			
+			if(index == rrDCArray.length - 1){
+				rrDisplayCode = "";
+				Logger.error("Site Preferences bvRRDisplayCodeMapping has no match setting for " + currentLocale);
+			}
+			
+			index++;
+		}
+
+   }else if(rrDCArray.length == 1){
+		var item : String = rrDCArray[0];
+		
+		item = item.replace(/[\s|\"]/g,"");
+				
+		if((regDigit.test(item) || regFull.test(item)) && currentLocale.equals(defaultLocale)){
+			rrDisplayCode = item;
+		}else if(regPair.test(item)){
+			
+			var a = item.split(":");
+			if(allowedLocales.indexOf(a[0]) != -1){			
+				if(a[0] == currentLocale){
+					rrDisplayCode = a[1];
+				}else{
+					rrDisplayCode = "";
+					Logger.error("Site Preferences bvRRDisplayCodeMapping has no input for" + currentLocale);
+				}
+			}else{
+				Logger.error("Site Preferences bvRRDisplayCodeMapping has inactive locale " + currentLocale);
+			}
+		}else{
+			rrDisplayCode = "";
+			Logger.error("Site Preferences bvRRDisplayCodeMapping has invalid format for" + currentLocale);
+		}
+   }else{
+   	  Logger.error("Site Preferences bvRRDisplayCodeMapping requires at least one setting");
+   }
+   
+   //Get aa displaycode for current locale
+   if(aaDCArray.length > 1){
+   		var index = 0;
+   		var dupArray : Array = bvHelper.checkForDuplicateDisplayCodes(aaDCArray);
+   		
+		for each(var item : String in aaDCArray){
+			item = item.replace(/[\s|\"]/g,"");
+							
+			if(regDigit.test(item) && currentLocale.equals(defaultLocale)){
+				Logger.error("Site Preferences bvAADisplayCodeMapping has invalid input " + item);
+			}else if(regFull.test(item) && currentLocale.equals(defaultLocale)){
+				aaDisplayCode = item;
+				break;
+			}else if(regPair.test(item)){				
+				var a = item.split(":");			
+				if(allowedLocales.indexOf(a[0]) != -1){
+					if(a[0] == currentLocale && dupArray.indexOf(a[0]) == -1){	
+						aaDisplayCode = a[1];
+						break;	
+					}
+				}else{
+					Logger.error("Site Preferences bvAADisplayCodeMapping has inactive locale " + currentLocale);
+				}
+			}else if(regDefault.test(item) && currentLocale.equals(defaultLocale)){
+				aaDisplayCode = item;
+				break;
+			}
+			
+			if(index == aaDCArray.length - 1){
+				aaDisplayCode = "";
+				Logger.error("Site Preferences bvAADisplayCodeMapping has no match setting for " + currentLocale);				
+			}
+			
+			index++;
+		}
+   }else if(aaDCArray.length == 1){
+		var item : String = aaDCArray[0];
+		
+		item = item.replace(/[\s|\"]/g,"");
+		
+		if((regDigit.test(item) || regFull.test(item)) && currentLocale.equals(defaultLocale)){
+			aaDisplayCode = item;
+		}else if(regPair.test(item)){
+			
+			var a = item.split(":");
+			if(allowedLocales.indexOf(a[0]) != -1){			
+				if(a[0] == currentLocale){
+					aaDisplayCode = a[1];	
+				}else{
+					aaDisplayCode = "";
+					Logger.error("Site Preferences bvAADisplayCodeMapping has no input for" + currentLocale);
+				}
+			}else{
+				Logger.error("Site Preferences bvAADisplayCodeMapping has inactive locale" + currentLocale);
+			}
+		}else{
+			aaDisplayCode = "";
+			Logger.error("Site Preferences bvAADisplayCodeMapping has invalid format for" + currentLocale);
+		}
+   }else{
+   	  Logger.error("Site Preferences bvAADisplayCodeMapping requires at least one setting");
+   }
+   
+   
+   //Get sy displaycode for current locale
+   if(syDCArray.length > 1){
+   		var index = 0;
+   		var dupArray : Array = bvHelper.checkForDuplicateDisplayCodes(syDCArray);
+   		
+		for each(var item : String in syDCArray){
+			item = item.replace(/[\s|\"]/g,"");
+							
+			if(regDigit.test(item) && currentLocale.equals(defaultLocale)){
+				Logger.error("Site Preferences bvSYDisplayCodeMapping has invalid input " + item);
+			}else if(regFull.test(item) && currentLocale.equals(defaultLocale)){
+				syDisplayCode = item;
+				break;
+			}else if(regPair.test(item)){				
+				var a = item.split(":");
+				if(allowedLocales.indexOf(a[0]) != -1){			
+					if(a[0] == currentLocale && dupArray.indexOf(a[0]) == -1){					
+						syDisplayCode = a[1];
+						break;
+					}
+				}else{
+					Logger.error("Site Preferences bvSYDisplayCodeMapping has inactive locale" + currentLocale);
+				}
+			}else if(regDefault.test(item) && currentLocale.equals(defaultLocale)){
+				syDisplayCode = item;
+				break;
+			}
+			
+			if(index == syDCArray.length - 1){
+				syDisplayCode = "";
+				Logger.error("Site Preferences bvSYDisplayCodeMapping has no match setting for " + currentLocale);
+			}
+			
+			index++;
+		}
+   }else if(syDCArray.length == 1){
+		var item : String = syDCArray[0];
+		
+		item = item.replace(/[\s|\"]/g,"");
+		
+		if((regDigit.test(item) || regFull.test(item)) && currentLocale.equals(defaultLocale)){
+			syDisplayCode = item;
+		}else if(regPair.test(item)){
+			
+			var a = item.split(":");
+			if(allowedLocales.indexOf(a[0]) != -1){			
+				if(a[0] == currentLocale){				
+						syDisplayCode = a[1];				
+				}else{
+					syDisplayCode = "";
+					Logger.error("Site Preferences bvSYDisplayCodeMapping has no input for" + currentLocale);
+				}
+			
+			}else{
+					Logger.error("Site Preferences bvSYDisplayCodeMapping has inactive locale" + currentLocale);
+			}
+		}else{
+			syDisplayCode = "";
+			Logger.error("Site Preferences bvSYDisplayCodeMapping has invalid format for" + currentLocale);
+		}
+   }else{
+   	  Logger.error("Site Preferences bvSYDisplayCodeMapping requires at least one setting");
+   }
+
+
+	pdict.RRDisplayCode = rrDisplayCode;
+	pdict.AADisplayCode = aaDisplayCode;
+	pdict.SYDisplayCode = syDisplayCode;
+
+   return PIPELET_NEXT;
+}

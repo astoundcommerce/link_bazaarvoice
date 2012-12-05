@@ -1,0 +1,36 @@
+/**
+* LocalizedCategory.ds
+*
+*	Base object for the LocalizedCategory.
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+
+function Category_Object()
+{
+	var _categoryId : String;
+	var _localeMap : LinkedHashMap;
+
+	this.create = function(cgid : String){
+		_localeMap = new LinkedHashMap();
+  		_categoryId = cgid;
+	};
+	
+	this.getCategoryId = function()
+	{
+		return _categoryId ;
+	};	
+	
+	this.getLocaleMap = function()
+	{
+		return _localeMap;
+	};
+	
+	this.setLocaleMap = function(localeMap : LinkedHashMap)
+	{
+		_localeMap = localeMap;
+	};
+	
+	return PIPELET_NEXT;
+}

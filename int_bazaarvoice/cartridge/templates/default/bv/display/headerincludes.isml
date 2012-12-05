@@ -1,7 +1,7 @@
 <!--- TEMPLATENAME: headerincludes.isml --->
 <isscript>
      importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-     var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl();
+     var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl(pdict.RRDisplayCode);
      
      // Determine if we are rendering on a product or category page.
      var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
@@ -17,7 +17,10 @@
     var configData = {};
     //Active Profiles display container will use a different submission container than the one used for other BV products (to allow for customized styling)
     if ("${pdict.CurrentRequest.httpPath}".substr(-profileDisplayContainerStartNodeName.length) !== profileDisplayContainerStartNodeName) {
-        configData.submissionContainerUrl = "${dw.system.Site.current.preferences.custom.bvSubmissionURL}" + queryString;
+		var submissionURL = "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvSubmissionURL')}";
+		submissionURL = submissionURL.replace("default", "${pdict.CurrentRequest.locale}");
+
+        configData.submissionContainerUrl = submissionURL + queryString;
     }
     $BV.configure("global", configData);
 </script>

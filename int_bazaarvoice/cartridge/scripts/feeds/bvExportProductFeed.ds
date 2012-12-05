@@ -7,15 +7,27 @@
 * Product & Catalog Feed to BV 
 * 
 * <?xml version="1.0" encoding="UTF-8"?> 
-* <Feed xmlns="http://www.bazaarvoice.com/xs/PRR/ProductFeed/3.3" 
+* <Feed xmlns="http://www.bazaarvoice.com/xs/PRR/ProductFeed/5.2" 
 * 		  name="SiteName"
 * 		  incremental="false"  
-*		  extractDate="2007-01-01T12:00:00.000000">
+*		  extractDate="2007-01-01T12:00:00.000000"
+*		  generator="demandware-r5.1.1">
 *		<Categories>
 *			<Category>
 *				<ExternalId>1010</ExternalId>
 *				<Name>First Category</Name>
 *				<CategoryPageUrl>http://www.site.com/category.htm?cat=1010</CategoryPageUrl>
+*				<ImageUrl>http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*				<CategoryPageUrls>
+*					<CategoryPageUrl locale="en_US">http://www.site.com/en_US/category.htm?cat=1010</CategoryPageUrl>
+*					<CategoryPageUrl locale="en_CA">http://www.site.com/en_CA/category.htm?cat=1010</CategoryPageUrl>
+*					<CategoryPageUrl locale="fr_CA">http://www.site.com/fr_CA/category.htm?cat=1010</CategoryPageUrl>
+*				</CategoryPageUrls>
+*				<ImageUrls>
+*					<ImageUrl locale="en_US">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*					<ImageUrl locale="en_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*					<ImageUrl locale="fr_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*				</ImageUrls>
 *			</Category>
 *			..... 0-n categories
 *		</Categories>
@@ -24,23 +36,45 @@
 *				<ExternalId>2000001</ExternalId>
 *				<Name>First Product</Name>
 *				<Description>First Product Description Text</Description> 
-*				<Brand>ProductBrand</Brand>
+*				<Brand>
+*					<Name>ProductBrand</Name>
+*					<ExternalId>ProductBrandId</ExternalId>
+*				</Brand>
 *				<CategoryExternalId>1010</CategoryExternalId>
 *				<ProductPageUrl>http://www.site.com/product.htm?prod=2000001</ProductPageUrl>
 *				<ImageUrl>http://images.site.com/prodimages/2000001.gif</ImageUrl>
-*				<ManufacturerPartNumber>26-12345-8Z</ManufacturerPartNumber> 
-*				<EAN>0213354752286</EAN>*				
+*				<ManufacturerPartNumbers>
+*					<ManufacturerPartNumber>
+*					</ManufacturerPartNumber>
+*				</ManufacturerPartNumbers> 
+*				<EANs>
+*					<EAN>
+*					</EAN>
+*				</EANs>
+*				<Names>
+*					<Name locale="en_US">Albini A-line Cotton Dress</Name>
+*					<Name locale="en_CA">Albini A-line Cotton Dress</Name>
+*					<Name locale="fr_CA">Robe coton Ã©vasÃ©e Albini</Name>
+*				</Names>
+*				<Descriptions>
+*					<Description locale="en_US">Double-color casual short sleeve dress with soft collar</Description>
+*					<Description locale="en_CA">Double-color casual short sleeve dress with soft collar</Description>
+*					<Description locale="fr_CA">Robe manches courtes dÃ©contractÃ©e bicolore avec un joli dÃ©colletÃ©</Description>
+*				</Descriptions>
+*				<ProductPageUrls>
+*					<ProductPageUrl locale="en_US">http://wcsp25.torolab.ibm.com/webapp/wcs/stores/servlet/en/storea/p/albini-a-line-cotton-dress</ProductPageUrl>
+*					<ProductPageUrl locale="en_CA">http://wcsp25.torolab.ibm.com/webapp/wcs/stores/servlet/en-CA/storea/p/albini-a-line-cotton-dress</ProductPageUrl>
+*					<ProductPageUrl locale="fr_CA">http://wcsp25.torolab.ibm.com/webapp/wcs/stores/servlet/fr-CA/storea/p/albini-a-line-cotton-dress</ProductPageUrl>
+*				</ProductPageUrls>
+*				<ImageUrls>
+*					<ImageUrl locale="en_US">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/women/womens_dresses_160x160/WD_005_a_blue.jpg</ImageUrl>
+*					<ImageUrl locale="en_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/women/womens_dresses_160x160/WD_005_a_blue.jpg</ImageUrl>
+*					<ImageUrl locale="fr_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/women/womens_dresses_160x160/WD_005_a_blue.jpg</ImageUrl>				
+*				</ImageUrls>				
 *			</Product>
 *			....... 0-n products
 *		</Products>
 *</Feed>
-*  
-* @<paramUsageType> <paramName> : <paramDataType> [<paramComment>]
-* where
-*   <paramUsageType> can be either 'input' or 'output'
-*   <paramName> can be any valid parameter name
-*   <paramDataType> identifies the type of the parameter
-*   <paramComment> is an optional comment
 *
 * @output Message : String
 */
@@ -56,13 +90,8 @@
  importPackage( dw.content );
  
  importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
- 
- var XML_NAMESPACE : String = "http://www.bazaarvoice.com/xs/PRR/ProductFeed/3.3";
- var CUSTOMER_NAME : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
- var XML_INCREMENTAL : String = "false";
- var IMAGE_SIZE : String = "medium";
- var CATEGORY_NONE : String = "CATEGORY_NONE";
-     
+ importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+  
  var bvHelper = getBazaarVoiceHelper();
  
 /**
@@ -71,6 +100,7 @@
  * Main function of the script. 
  */
 function execute( pdict : PipelineDictionary ) : Number {
+	pdict.Message = "";
 	
 	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed");
 	if (!productFeedEnabled) {
@@ -84,6 +114,9 @@ function execute( pdict : PipelineDictionary ) : Number {
         
     
     try {
+    	if(empty(bvHelper.getCustomerName())) {
+    		throw new Error("Cannot retrieve customer name!");
+    	}
         
         /* Create an output stream */
         var xsw : XMLStreamWriter = initFeed(file);
@@ -98,14 +131,23 @@ function execute( pdict : PipelineDictionary ) : Number {
         finalizeFeed(xsw);
             
         var destinationPath : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportPath");
+        if(empty(destinationPath)){
+        	Logger.error("bvProductFeedExportPath site preference is null or empty!");
+        	throw new Error("bvProductFeedExportPath site preference is null or empty!");
+        }
+        
         var destinationFilename : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportFileName");
+        if(empty(destinationPath)){
+        	Logger.error("bvProductFeedExportFileName site preference is null or empty!");
+        	throw new Error("bvProductFeedExportFileName site preference is null or empty!");
+        }
         
         var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
-        
         pdict.Message = ret;
             
     } catch(ex) {
-        Logger.debug("[exception caught]"+ex.message);            
+        Logger.error("Exception caught during catalog export and upload: {0}", ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during catalog export and upload: " + ex.message, "", "", "", "", "");         
         return PIPELET_ERROR;    
     } finally {
         if (file.exists()) {
@@ -191,11 +233,15 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
     writeElement(xsw, "Name", product.name);
     writeElement(xsw, "Description", (product.shortDescription == null ? product.name : product.shortDescription));
     
-    if (product.getBrand() != null) {
-        writeElement(xsw, "Brand", product.getBrand());
+    if (product.getBrand() != null && !empty(product.brand) ) {
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("Brand");
+        writeElement(xsw, "Name", product.brand);
+        writeElement(xsw, "ExternalId", product.brand);
+        xsw.writeEndElement();
     }
     
-    var categoryExternalId : String = CATEGORY_NONE;
+    var categoryExternalId : String = BV_Constants.CATEGORY_NONE;
     if(product.primaryCategory != null) {
         categoryExternalId = product.primaryCategory.ID;
     } else {
@@ -208,10 +254,35 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
     
     writeElement(xsw, "ProductPageUrl", URLUtils.http('Product-Show','pid',product.ID));
     
-    var prodImage : MediaFile = product.getImage('medium');
-    if (prodImage) {
-    	writeElement(xsw, "ImageUrl", prodImage.getAbsURL()); 
-    }        
+    var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PRODUCT);
+    if (!empty(prodImage)) {
+    	writeElement(xsw, "ImageUrl", prodImage); 
+    }
+    
+    //Manufacturer Part Number
+    if(product.manufacturerSKU != null){
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("ManufacturerPartNumbers");
+        writeElement(xsw, "ManufacturerPartNumber", product.manufacturerSKU);
+        xsw.writeEndElement();
+    }
+    
+    //European Article Number
+    if(product.EAN != null && !empty(product.EAN)){
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("EANs");
+        writeElement(xsw, "EAN", product.EAN);
+        xsw.writeEndElement();
+    }
+    
+    //Universal Product Code
+    if(product.UPC != null && !empty(product.UPC)){
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("UPCs");
+        writeElement(xsw, "UPC", product.UPC);
+        xsw.writeEndElement();
+    }
+            
     
     xsw.writeEndElement();
 }
@@ -232,19 +303,23 @@ function insertLeadingZero(nb : Number) : String {
 }
 
 function initFeed(file : File) : XMLStreamWriter {
-    var fw : FileWriter = new FileWriter(file, "UTF-8");
-    var xsw : XMLIndentingStreamWriter = new XMLIndentingStreamWriter(fw);
+    var fw : FileWriter = new FileWriter(file, "UTF-8", false);
+    var xsw : XMLStreamWriter = new XMLStreamWriter(fw);
     
     //Create a string to represent the extraction date
     var date : Date = new Date();
     var extractDate : String = date.getFullYear()+"-"+insertLeadingZero(date.getMonth()+1)+"-"+insertLeadingZero(date.getDate())+"T00:00:00.000000"; 
     
-    xsw.writeStartDocument("UTF-8", "1.0");
-    xsw.writeStartElement("Feed");
-       xsw.writeAttribute("xmlns", XML_NAMESPACE);
-       xsw.writeAttribute("name", CUSTOMER_NAME);
-       xsw.writeAttribute("incremental", XML_INCREMENTAL);
-       xsw.writeAttribute("extractDate", extractDate);
+
+	   xsw.writeStartDocument("UTF-8", "1.0");
+	   xsw.writeCharacters("\n");
+	   xsw.writeStartElement("Feed");
+	   xsw.writeAttribute("xmlns", BV_Constants.XML_NAMESPACE_PRODUCT);
+	   xsw.writeAttribute("name", bvHelper.getCustomerName());
+	   xsw.writeAttribute("incremental", BV_Constants.XML_INCREMENTAL);
+	   xsw.writeAttribute("extractDate", extractDate);
+	   xsw.writeAttribute("generator", BV_Constants.XML_GENERATOR);
+
     
     return xsw;
 }
@@ -262,8 +337,6 @@ function writeElement(xsw : XMLStreamWriter, elementName : String, chars : Strin
     xsw.writeCharacters(chars);
     xsw.writeEndElement();
 }
-
-
 
 
 

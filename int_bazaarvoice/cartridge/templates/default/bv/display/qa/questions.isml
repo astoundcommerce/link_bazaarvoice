@@ -11,7 +11,7 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
      var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
      
      // Obtain SmartSEO content      
-     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "questions", bvSubject, "");  
+     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "questions", pdict.AADisplayCode, bvSubject, "");  
 </isscript>
 <isif condition="${qaEnabled}">
     <!-- Questions -->
@@ -27,7 +27,7 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
             }catch(e){
                 //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
             }
-            return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAADefaultDisplayCode')}";
+            return '${pdict.AADisplayCode}';
         }
 
         var configData = {};

@@ -14,7 +14,7 @@ Embeds the container that Stories are injected to and the javascript that access
      
      // Obtain SmartSEO content
      var smartSEOPageType : String = dw.system.Site.getCurrent().getCustomPreferenceValue("bvSYSmartSEOPageFormat");      
-     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "stories", bvSubject, smartSEOPageType);  
+     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "stories", pdict.SYDisplayCode, bvSubject, smartSEOPageType);  
 </isscript>
 <isif condition="${syEnabled}">
     <!-- Stories -->
@@ -30,7 +30,7 @@ Embeds the container that Stories are injected to and the javascript that access
             }catch(e){
                 //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
             }
-            return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvSYDefaultDisplayCode')}";
+            return '${pdict.SYDisplayCode}';
         }
         function getStoriesDisplayFormat() {
             try {

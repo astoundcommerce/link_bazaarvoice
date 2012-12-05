@@ -1,0 +1,59 @@
+/**
+* GetLocalizedDataLists.ds
+* get product and category localized object list
+*
+*
+* @output CategoryObjects : dw.util.Iterator
+* @output ProductObjects : dw.util.Iterator
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+
+importScript("model/LocalizedCategory.ds");
+importScript("model/LocalizedProduct.ds");
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var catObjects : Collection = new ArrayList();
+	var prodObjects : Collection = new ArrayList();
+	
+	var catalog : Catalog = CatalogMgr.getSiteCatalog();
+	var root : Category = catalog.getRoot();
+    var topCats : Collection = root.getSubCategories();
+    for each(var topCat : Category in topCats) {
+		setCategory(topCat, catObjects);
+    }
+	
+	var productIterator : SeekableIterator = ProductMgr.queryAllSiteProducts();
+    while(productIterator.hasNext()) {
+        var product : Product = productIterator.next();
+        if(product.online && product.searchable && !product.variant) {
+            var prodObject = new Product_Object();
+            prodObject.create(product.ID);
+            
+            prodObjects.add(prodObject);
+        }
+    }
+    productIterator.close();
+    
+    pdict.CategoryObjects = catObjects.iterator();
+    pdict.ProductObjects = prodObjects.iterator();
+	
+
+    return PIPELET_NEXT;
+}
+
+function setCategory(cat : Category, catObjects : Collection){
+    var catObject = new Category_Object();
+	catObject.create(cat.ID);
+		
+	catObjects.add(catObject);
+	var subCats : Collection = cat.getSubCategories();
+    if(subCats != null && subCats.size()>0)    {
+        for each(var subCat : Category in subCats) {
+            setCategory(subCat, catObjects);
+        }
+    }
+}

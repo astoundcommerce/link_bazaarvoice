@@ -1,0 +1,43 @@
+/**
+* CleanInlineRatingStats.ds
+* clean bv inline rating stats on products
+*
+* @input MessageIn : String
+* @output MessageOut : String
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.catalog );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	var products : SeekableIterator = ProductMgr.queryAllSiteProducts();
+	
+	if(pdict.MessageIn == null){
+		pdict.MessageOut = "";
+	}
+	else {
+		pdict.MessageOut = pdict.MessageIn;
+	}
+	
+	try{
+		
+		while(products.hasNext()){
+			var product : Product = products.next();
+			product.custom.bvAverageRating = "";
+			product.custom.bvReviewCount = "";
+			product.custom.bvRatingRange = "";
+			
+			
+		}
+			
+		pdict.MessageOut += " Products InlineRating Stats has been cleaned out!";
+	}catch(e){
+	
+        pdict.MessageOut += "[CleanInlineRatingStats.ds]Clean product inline rating stats error!" + e.message;
+        return PIPELET_ERROR;
+    }
+
+   return PIPELET_NEXT;
+}

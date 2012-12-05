@@ -13,19 +13,67 @@ importPackage(dw.value);
 importPackage(dw.crypto);
 importPackage(dw.io);
 importPackage(dw.net);
+importPackage(dw.catalog);
+
+importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 
 /**
  * Used building output as Hex
  */
 var DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
 var USER_STRING_TEMPLATE: String = "date={0}&userid={1}&username={2}";
-var MESSAGE_TEMPLATE : String = "[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}]";
 
 var CONST_SMARTSEO_BVRRP = "bvrrp";
 var CONST_SMARTSEO_BVQAP = "bvqap";
 var CONST_SMARTSEO_BVSYP = "bvsyp";
 
 var BazaarVoiceHelper = {
+	
+	/*******************************************************************************************************************
+	*  getImageURL()
+	*
+	*	Returns a product image url for use in the product and purchase feeds.  By default,
+	*	the custom site preferences for image type is used to get the url: e.g. large, medium, small.
+	*	If no image is found, the medium image is used.  If no medium image is found, an empty string is returned.
+	*
+	*	feed parameter is either "PRODUCT" or "PURCHASE", defaults to PRODUCT.
+	*
+	*	If you do not use the standard DW product images (scene7, SITS, etc.), you must customize this function!
+	*******************************************************************************************************************/
+	getImageURL : function(product : Product, feed : String) : String {
+		var IMAGE_SIZE : String = "";
+ 		var imgURL : String = "";
+ 
+		if(feed.equals(BV_Constants.PURCHASE)) {
+			if(Site.getCurrent().getCustomPreferenceValue("bvOrderImageType") != null) {
+				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvProductImageType").toString();
+			}
+		}
+		else {
+			if(Site.getCurrent().getCustomPreferenceValue("bvProductImageType") != null) {
+				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvProductImageType").toString();
+			}
+		}
+		
+		if(!empty(IMAGE_SIZE) && product.getImage(IMAGE_SIZE)) {
+			imgURL = product.getImage(IMAGE_SIZE).getAbsURL();
+		}
+		else if(product.getImage(BV_Constants.BV_DEFAULTIMAGETYPE)) {
+			imgURL = product.getImage(BV_Constants.BV_DEFAULTIMAGETYPE).getAbsURL();
+		}
+		
+		return imgURL;
+	},
+	/******************************************************************************************************************
+	*******************************************************************************************************************/
+	
+	getCustomerName : function() : String {
+		var name : String = "";
+		if(Site.getCurrent().getCustomPreferenceValue("bvCustomerName") != null){
+			name = Site.getCurrent().getCustomPreferenceValue("bvCustomerName").toString();
+		}
+		return name;
+	},
 
     replaceIllegalCharacters: function (rawId: String): String {
         return rawId.replace("&", "_and_");
@@ -68,25 +116,24 @@ var BazaarVoiceHelper = {
         return null;
     },
 
-    getBvUrl: function (isStatic: boolean, bvProduct : String): String {
+    getBvUrl: function (isStatic: boolean, bvProduct : String, bvDisplayCode : String): String {
         var protocol = request.httpProtocol;
         var hostSubdomain = BazaarVoiceHelper.getSubDomainForBVProduct(bvProduct);
         var hostDomain = Site.getCurrent().getCustomPreferenceValue("bvHostDomain");
         var bvStaging = BazaarVoiceHelper.getBvStaging();
-        var bvDefaultDisplayCode = BazaarVoiceHelper.getDisplayCodeForBVProduct(bvProduct);
         var stat = "";
         if (isStatic) {
             stat = "static/";
         }
 
-        return protocol + "://" + hostSubdomain + "." + hostDomain + bvStaging + stat + bvDefaultDisplayCode;
+        return protocol + "://" + hostSubdomain + "." + hostDomain + bvStaging + stat + bvDisplayCode;
     },
 
-    getBvApiHostUrl: function (): String {
+    getBvApiHostUrl: function (displayCode): String {
         var protocol = request.httpProtocol;
         var bvApiHostname = Site.getCurrent().getCustomPreferenceValue("bvAPIHostname");
         var bvStaging = BazaarVoiceHelper.getBvStaging();
-        var bvDefaultDisplayCode = BazaarVoiceHelper.getDefaultDisplayCode();
+        var bvDefaultDisplayCode = displayCode;
 
         return protocol + "://" + bvApiHostname + bvStaging + "static/" + bvDefaultDisplayCode;
     },
@@ -133,13 +180,13 @@ var BazaarVoiceHelper = {
         return ret;
     }, 
     
-    getSmartSEOContent: function(pdict : PipelineDictionary, bvProduct : String, bvSubject : Object, pageFormat : String) : String {
+    getSmartSEOContent: function(pdict : PipelineDictionary, bvProduct : String, bvDisplayCode : String, bvSubject : Object, pageFormat : String) : String {
         var baseFolder : String = "smartSEO/";
         
         var content : String = null;
         var smartSEOEnabled = Site.getCurrent().getCustomPreferenceValue("bvEnableSmartSEO");
         if (smartSEOEnabled) {
-            var displayCode = BazaarVoiceHelper.getDisplayCodeForBVProduct(bvProduct);
+            var displayCode = bvDisplayCode;
             if (pageFormat != "") {
             	pageFormat += "/";
             }     
@@ -177,34 +224,7 @@ var BazaarVoiceHelper = {
             }
         }
         return content;
-    }, 
-    
-    getDefaultDisplayCode: function() : String {
-        var dc : String = BazaarVoiceHelper.getDisplayCodeForBVProduct("reviews");
-        if (!dc) {
-            dc = BazaarVoiceHelper.getDisplayCodeForBVProduct("questions");
-        }
-        if (!dc) {
-            dc = BazaarVoiceHelper.getDisplayCodeForBVProduct("stories");
-        }
-        if (!dc) {
-            dc = BazaarVoiceHelper.getDisplayCodeForBVProduct("activeprofiles");
-        }
-        return dc;
-    },
-    
-    getDisplayCodeForBVProduct: function(bvProduct : String) : String {
-        if (bvProduct == "questions") {
-            return Site.getCurrent().getCustomPreferenceValue("bvAADefaultDisplayCode");
-        } else if (bvProduct == "stories") {
-            return Site.getCurrent().getCustomPreferenceValue("bvSYDefaultDisplayCode");
-        } else if (bvProduct == "activeprofiles") {
-            return Site.getCurrent().getCustomPreferenceValue("bvCPDefaultDisplayCode");
-        }
-    
-        // Default to RR display code
-        return Site.getCurrent().getCustomPreferenceValue("bvRRDefaultDisplayCode");
-    }, 
+    },  
     
     getSubDomainForBVProduct: function(bvProduct : String) : String {
         if (bvProduct == "questions") {
@@ -257,27 +277,70 @@ var BazaarVoiceHelper = {
     
     uploadFile: function(destinationPath : String, destinationFilename : String, localFile : File, pdict : PipelineDictionary) : String {
     	var ftpClient : SFTPClient = new SFTPClient();
+    	
         var host  : String = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
+        if(empty(host)){
+			Logger.error("bvFTPHost is null or empty!");
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server: bvFTPHost is null or empty!","", "", "", "", "");
+        }
+        
         var user  : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
+        if(empty(user)){
+			Logger.error("bvCustomerName is null or empty!");
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server: bvCustomerName is null or empty!","", "", "", "", "");
+        }
+        
         var pwd   : String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
+        if(empty(pwd)){
+			Logger.error("bvFTPPassword is null or empty!");
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server: bvFTPPassword is null or empty!","", "", "", "", "");
+        }
         
         if(!ftpClient.connect(host, user, pwd)) {
-            return StringUtils.format(MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server.",host, user, "XXXXX", destinationPath, destinationFilename);            
-
+        	Logger.error("Could not connect to sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
+            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server.",host, user, "XXXXX", destinationPath, destinationFilename);
         } 
         
-        if( !ftpClient.cd(destinationPath)) {      
+        if( !ftpClient.cd(destinationPath)) {
+        	Logger.error("Could not change directory on sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
             ftpClient.disconnect();        
-            return StringUtils.format(MESSAGE_TEMPLATE,"ERROR", "Error while accessing folder on BV FTP Server.",host, user, "XXXXX", destinationPath, destinationFilename);            
-
-        }
+            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while accessing folder on BV FTP Server.",host, user, "XXXXX", destinationPath, destinationFilename);            
+		}
                 
-        // send file to server
+        //there might be an old one
         ftpClient.del(destinationFilename);
+        
+        // send file to server
         var success = ftpClient.putBinary(destinationFilename, localFile);
         ftpClient.disconnect();
-        return StringUtils.format(MESSAGE_TEMPLATE,"SUCCESS", "Export Processed - Connecton Details" ,host, user, "XXXXX", destinationPath, destinationFilename);
+        return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"SUCCESS", "Export Processed - Connecton Details" ,host, user, "XXXXX", destinationPath, destinationFilename);
     
+    },
+    
+    checkForDuplicateDisplayCodes: function(dcArray : Array) : Array {
+    	
+		var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+		var regDefault : RegExp = /default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+		
+		var dupArray : Array = new Array();
+    	var tmpArray : Array = new Array();
+    	
+    	for each(var item : String in dcArray){
+    		item = item.replace(/[\s|\"]/g,"");
+							
+			if(regPair.test(item) && !regDefault.test(item)){				
+				var a = item.split(":");			
+				if(tmpArray.indexOf(a[0]) == -1){
+					tmpArray.push(a[0]);
+				}else{
+					dupArray.push(a[0]);
+					Logger.error("Display Code Mapping has duplicate dwLocale " + a[0] + " to bvDisplayCode " + a[1]);
+				}
+			}
+    	}
+    
+    
+    	return dupArray;
     }
 
 };

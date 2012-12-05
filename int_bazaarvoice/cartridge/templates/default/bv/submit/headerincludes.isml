@@ -1,7 +1,7 @@
 <isscript>
      importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
      
-     var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl();
+     var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl(pdict.RRDisplayCode);
      
      var bvFacebookXdReceiverUrl = dw.system.Site.getCurrent().getCustomPreferenceValue("bvFacebookXdReceiverUrl");
 </isscript>

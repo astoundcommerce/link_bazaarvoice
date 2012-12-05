@@ -1,0 +1,103 @@
+/**
+* bvExportLocalizedPurchaseFeed.ds
+* export localizedOrders
+*
+
+*
+* @input OrderList : XML
+* @input OrderCount : Number
+* 
+* @output Message : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.io );
+importPackage( dw.util );
+
+importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
+importScript("int_bazaarvoice:/lib/libConstants.ds");
+
+var bvHelper = getBazaarVoiceHelper();
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+    var orderList : XML = pdict.OrderList;
+    var orderCount : Number = pdict.OrderCount;
+    
+    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed");
+    if (!purchaseFeedEnabled) {
+       //If the feed isn't enabled, just return.
+       pdict.Message = "Purchase Feed is not enabled!";
+       return PIPELET_NEXT;
+    }
+    
+	// Don't create feed if no orders are in the feed
+	if (orderCount == 0) {
+		pdict.Message = "No order to export!";
+		return PIPELET_NEXT;
+	}
+    
+    //Establish whom to notify if this export fails
+    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail");
+    
+    var date : Date = new Date();
+    var filename : String = "PurchaseFeed-" 
+                                + date.getFullYear() 
+                                + bvHelper.insertLeadingZero(date.getMonth() + 1) 
+                                + bvHelper.insertLeadingZero(date.getDate() + 1) 
+                                + bvHelper.insertLeadingZero(date.getHours() + 1) 
+                                + bvHelper.insertLeadingZero(date.getMinutes() + 1) 
+                                + bvHelper.insertLeadingZero(date.getMilliseconds()) + ".xml"; 
+    var file : File = new File(File.TEMP + "/" + filename);
+    
+    try {
+    	
+        
+        /* Create an output stream */
+        var xsw : XMLStreamWriter = writeFeed(file, orderList);
+            
+        var destinationPath : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedPath");
+        var uploadFilename : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedFileName");
+        var destinationFilename : String = uploadFilename.substr(0, uploadFilename.length - 4) + "-" + StringUtils.formatCalendar(Site.getCalendar(), "yyyy-MM-dd") + ".xml";
+        
+        
+
+        var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+        pdict.Message = ret;
+
+    } catch(ex) {
+        Logger.error("[exception caught]" + ex.message);
+        return PIPELET_ERROR;    
+    } finally {
+        if (file.exists()) {
+            file.remove();
+        }
+    }        
+
+    return PIPELET_NEXT;
+}
+
+function writeFeed(file : File, orderlist : XML) : XMLStreamWriter {
+    var fw : FileWriter = new FileWriter(file, "UTF-8");
+    var xsw : XMLStreamWriter = new XMLStreamWriter(fw);
+    
+    xsw.writeStartDocument("UTF-8", "1.0");
+
+    
+    var xmlns : String = BV_Constants.XML_NAMESPACE_PURCHASE;
+    var feed : XML = <feed xmlns={xmlns}>
+    {orderlist.children()}
+    </feed>;
+    
+    xsw.writeRaw(feed);
+    
+
+    xsw.writeEndDocument();
+   
+    xsw.flush();
+    xsw.close();
+       
+    return xsw;
+}
+

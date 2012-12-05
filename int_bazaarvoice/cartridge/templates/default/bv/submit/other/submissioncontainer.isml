@@ -8,7 +8,7 @@
      // Determine if we are rendering on a product or category page.
      var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
      
-     var bvUrl = getBazaarVoiceHelper().getBvUrl(true, "reviews");
+     var bvUrl = getBazaarVoiceHelper().getBvUrl(true, "reviews", pdict.RRDisplayCode);
 </isscript>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -51,27 +51,30 @@
                     return "";
                }
                function getSubmissionDisplayCode() {
+                   
                     try {
-                        var bvcontenttype = "${pdict.CurrentHttpParameterMap.bvcontenttype.stringValue}".toUpperCase();
-                        
+                    	 var bvcontenttype = "${pdict.CurrentHttpParameterMap.bvcontenttype.stringValue}".toUpperCase();
+                                                
                         if (bvcontenttype.search("REVIEW") > -1) {
                             <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRDisplayCodeJavascript')}" encoding="off" >
-                            return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRDefaultDisplayCode')}";
+                            return "${pdict.RRDisplayCode}";
                         } else if (bvcontenttype.search("PROFILE") > -1) {
                             <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvCPDisplayCodeJavascript')}" encoding="off" >
                             return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvCPDefaultDisplayCode')}";
                         } else if (bvcontenttype.search("QUESTION") > -1 || bvcontenttype.search("ANSWER") > -1) {
                             <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAADisplayCodeJavascript')}" encoding="off" >
-                            return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAADefaultDisplayCode')}";
+                            return  "${pdict.AADisplayCode}";
                         } else if (bvcontenttype.search("STORY") > -1) {
                             <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvSYDisplayCodeJavascript')}" encoding="off" >
-                            return "${dw.system.Site.getCurrent().getCustomPreferenceValue('bvSYDefaultDisplayCode')}";
+                            return  "${pdict.SYDisplayCode}";
                         }
                     
                     }catch(e){
                         //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
                     }
-                    return "${getBazaarVoiceHelper().getDefaultDisplayCode()}";
+
+                    
+                    return "${pdict.RRDisplayCode}";
                }
             
                var configData = {};

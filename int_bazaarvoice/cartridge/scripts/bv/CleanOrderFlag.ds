@@ -1,0 +1,40 @@
+/**
+* CleanOrderFlag.ds
+* reset bv order export flag
+*
+* @input MessageIn : String
+*
+* @output MessageOut : String
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.order );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+
+	var orders : SeekableIterator = OrderMgr.queryOrders("custom.bvSentInPPEFeed = {0}", "orderNo ASC", true);
+	
+	if(pdict.MessageIn == null || empty(pdict.MessageIn)){
+		pdict.MessageOut = "";
+	}
+	else {
+		pdict.MessageOut = pdict.MessageIn;
+	}
+	
+	try{
+		while(orders.hasNext()){
+			var order : Order = orders.next();
+			order.custom.bvSentInPPEFeed = false;			
+		}
+		
+		pdict.MessageOut += " Orders Reset!";
+	}catch(e){
+		Logger.error("[CleanOrderFlag.ds] Reset bv order export flag error! {0}", e.message);
+		pdict.MessageOut += "[CleanOrderFlag.ds] Reset bv order export flag error! " + e.message;
+        return PIPELET_ERROR;
+    }
+    
+   return PIPELET_NEXT;
+}

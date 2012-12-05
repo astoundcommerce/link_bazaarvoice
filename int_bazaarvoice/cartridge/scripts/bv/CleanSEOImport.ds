@@ -1,0 +1,60 @@
+/**
+* CleanSEOImports.ds
+* Clean all the SEO files
+*
+* @input MessageIn : String
+*
+* @output MessageOut : String
+*/
+importPackage( dw.system );
+importPackage( dw.io );
+
+importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var rootDir: File = new File(new File(File.IMPEX), BV_Constants.SMART_SEO_DIR);
+	Logger.debug("rootDir: {0}", rootDir.fullPath);
+	
+	if(pdict.MessageIn == null){
+		pdict.MessageOut = "";
+	}
+	else {
+		pdict.MessageOut = pdict.MessageIn;
+	}
+	
+	try {
+		
+		if (rootDir.exists() && rootDir.isDirectory()) {
+			Logger.debug("Removing directory and contents: {0}", rootDir.fullPath);
+			recursiveRemove(rootDir);
+		}else{
+			pdict.MessageOut += rootDir.toString() + " does not exist! There is no SEOFolders to remove!";
+		}
+		
+	}catch(e){
+		Logger.error("[CleanSEOImports.ds] Remove SEO Folder error! {0}", e.message);
+		pdict.MessageOut += "[CleanSEOImports.ds] Remove SEO Folder error! " + e.message;
+		
+		return PIPELET_ERROR;
+	}
+	
+	pdict.MessageOut += "SEO folder is removed!";
+
+   return PIPELET_NEXT;
+}
+
+/*
+*	recursiveRemove()
+*
+*	Delete the entire file tree under rootFile.
+*	File.remove() only works on empty directories, so this is like "rm -r".
+*/
+function recursiveRemove(rootFile: File) {
+	if (rootFile.isDirectory()) {
+        for each(var childFile: File in rootFile.listFiles()) {
+        	recursiveRemove(childFile);
+        }
+    }
+    rootFile.remove();
+}

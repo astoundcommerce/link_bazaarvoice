@@ -1,0 +1,201 @@
+/**
+* GetLocalizedDataForOrders.ds
+* Get all the orders for locale.
+*
+* @input BVLocales : dw.util.HashMap
+* @input OrderList : XML
+* @input OrderCount : Number
+* @input LocaleID : String
+*
+* @output OrderList : XML
+* @output OrderCount : Number
+*/
+importPackage( dw.system );
+importPackage( dw.order );
+importPackage( dw.util );
+importPackage( dw.catalog );
+importPackage( dw.content );
+importPackage( dw.object );
+
+importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
+importScript("int_bazaarvoice:/lib/libConstants.ds");
+
+var bvHelper = getBazaarVoiceHelper();
+
+function execute( pdict : PipelineDictionary ) : Number
+{
+	var orderList : XML = pdict.OrderList;
+	var localeID : String = pdict.LocaleID;
+	var bvLocales : HashMap = pdict.BVLocales;
+	var bvLocale : String = bvLocales.get(localeID);
+	var orderCount : Number = pdict.OrderCount;
+	
+	
+	var numDaysLookback : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedNumDaysLookback");	
+	var numDaysLookbackStartDate : Date = null;
+    var helperCalendar = new Calendar();
+    helperCalendar.add(Calendar.DATE, (-1 * numDaysLookback));  //Subtract numDaysLookback days from the current date.
+    numDaysLookbackStartDate = helperCalendar.getTime();
+	
+	var queryString : String = "status = {0} AND paymentStatus = {1} AND creationDate >= {2}";
+    var orderItr : SeekableIterator = OrderMgr.queryOrders(queryString, "orderNo ASC", Order.ORDER_STATUS_COMPLETED, Order.PAYMENT_STATUS_PAID, numDaysLookbackStartDate);
+	
+	while(orderItr.hasNext()){
+		var order : Order = orderItr.next();
+		if(order.customerLocaleID.equals(localeID) && shouldIncludeOrder(order)){
+			writeOrder(order, bvLocale, orderList);
+			orderCount++;
+		}	
+		order.custom[BV_Constants.CUSTOM_FLAG] = true;
+	}
+	
+	pdict.OrderCount = orderCount;
+	pdict.OrderList = orderList;
+
+    return PIPELET_NEXT;
+}
+
+function writeOrder(order : Order, locale : String, orderList : XML) { 
+    
+    var emailAddress : String = order.getCustomerEmail();
+    var locale : String = locale;
+    var userName : String = order.getCustomerName();
+    var userID : String = order.getCustomerNo();
+    var txnDate : Date = getTransactionDate(order);
+    
+   
+    
+
+	    var lineItems : Collection = order.getAllProductLineItems();
+		var productList : XML = <products></products>;
+	    for each(var lineItem : ProductLineItem in lineItems) {
+	        var prod : Product = lineItem.getProduct();
+	        
+	        if (!prod) {
+	        	// Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
+	        	continue;
+	        }
+	        
+	        var externalID : String = bvHelper.replaceIllegalCharacters(prod.variant ? prod.variationModel.master.ID : prod.ID);
+	        var name : String = prod.name;
+	        var price : Number = lineItem.getPriceValue();
+	        var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PURCHASE);
+	        
+	        var pdct : XML = <product>
+	        	<ExternalId>{externalID}</ExternalId>
+	        	<Name>{name}</Name>
+        		<Price>{price}</Price>
+        		</product>;
+				
+			if(!empty(prodImage)) {
+				pdct.appendChild(<ImageUrl>{prodImage}</ImageUrl>);
+			}
+			
+			
+  			productList.appendChild(pdct);
+	    }
+	    
+	     var orderXML : XML = <Interaction>
+		    <EmailAddress>{emailAddress}</EmailAddress>
+		    <Locale>{locale}</Locale>
+		    <UserName>{userName}</UserName>
+		    <UserID>{userID}</UserID>
+		    <TransactionDate>{txnDate}</TransactionDate>
+		    <Products>{productList.children()}</Products>
+		  </Interaction>;
+	    
+	    //orderXML.products = productList.children();	    
+	    orderList.appendChild(orderXML);
+
+}
+
+function shouldIncludeOrder(order : Order) : Boolean {
+	var triggeringEvent : String = getTriggeringEvent();
+    var delayDaysSinceEvent : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedDelayDaysSinceEvent");
+    
+    // Have we already included this order in a previous feed?  If so, don't re-export it.
+    var custAttribs : CustomAttributes = order.getCustom();
+    if ((BV_Constants.CUSTOM_FLAG in custAttribs) && (custAttribs[BV_Constants.CUSTOM_FLAG] === true)) {
+    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order already exported.");
+    	return false;
+    }
+    
+    //Depending on the Triggering Event, we have a different set of criteria that must be met.
+    var thresholdTimestamp : Date = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
+    if (triggeringEvent === "shipping") {
+    	//Is this order fully shipped?
+    	if (order.getShippingStatus() !== Order.SHIPPING_STATUS_SHIPPED) {
+    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Not completely shipped.");
+    		return false;
+    	}
+    	
+    	//Are we outside of the delay period?
+    	var latestItemShipDate : Date = getLatestShipmentDate(order);
+    	if (latestItemShipDate.getTime() > thresholdTimestamp.getTime()) {
+    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
+    		return false;
+    	}
+    	
+    } else if (triggeringEvent === "purchase") {
+    	//We need to see if the order placement timestamp of this order is outside of the delay period
+    	var orderPlacementDate : Date = order.getCreationDate();
+    	if (orderPlacementDate.getTime() > thresholdTimestamp.getTime()) {
+    	   Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
+    	   return false;
+    	}
+    }
+    
+    // Ensure we have everything on this order that would be required in the output feed
+    
+    // Nothing fancy, but do we have what basically looks like a legit email address?
+    if (empty(order.getCustomerEmail()) || !order.getCustomerEmail().match(/@/)) {
+    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". No valid email address.");
+    	return false;
+    }
+    
+    // Does the order have any line items ?
+    if (order.getAllProductLineItems().getLength() < 1) {
+    	Logger.debug("BV - Skipping order:" + order.getOrderNo() + ". No items in this order.");
+    	return false;
+    }
+        
+	return true;
+}
+
+function getTransactionDate(order : Order) : Date {
+    var txnDate : Date = order.getCreationDate();
+    
+    var triggeringEvent : String = getTriggeringEvent();
+    if (triggeringEvent === "shipping") {
+        txnDate = getLatestShipmentDate(order);
+    }
+    
+    return txnDate;
+}
+
+function getTriggeringEvent() : String {
+    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent");
+    if (!triggeringEvent) {
+        triggeringEvent = "shipping";
+    } else {
+        triggeringEvent = triggeringEvent.toString().toLowerCase();
+    }
+    return triggeringEvent;
+}
+
+function getDelayDaysThresholdTimestamp(delayDaysSinceEvent : Number) : Date {
+    var helperCalendar = new Calendar();
+    helperCalendar.add(Calendar.DATE, (-1 * delayDaysSinceEvent));  //Subtract delayDaysSinceEvent days from the current date.
+    return helperCalendar.getTime();
+}
+
+function getLatestShipmentDate(order : Order) : Date {
+	var latestShipment : Number = 0; // initialize to epoch
+	
+	var shipments : Collection = order.getShipments();
+	for each(var shipment : Shipment in shipments) {
+        latestShipment = Math.max(latestShipment.getTime(), shipment.getCreationDate().getTime());
+    }
+    
+    return new Date(latestShipment);
+}

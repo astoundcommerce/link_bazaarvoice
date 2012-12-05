@@ -1,0 +1,599 @@
+/**
+* 
+* bvExportProductFeed.ds
+*
+* process feed for the BazaarVoice. The feed will be FTPed to the BV FTP server
+* 
+* Product & Catalog Feed to BV 
+* 
+* <?xml version="1.0" encoding="UTF-8"?> 
+* <Feed xmlns="http://www.bazaarvoice.com/xs/PRR/ProductFeed/5.2" 
+* 		  name="SiteName"
+* 		  incremental="false"  
+*		  extractDate="2007-01-01T12:00:00.000000"
+*		  generator="demandware-r5.1.1">
+*		<Categories>
+*			<Category>
+*				<ExternalId>1010</ExternalId>
+*				<Name>First Category</Name>
+*				<CategoryPageUrl>http://www.site.com/category.htm?cat=1010</CategoryPageUrl>
+*				<ImageUrl>http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*				<CategoryPageUrls>
+*					<CategoryPageUrl locale="en_US">http://www.site.com/en_US/category.htm?cat=1010</CategoryPageUrl>
+*					<CategoryPageUrl locale="en_CA">http://www.site.com/en_CA/category.htm?cat=1010</CategoryPageUrl>
+*					<CategoryPageUrl locale="fr_CA">http://www.site.com/fr_CA/category.htm?cat=1010</CategoryPageUrl>
+*				</CategoryPageUrls>
+*				<ImageUrls>
+*					<ImageUrl locale="en_US">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*					<ImageUrl locale="en_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*					<ImageUrl locale="fr_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/Sleepwear_sm.jpg</ImageUrl>
+*				</ImageUrls>
+*			</Category>
+*			..... 0-n categories
+*		</Categories>
+*		<Products>
+*			<Product>
+*				<ExternalId>2000001</ExternalId>
+*				<Name>First Product</Name>
+*				<Description>First Product Description Text</Description> 
+*				<Brand>
+*					<Name>ProductBrand</Name>
+*					<ExternalId>ProductBrandId</ExternalId>
+*				</Brand>
+*				<CategoryExternalId>1010</CategoryExternalId>
+*				<ProductPageUrl>http://www.site.com/product.htm?prod=2000001</ProductPageUrl>
+*				<ImageUrl>http://images.site.com/prodimages/2000001.gif</ImageUrl>
+*				<ManufacturerPartNumbers>
+*					<ManufacturerPartNumber>
+*					</ManufacturerPartNumber>
+*				</ManufacturerPartNumbers> 
+*				<EANs>
+*					<EAN>
+*					</EAN>
+*				</EANs>
+*				<Names>
+*					<Name locale="en_US">Albini A-line Cotton Dress</Name>
+*					<Name locale="en_CA">Albini A-line Cotton Dress</Name>
+*					<Name locale="fr_CA">Robe coton Ã©vasÃ©e Albini</Name>
+*				</Names>
+*				<Descriptions>
+*					<Description locale="en_US">Double-color casual short sleeve dress with soft collar</Description>
+*					<Description locale="en_CA">Double-color casual short sleeve dress with soft collar</Description>
+*					<Description locale="fr_CA">Robe manches courtes dÃ©contractÃ©e bicolore avec un joli dÃ©colletÃ©</Description>
+*				</Descriptions>
+*				<ProductPageUrls>
+*					<ProductPageUrl locale="en_US">http://wcsp25.torolab.ibm.com/webapp/wcs/stores/servlet/en/storea/p/albini-a-line-cotton-dress</ProductPageUrl>
+*					<ProductPageUrl locale="en_CA">http://wcsp25.torolab.ibm.com/webapp/wcs/stores/servlet/en-CA/storea/p/albini-a-line-cotton-dress</ProductPageUrl>
+*					<ProductPageUrl locale="fr_CA">http://wcsp25.torolab.ibm.com/webapp/wcs/stores/servlet/fr-CA/storea/p/albini-a-line-cotton-dress</ProductPageUrl>
+*				</ProductPageUrls>
+*				<ImageUrls>
+*					<ImageUrl locale="en_US">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/women/womens_dresses_160x160/WD_005_a_blue.jpg</ImageUrl>
+*					<ImageUrl locale="en_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/women/womens_dresses_160x160/WD_005_a_blue.jpg</ImageUrl>
+*					<ImageUrl locale="fr_CA">http://wcsp25.torolab.ibm.com/wcsstore/CAStoreA_TenantA_CatalogAssetStore/images/catalog/apparel/women/womens_dresses_160x160/WD_005_a_blue.jpg</ImageUrl>				
+*				</ImageUrls>				
+*			</Product>
+*			....... 0-n products
+*		</Products>
+*</Feed>
+*  
+* @input BVLocales : dw.util.HashMap
+* @input ProductObjects : dw.util.Iterator
+* @input CategoryObjects : dw.util.Iterator
+*
+* @output Message : String
+*/
+ 
+ importPackage( dw.system );
+
+ importPackage( dw.util );
+ importPackage( dw.web );
+ importPackage( dw.net );
+ importPackage( dw.catalog );
+ importPackage( dw.object );
+ importPackage( dw.io );
+ importPackage( dw.content );
+ 
+ importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
+ importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+ importScript( "int_bazaarvoice:/model/LocalizedCategory.ds" );
+ importScript( "int_bazaarvoice:/model/LocalizedProduct.ds" );
+  
+ var bvHelper = getBazaarVoiceHelper();
+ 
+/**
+ * Function: execute
+ *
+ * Main function of the script. 
+ */
+function execute( pdict : PipelineDictionary ) : Number {
+	pdict.Message = "";
+	
+	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed");
+	if (!productFeedEnabled) {
+	   //If the feed isn't enabled, just return.
+	   return PIPELET_NEXT;
+	}
+    
+    var date : Date = new Date();
+    var filename : String = "ProductFeed-" + date.getFullYear() + insertLeadingZero(date.getMonth()+1) + insertLeadingZero(date.getDate()+1) + insertLeadingZero(date.getHours()+1) + insertLeadingZero(date.getMinutes()+1) + insertLeadingZero(date.getMilliseconds()) + ".xml"; 
+    var file : File = new File(File.TEMP + "/" + filename);
+    
+	var bvLocaleMap : HashMap = pdict.BVLocales;
+	var allowedLocales : Collection = Site.getCurrent().allowedLocales;
+	
+	var productObjectList : Collection = pdict.ProductObjects? pdict.ProductObjects.asList() : new ArrayList();
+	var categoryObjectList : Collection = pdict.CategoryObjects? pdict.CategoryObjects.asList() : new ArrayList();
+     
+    /* Create an output stream */
+    var xsw : XMLStreamWriter;
+        
+    try {
+    	if(empty(bvHelper.getCustomerName())) {
+    		throw new Error("Cannot retrieve customer name!");
+    	}
+    	
+    	var destinationPath : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportPath");
+		if(empty(destinationPath)) {
+			throw new Error("bvProductFeedExportPath site preference is null or empty!");
+		}
+		var destinationFilename : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportFileName");
+    	if(empty(destinationFilename)) {
+			throw new Error("bvProductFeedExportFileName site preference is null or empty!");
+		}
+       	
+	    /* Create an output stream */
+	    xsw = initFeed(file);
+        
+        /* Process categories */
+        writeCategories(xsw, bvLocaleMap, allowedLocales, categoryObjectList);
+        
+        /* Process products */
+        writeProducts(xsw, bvLocaleMap, allowedLocales, productObjectList);
+        
+        // Write the closing Feed element, then flush & close the stream
+        finalizeFeed(xsw);
+            	        
+        var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+        
+        pdict.Message = ret;
+            
+    } catch(ex) {
+        Logger.error("Exception caught during localized catalog export and upload: {0}", ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during localized catalog export and upload: " + ex.message, "", "", "", "", "");         
+        
+        xsw.writeCharacters("\n\n*********************************\n" + ex.message + "\n*********************************\n");
+		xsw.flush();
+		xsw.close();	            
+        return PIPELET_ERROR;    
+    } finally {
+        if (file.exists()) {
+            file.remove();
+        }
+    }        
+    
+    return PIPELET_NEXT;    
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Category
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+function writeCategories(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLocales : Collection, categoryObjectList : Collection) {
+    xsw.writeCharacters("\n");
+    xsw.writeStartElement("Categories");
+    var siteCatalog : Catalog = CatalogMgr.getSiteCatalog();
+    var rootCategory : Category = siteCatalog.getRoot();
+    var subRoots : Collection = rootCategory.getSubCategories();
+    for each(var subRoot : Category in subRoots) {
+        getCategory(xsw, subRoot, bvLocaleMap, allowedLocales, categoryObjectList);    
+    }
+    xsw.writeCharacters("\n");
+    xsw.writeEndElement(); //</Categories>
+}
+
+function getCategory(xsw : XMLStreamWriter, category : Category, bvLocaleMap : HashMap, allowedLocales : Collection, categoryObjectList : Collection) {
+	
+
+	//Get the localized object for the category
+	var categoryObject = new Category_Object();
+	
+	for each(var catObj in categoryObjectList){
+		if(catObj.getCategoryId().equals(category.ID)){
+			categoryObject = catObj;
+			break;
+		}
+	}
+	
+
+   	writeCategory(xsw, category, bvLocaleMap, allowedLocales, categoryObject);
+
+   	
+
+    var subCats : Collection = category.getSubCategories();
+    if(subCats != null && subCats.size()>0)    {
+        for each(var subCat : Category in subCats) {
+            getCategory(xsw, subCat, bvLocaleMap, allowedLocales, 
+            categoryObjectList);
+        }
+    }
+
+}
+
+function writeCategory(xsw : XMLStreamWriter, category : Category, bvLocaleMap : HashMap, allowedLocales : Collection, categoryObject : Object){
+    xsw.writeCharacters("\n");
+    xsw.writeStartElement("Category");
+    
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(category.ID));
+    
+    var parent : Category = category.getParent();
+    if(parent != null) {
+        //We don't want to set our ParentExternalId to "root", so make sure the parent of this parent is non-null
+        var parentOfParent = parent.getParent();    
+        if(parentOfParent!=null) {
+        	xsw.writeCharacters("\n");
+            writeElement(xsw, "ParentExternalId", parent.ID);
+        }
+    }
+    
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "Name", category.displayName);
+    
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "CategoryPageUrl", URLUtils.http('Search-Show','cgid',category.ID));
+
+    var catImage : MediaFile = category.getImage();
+    
+    if (catImage) {
+    	xsw.writeCharacters("\n");
+    	writeElement(xsw, "ImageUrl", catImage.getAbsURL()); 
+    }
+
+    var catLocaleMap : LinkedHashMap = categoryObject.getLocaleMap();
+        
+    if(allowedLocales.length > 1 && bvLocaleMap.size() > 0 && !catLocaleMap.empty){
+    	//CategoryPageUrls
+    	var count : Number = 0;
+    	
+	    for each(var allowedLocale : String in allowedLocales){
+
+			for each(var dwLocale in bvLocaleMap.keySet()){
+	    		if(dwLocale.equals(allowedLocale)){
+	    			if(count == 0){
+	    				xsw.writeCharacters("\n");
+	    				xsw.writeStartElement("CategoryPageUrls");
+	    				count++;
+	    			}
+	    			
+	    			var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
+	    			writeLocalizedElement(xsw, "CategoryPageUrl", bvLocaleMap.get(dwLocale), dataMap.get("CategoryPageURL"));
+	    		
+	    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
+	    				xsw.writeCharacters("\n");
+	    				xsw.writeEndElement();
+	    			}
+	    		}	    		
+	    	}
+	    }
+	    
+	    //ImageUrls
+    	count = 0;
+    	
+	    for each(var allowedLocale : String in allowedLocales){
+
+			for each(var dwLocale in bvLocaleMap.keySet()){
+				var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
+				if(dataMap.get("ImageURL")){
+		    		if(dwLocale.equals(allowedLocale)){
+		    			if(count == 0){
+		    				xsw.writeCharacters("\n");
+		    				xsw.writeStartElement("ImageUrls");
+		    				count++;
+		    			}
+		    			
+		    			writeLocalizedElement(xsw, "ImageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ImageURL"));
+		    		
+		    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
+		    				xsw.writeCharacters("\n");
+		    				xsw.writeEndElement();
+		    			}
+		    		}
+				}	    		
+	    	}
+	    }    
+    }
+    
+    xsw.writeCharacters("\n");
+    xsw.writeEndElement();
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Product
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+function writeProducts(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLocales : Collection, productObjectList : Collection) {
+    xsw.writeCharacters("\n");
+    xsw.writeStartElement("Products");
+    var productIterator : SeekableIterator = ProductMgr.queryAllSiteProducts();
+    while(productIterator.hasNext()) {
+        var product : Product = productIterator.next();
+        
+        //Get the localized object for the product
+        var productObject = new Product_Object();
+        for each(var prodObj in productObjectList){
+        	if(prodObj.getProductId().equals(product.ID)){
+        		productObject = prodObj;
+        		break;
+        	}
+        }
+        
+        
+        if(product.online && product.searchable && !product.variant) {
+            writeProduct(xsw, product, bvLocaleMap, allowedLocales, productObject);
+        }
+    }
+    productIterator.close();
+    xsw.writeEndElement();
+}
+
+function writeProduct(xsw : XMLStreamWriter, product : Product, bvLocaleMap : HashMap, allowedLocales : Collection, productObject : Object) {
+    xsw.writeCharacters("\n");
+    xsw.writeStartElement("Product");
+    
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(product.ID));
+    
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "Name", product.name);
+    
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "Description", (product.shortDescription == null ? product.name : product.shortDescription));
+    
+    if (product.getBrand() != null && !empty(product.brand) ) {
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("Brand");
+        writeElement(xsw, "Name", product.brand);
+        writeElement(xsw, "ExternalId", product.brand);
+        xsw.writeEndElement();
+    }
+    
+    var categoryExternalId : String = BV_Constants.CATEGORY_NONE;
+    if(product.primaryCategory != null) {
+        categoryExternalId = product.primaryCategory.ID;
+    } else {
+        var allCategories : Collection = product.allCategories;
+        if(allCategories.size()>0) { 
+            categoryExternalId = allCategories.iterator().next().ID;
+        } 
+    }
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "CategoryExternalId", categoryExternalId);
+    
+    xsw.writeCharacters("\n");
+    writeElement(xsw, "ProductPageUrl", URLUtils.http('Product-Show','pid',product.ID));
+    
+    var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PRODUCT);
+    if (prodImage) {
+    	xsw.writeCharacters("\n");
+    	writeElement(xsw, "ImageUrl", prodImage); 
+    }
+    
+    //Manufacturer Part Number
+    if(product.manufacturerSKU != null){
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("ManufacturerPartNumbers");
+        writeElement(xsw, "ManufacturerPartNumber", product.manufacturerSKU);
+        xsw.writeEndElement();
+    }
+    
+    //European Article Number
+    if(product.EAN != null && !empty(product.EAN)){
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("EANs");
+        writeElement(xsw, "EAN", product.EAN);
+        xsw.writeEndElement();
+    }
+    
+    //Universal Product Code
+    if(product.UPC != null && !empty(product.UPC)){
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("UPCs");
+        writeElement(xsw, "UPC", product.UPC);
+        xsw.writeEndElement();
+    }
+        
+    if(!bvLocaleMap.empty && allowedLocales.length > 1){
+    	xsw.writeCharacters("\n");
+    	writeProductLocalizedElements(xsw, bvLocaleMap, allowedLocales, productObject);
+    }
+    
+    xsw.writeEndElement();
+}
+
+function writeProductLocalizedElements(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLocales : Collection, productObject : Object) {
+	var prodLocaleMap : LinkedHashMap = productObject.getLocaleMap();
+
+	if(prodLocaleMap != null) {
+	//Names	
+	var count : Number = 0;
+	var lastIndex : Number = allowedLocales.length - 1;
+	for each(var allowedLocale : String in allowedLocales){
+		for each(var dwLocale in bvLocaleMap.keySet()){
+			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+			if(dataMap && dataMap.get("Name")){
+				if(dwLocale.equals(allowedLocale)){
+					if(count == 0){
+						xsw.writeStartElement("Names");
+						count++;
+					}
+					
+					writeLocalizedElement(xsw, "Name", bvLocaleMap.get(dwLocale), dataMap.get("Name"));
+				
+					if(allowedLocales.indexOf(allowedLocale) == lastIndex){
+						xsw.writeEndElement();
+						xsw.writeCharacters("\n");
+					}
+				}
+			}	    		
+		}
+	}
+
+	//Descriptions
+    count = 0;
+	for each(var allowedLocale : String in allowedLocales){
+		for each(var dwLocale in bvLocaleMap.keySet()){
+			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+			if(dataMap && dataMap.get("Description")){
+				if(dwLocale.equals(allowedLocale)){
+					if(count == 0){
+						xsw.writeStartElement("Descriptions");
+						count++;
+					}
+					
+					writeLocalizedElement(xsw, "Description", bvLocaleMap.get(dwLocale), dataMap.get("Description"));
+				
+					if(allowedLocales.indexOf(allowedLocale) == lastIndex){
+						xsw.writeEndElement();
+						xsw.writeCharacters("\n");
+					}
+				}
+			}	    		
+		}
+	}
+	
+	//ProductPageUrls
+    count = 0;
+    
+    for each(var allowedLocale : String in allowedLocales){
+
+		for each(var dwLocale in bvLocaleMap.keySet()){
+			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+
+			if(dwLocale.equals(allowedLocale)){
+
+    			if(count == 0){
+    				xsw.writeStartElement("ProductPageUrls");
+    				count++;
+    			}
+    			
+    			writeLocalizedElement(xsw, "ProductPageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ProductPageURL"));
+    		
+    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
+    				xsw.writeEndElement();
+    				xsw.writeCharacters("\n");
+    			}
+    		}
+    			    		
+    	}
+    }	
+	
+    
+    //ImageUrls
+    count = 0;
+    	
+    for each(var allowedLocale : String in allowedLocales){
+
+		for each(var dwLocale in bvLocaleMap.keySet()){
+			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+			if(dataMap && dataMap.get("ImageURL")){
+	    		if(dwLocale.equals(allowedLocale)){
+	    			if(count == 0){
+	    				xsw.writeStartElement("ImageUrls");
+	    				count++;
+	    			}
+	    			
+	    			writeLocalizedElement(xsw, "ImageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ImageURL"));
+	    		
+	    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
+	    				xsw.writeEndElement();
+	    				xsw.writeCharacters("\n");
+	    			}
+	    		}
+			}	    		
+    	}
+    }
+    
+	}else {
+		return PIPELET_ERROR;
+	}
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Utility/Helper
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+function insertLeadingZero(nb : Number) : String {
+    if(nb < 10) {
+        return "0"+nb;
+    } else {
+        return ""+nb;
+    }
+}
+
+function initFeed(file : File) : XMLStreamWriter {
+    var fw : FileWriter = new FileWriter(file, "UTF-8", false);
+    var xsw : XMLStreamWriter = new XMLStreamWriter(fw);
+    
+    //Create a string to represent the extraction date
+    var date : Date = new Date();
+    var extractDate : String = date.getFullYear()+"-"+insertLeadingZero(date.getMonth()+1)+"-"+insertLeadingZero(date.getDate())+"T00:00:00.000000"; 
+    
+
+	   xsw.writeStartDocument("UTF-8", "1.0");
+	   xsw.writeCharacters("\n");
+	   xsw.writeStartElement("Feed");
+	   xsw.writeAttribute("xmlns", BV_Constants.XML_NAMESPACE_PRODUCT);
+	   xsw.writeAttribute("name", bvHelper.getCustomerName());
+	   xsw.writeAttribute("incremental", BV_Constants.XML_INCREMENTAL);
+	   xsw.writeAttribute("extractDate", extractDate);
+	   xsw.writeAttribute("generator", BV_Constants.XML_GENERATOR);
+
+    
+    return xsw;
+}
+
+function finalizeFeed(xsw : XMLStreamWriter) {
+    xsw.writeCharacters("\n");
+    
+    xsw.writeEndElement();  //</Feed>
+    xsw.writeEndDocument();
+   
+    xsw.flush();
+    xsw.close();
+}
+
+function writeElement(xsw : XMLStreamWriter, elementName : String, chars : String) {
+    xsw.writeStartElement(elementName);
+    xsw.writeCharacters(chars);
+    xsw.writeEndElement();
+}
+
+function writeLocalizedElement(xsw : XMLStreamWriter, elementName : String, locale : String, chars : String) {
+	xsw.writeCharacters("\n");
+	
+    xsw.writeStartElement(elementName);
+	xsw.writeAttribute("locale", locale);
+	xsw.writeCharacters(chars);
+	xsw.writeEndElement();
+
+}
+
+
+
+
+
+
+
+
+

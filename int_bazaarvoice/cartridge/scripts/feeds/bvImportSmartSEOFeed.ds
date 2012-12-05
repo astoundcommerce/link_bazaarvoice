@@ -1,5 +1,7 @@
 /**
- * Demandware Script File
+ * bvImportSmartSEOFeed.ds
+ *
+ * Download each smartSEO feed archive, and unzip them into the IMPEX/smartSEO/ folder.
  *
  * @output Message : String
  */
@@ -8,84 +10,302 @@ importPackage(dw.util);
 importPackage(dw.net);
 importPackage(dw.io);
 importPackage(dw.catalog);
-var MESSAGE_TEMPLATE: String = "[Job Details][STATUS=  {0}][Message= {1}][Host = {2}][User = {3}][Password= *********][Target FTP Folder= {5}][File Name= {6}]";
+
+importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 
 function execute(pdict: PipelineDictionary): Number {
+	pdict.Message = "";
+	var host : String = "";
+    var user : String = "";
+    var pwd : String = "";
+    var fpath : String = "";
+	
     try {
-        var ftpClient: SFTPClient = new SFTPClient();
-        var host: String = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
-        var user: String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
-        var pwd: String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
-        var fpath: String = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedPath");
-        var fname: String = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedFileName");
+    	var feeds: Array = getSmartSEOFeeds();
+		if(feeds.length < 1){
+			throw new Error("There is no setting found in Bazaarvoice Smart SEO Feed Filename");
+		}
+		
+		var ftpClient: SFTPClient = new SFTPClient();
+    	
+    	host = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
+		if(empty(host)){
+			throw new Error("bvFTPHost site preference is null or empty!");
+		}
+		user = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
+		if(empty(user)){
+			throw new Error("bvCustomerName site preference is null or empty!");
+		}
+		pwd = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
+		if(empty(pwd)){
+			throw new Error("bvFTPPassword site preference is null or empty!");
+		}
+		fpath = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedPath");
+		if(empty(fpath)){
+			throw new Error("bvSmartSEOFeedPath site preference is null or empty!");
+		}
 
-        var smartSEOEnabled: Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableSmartSEO");
+        var smartSEOEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableSmartSEO");
         if (!smartSEOEnabled) {
-
-            pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "SmartSEO is not enabled for this client.", host, user, pwd, fpath, fname);
+            pdict.Message += StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "SmartSEO is not enabled for this client.", host, user, pwd, fpath, "");
+            return PIPELET_NEXT;
         }
         if (!ftpClient.connect(host, user, pwd)) {
-
-            pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while trying to connect to BV FTP server.", host, user, pwd, fpath, fname);
+            throw new Error("Error while trying to connect to BV FTP server.");
         }
         if (!ftpClient.cd(fpath)) {
-
             ftpClient.disconnect();
-
-            pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "Error while accessing folder on BV FTP Server.", host, user, pwd, fpath, fname);
-        }
-        var zipFile: File = new File(new File(File.TEMP), fname);
-        // this will delete an existing zip
-        if (zipFile.exists()) {
-            zipFile.remove();
-        }
-        // try to find the new one
-        var fileFound: Boolean = ftpClient.getBinary(fname, zipFile);
-        var extractsDir: File = new File(new File(File.IMPEX), "smartSEO");
-        if (!fileFound) {
-        	pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "INFO", "No Content Found on BV FTP server", host, user, pwd, fpath, fname);
-            if (extractsDir.exists() && extractsDir.isDirectory()) {         
-		        var staleDays: Number = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOMaxStaleDays");
-		        var lastMod: Calendar = new Calendar(new Date(extractsDir.lastModified()));
-		        var tooManyDaysAgo: Calendar = new Calendar(new Date());
-		        tooManyDaysAgo.add(Calendar.DATE, -(staleDays));
-
-		        if (lastMod.after(tooManyDaysAgo)) {
-		            // set message for email
-		            pdict.Message += StringUtils.format(MESSAGE_TEMPLATE, "INFO", "The most recent extracted files are less than " + staleDays + " days old and will be retained.", host, user, pwd, fpath, fname);
-		        } else {
-		            recursiveRemove(extractsDir);
-		            // set message for email
-		            pdict.Message += StringUtils.format(MESSAGE_TEMPLATE, "INFO", "The most recent extracted files are more than " + staleDays + " days old and will be deleted.", host, user, pwd, fpath, fname);
-		        }
-            }else{
-            	pdict.Message += "No file and directory found on the site either!";
-            	
-            }
-        }else{
-		    if(extractsDir.exists()){
-		        recursiveRemove(extractsDir); // this should rm -r the existing extracts directory
-		    }else{
-		        extractsDir.mkdirs(); // this should mkdir the extracts dir and any necessary parents
-		    }
-		    zipFile.unzip(extractsDir); // this will throw an exception if the unzip fails
-		    pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "SUCCESS", "new SEO content is extracted in directory! ", host, user, pwd, fpath, fname);
+            throw new Error("Error while accessing folder on BV FTP Server.");
         }
         
-    } catch (ex) {
-        pdict.Message = StringUtils.format(MESSAGE_TEMPLATE, "ERROR", "There was an error while attempting to download and parse the Smart SEO feed archive from the Bazaarvoice SFTP server: " + ex.message, host, user, pwd, fpath, fname);
+        //prepare smartSEO root folder
+        var extractsRoot : File = new File(new File(File.IMPEX), BV_Constants.SMART_SEO_DIR);
+        Logger.debug("execute() Prepare extractsRoot: {0}", extractsRoot.fullPath);
+        
+        if(!extractsRoot.exists()){
+	    	Logger.debug("execute() extractsRoot does not exist, creating: {0}", extractsRoot.fullPath);
+	        extractsRoot.mkdirs(); // this should mkdir the extracts dir and any necessary parents
+	    }
+        
+        //first remove stale content folders before importing new ones
+        pdict.Message += removeOldContent(extractsRoot);
+        
+        for each(var fname : String in feeds){
+        	Logger.debug("execute() - Processing Remote Feed: {0}", fname);
+        	
+        	var remoteFileFound : Boolean = remoteFileExists(ftpClient, fname);
+        	Logger.debug("execute() - remoteFileFound: {0}", remoteFileFound);
+        	
+        	if(remoteFileFound){
+        		var zipFile: File = new File(new File(File.TEMP), fname);
+		        Logger.debug("execute() - Prepare Local zipFile: {0}", zipFile.fullPath);
+		        // this will delete an existing zip
+		        if (zipFile.exists()) {
+		        	Logger.debug("execute() - Local zipFile: {0} exists, REMOVING", zipFile.fullPath);
+		            zipFile.remove();
+		        }
+		        
+		        //download remote feed
+		        var fileDownloaded : Boolean = ftpClient.getBinary(fname, zipFile);
+		        Logger.debug("execute() [{0}] Downloading zipFile, fileDownloaded: {1}", fname, fileDownloaded);
+		        
+		        if(fileDownloaded){
+		        	
+		        	var contentRoot : String = getContentRoot(zipFile);
+			        Logger.debug("execute() Found contentRoot name: {1}", fname, contentRoot);
+			        
+			        var contentRootDir : File = new File(extractsRoot, contentRoot);
+			         
+				    if(contentRootDir.exists()){
+				    	Logger.debug("execute() contentRoot exists, removing: {1}", fname, contentRootDir.fullPath);
+				        recursiveRemove(contentRootDir); // this should rm -r the existing extracts directory
+				    }
+				    
+				    Logger.debug("execute() - Extracting zipFile: {0} into root: {1}", zipFile.fullPath, extractsRoot.fullPath);
+				    zipFile.unzip(extractsRoot); // this will throw an exception if the unzip fails
+				    
+				    pdict.Message += StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "SUCCESS", "new SEO content is extracted in directory! ", host, user, pwd, fpath, fname);
+		        }
+		        else{
+		        	Logger.error("Problem while downloading remote feed file. Host: {0}, Path: {1}, File: {2}", host, fpath, fname);
+		        	pdict.Message += StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "Problem while downloading remote feed file.", host, user, pwd, fpath, fname);
+		        }
+		        
+        	}
+        	else{
+        		Logger.debug("execute() [{0}] Handle remote feed NOT found.", fname);
+	        	pdict.Message += StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "No Content Found on BV FTP server", host, user, pwd, fpath, fname);
+        	}
+		}
+        
+        var tempUnzip : File = new File(new File(File.IMPEX), "tempUnzip");
+		if(tempUnzip.exists()){
+			Logger.debug("execute() - Clean up tempUnzip Directory.");
+			recursiveRemove(tempUnzip);
+		}
+        
+    } 
+    catch (ex) {
+    	Logger.error("Exception Caught while importing smartSEO feeds: {0}", ex.message);
+        pdict.Message += StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "ERROR", "There was an error while attempting to download and parse the Smart SEO feed archive from the Bazaarvoice SFTP server: " + ex.message, host, user, pwd, fpath, "");
         return PIPELET_ERROR;
     }
     
     return PIPELET_NEXT;
 }
-// File.remove only works on empty directories, this is like rm -r.
 
-function recursiveRemove(rootFile: File): Boolean {
-    if (rootFile.isDirectory()) {
+
+
+/*
+*	removeOldContent()
+*
+* 	Remove any folders that have not been modified within X days,
+* 	where X is a custom site preference "bvSmartSEOMaxStaleDays"
+*
+* 	Assumes root (/IMPEX/smartSEO/) has already been created.
+*
+* 	Returns a message string for the import email
+*/
+function removeOldContent(root : File) : String {
+	var staleDays : Number = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOMaxStaleDays");
+	if(staleDays == null){
+		Logger.error("bvSmartSEOMaxStaleDays site preference is null!  Skipping removeOldContent().");
+		return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "bvSmartSEOMaxStaleDays site preference is null!  Skipping removeOldContent().", "", "", "", "", "");
+	}
+	
+	var msg : String = "";
+	
+	for each(var folder : File in root.listFiles()){
+		if(folder.directory){
+			var lastMod : Calendar = new Calendar(new Date(folder.lastModified()));
+	        var tooManyDaysAgo : Calendar = new Calendar(new Date());
+	        tooManyDaysAgo.add(Calendar.DATE, -(staleDays));
+	        Logger.debug("removeOldContent() Testing age of folder: {0}.  staleDays: {1}, lastMod: {2}, tooManyDaysAgo: {3}", folder.name, staleDays, StringUtils.formatCalendar(lastMod, "MM/dd/yyyy hh:mm:ss"), StringUtils.formatCalendar(tooManyDaysAgo, "MM/dd/yyyy hh:mm:ss"));
+	        
+	        if (lastMod.after(tooManyDaysAgo)) {
+	        	Logger.debug("removeOldContent() lastMod is NOT too old, keeping: {0}", folder.fullPath);
+	            
+	            // set message for email
+	            msg += StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "The most recent extracted files are less than " + staleDays + " days old and will be retained.", "", "", "", "", folder.name);
+	        } 
+	        else {
+	        	Logger.debug("removeOldContent() lastMod IS too old, removing: {0}", folder.fullPath);
+	            
+	            recursiveRemove(folder);
+	            
+	            // set message for email
+	            msg += StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "The most recent extracted files are more than " + staleDays + " days old and will be deleted.", "", "", "", "", folder.name);
+	        }
+		}
+	}
+	
+	return msg;
+}
+
+
+/*
+*	remoteFileExists()
+*
+* 	Determine if the expected feed archive exists on the remote SFTP server
+* 	Need to explicitly check this, because an attempt to download a non-existent file will throw
+* 	an exception.  The list of feed archives is pulled from a custom site preference, so
+* 	there is a good chance for human error with the list.
+*
+* 	Assumes the SFTPClient has been created, and the path set.
+*/
+function remoteFileExists(ftp : SFTPClient, file : String) : Boolean {
+	Logger.debug("remoteFileExists() - Looking for remote file: {0}", file);
+	
+	var found : Boolean = false;
+	for each(var info : SFTPFileInfo in ftp.list()){
+		if(info.name.equals(file)){
+			found = true;
+			break;
+		}
+	}
+	return found;
+}
+
+
+/*
+*	getContentRoot()
+*
+*	Determine the root directory inside the zip file.
+*	This is needed to delete old content because unzip() will not
+*	overwrite the entire file tree under the root, only what is inside the archive.
+*/
+function getContentRoot(zip : File) : String {
+	var foundRoot : String = "";
+	var tempUnzip : File = new File(new File(File.IMPEX), "tempUnzip");
+	
+	if(tempUnzip.exists()){
+		Logger.debug("getContentRoot() - Removing tempUnzip Directory.");
+		recursiveRemove(tempUnzip);
+	}
+	
+	tempUnzip.mkdirs();
+	
+	Logger.debug("getContentRoot() - unzipping {0} into tempUnzip dir {1}", zip.fullPath, tempUnzip.fullPath);
+	zip.unzip(tempUnzip);
+	
+	var subDirs : List = tempUnzip.listFiles();
+	
+	for each(var f : File in subDirs){
+		if(f.isDirectory()){
+			foundRoot = f.name;
+			Logger.debug("getContentRoot() - Directory found, use it: {0}", foundRoot);
+			break;
+		}
+	}
+	
+	return foundRoot;
+}
+
+
+/*
+*	recursiveRemove()
+*
+*	Delete the entire file tree under rootFile.
+*	File.remove() only works on empty directories, so this is like "rm -r".
+*/
+function recursiveRemove(rootFile: File) {
+	if (rootFile.isDirectory()) {
         for each(var childFile: File in rootFile.listFiles()) {
-            return recursiveRemove(childFile);
+        	recursiveRemove(childFile);
         }
     }
-    return rootFile.remove();
+    rootFile.remove();
+}
+
+
+/*
+*	getSmartSEOFeeds()
+*
+*	Get the list of smartSEO feed archive files to download from the remote server.
+*	This is defined in a custom site preference "bvSmartSEOFeedFileName" (Set of Strings).
+*
+*	The site preference also maps a DW locale to the feed (BV display code), so we need to extract
+*	the feed name from each entry.
+*
+*	Returns an Array of archive names.
+*/
+function getSmartSEOFeeds() : Array {
+	var smartSEOFeeds : Array = new Array();
+	
+	var smartSEOMapping : Array = Site.getCurrent().getCustomPreferenceValue("bvSmartSEOFeedFileName");
+	if(smartSEOMapping == null){
+		Logger.error("bvSmartSEOFeedFileName site preference is null!");
+		//return empty array and let execute() handle it
+		return smartSEOFeeds;
+	}
+	
+	var regPair : RegExp = /^([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):/;
+	var regFull : RegExp = /(\d{4}-[a-z]{2}_[a-zA-Z]{2})/;
+	
+	if(smartSEOMapping.length > 1){
+		for each(var seoFeed : String in smartSEOMapping){
+			seoFeed = seoFeed.replace(/[\s|\"]/g,"");
+			if(regPair.test(seoFeed)){
+				var a = seoFeed.split(":");
+				if(smartSEOFeeds.indexOf(a[1]) == -1){
+					smartSEOFeeds.push(a[1]);
+				}
+			}else if(regFull.test(seoFeed)){
+				if(smartSEOFeeds.indexOf(seoFeed) == -1){
+					smartSEOFeeds.push(seoFeed);
+				}
+			}
+		}
+	}
+	else if(smartSEOMapping.length == 1){
+		var singleMapping : String = smartSEOMapping[0].replace(/[\s|\"]/g,"");
+		if(regPair.test(singleMapping)){
+			var a = singleMapping.split(":");
+			smartSEOFeeds.push(a[1]);
+		}else{
+			smartSEOFeeds.push(singleMapping);
+		}
+	}
+
+	return smartSEOFeeds;
 }
