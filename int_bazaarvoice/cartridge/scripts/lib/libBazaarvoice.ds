@@ -46,7 +46,7 @@ var BazaarVoiceHelper = {
  
 		if(feed.equals(BV_Constants.PURCHASE)) {
 			if(Site.getCurrent().getCustomPreferenceValue("bvOrderImageType") != null) {
-				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvProductImageType").toString();
+				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvOrderImageType").toString();
 			}
 		}
 		else {
@@ -167,7 +167,12 @@ var BazaarVoiceHelper = {
             ret.bvSubjectType = "category";
             ret.bvExternalSubjectName = pdict.Category.name;
             bvExternalSubjectID = pdict.Category.ID;
-        } else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.deepestCommonCategory != null ) {
+        } else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.category != null ) {
+            ret.bvSubjectType = "category";
+            ret.bvExternalSubjectName = pdict.ProductSearchResult.category.displayName;
+            bvExternalSubjectID = pdict.ProductSearchResult.category.ID;
+        }
+        else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.deepestCommonCategory != null ) {
             ret.bvSubjectType = "category";
             ret.bvExternalSubjectName = pdict.ProductSearchResult.deepestCommonCategory.displayName;
             bvExternalSubjectID = pdict.ProductSearchResult.deepestCommonCategory.ID;
@@ -317,10 +322,15 @@ var BazaarVoiceHelper = {
     
     },
     
-    checkForDuplicateDisplayCodes: function(dcArray : Array) : Array {
+    checkForDuplicateDisplayCodes: function(dcArray : Array, type : String) {
     	
-		var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-		var regDefault : RegExp = /default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+		//var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+		//var regDefault : RegExp = /default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+		var regPair : RegExp = /^(default|[a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
+		
+		var currentLocale : String = request.locale;
+		var defaultLocale : String = Site.getCurrent().getDefaultLocale();
+		var isCurrentDefault : Boolean = currentLocale.equals(defaultLocale);
 		
 		var dupArray : Array = new Array();
     	var tmpArray : Array = new Array();
@@ -328,19 +338,22 @@ var BazaarVoiceHelper = {
     	for each(var item : String in dcArray){
     		item = item.replace(/[\s|\"]/g,"");
 							
-			if(regPair.test(item) && !regDefault.test(item)){				
+			if(regPair.test(item)){				
 				var a = item.split(":");			
 				if(tmpArray.indexOf(a[0]) == -1){
 					tmpArray.push(a[0]);
 				}else{
 					dupArray.push(a[0]);
-					Logger.error("Display Code Mapping has duplicate dwLocale " + a[0] + " to bvDisplayCode " + a[1]);
+					Logger.error(type + " Display Code Mapping has duplicate dwLocale " + a[0] + " to bvDisplayCode " + a[1]);
 				}
+			}
+			else if(dcArray.length > 1) {
+				Logger.error(type + " Display Code Mapping has invalid bvDisplayCode " + item);
 			}
     	}
     
     
-    	return dupArray;
+    	return;
     }
 
 };

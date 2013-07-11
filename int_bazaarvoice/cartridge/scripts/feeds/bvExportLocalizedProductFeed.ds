@@ -81,6 +81,10 @@
 * @input CategoryObjects : dw.util.Iterator
 *
 * @output Message : String
+* @output File : dw.io.File
+* @output RemotePath : String
+* @output RemoteFileName : String
+* @output Enabled : Boolean
 */
  
  importPackage( dw.system );
@@ -109,6 +113,7 @@ function execute( pdict : PipelineDictionary ) : Number {
 	pdict.Message = "";
 	
 	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed");
+	pdict.Enabled = productFeedEnabled;
 	if (!productFeedEnabled) {
 	   //If the feed isn't enabled, just return.
 	   return PIPELET_NEXT;
@@ -117,6 +122,7 @@ function execute( pdict : PipelineDictionary ) : Number {
     var date : Date = new Date();
     var filename : String = "ProductFeed-" + date.getFullYear() + insertLeadingZero(date.getMonth()+1) + insertLeadingZero(date.getDate()+1) + insertLeadingZero(date.getHours()+1) + insertLeadingZero(date.getMinutes()+1) + insertLeadingZero(date.getMilliseconds()) + ".xml"; 
     var file : File = new File(File.TEMP + "/" + filename);
+    pdict.File = file;
     
 	var bvLocaleMap : HashMap = pdict.BVLocales;
 	var allowedLocales : Collection = Site.getCurrent().allowedLocales;
@@ -126,7 +132,7 @@ function execute( pdict : PipelineDictionary ) : Number {
      
     /* Create an output stream */
     var xsw : XMLStreamWriter;
-        
+    
     try {
     	if(empty(bvHelper.getCustomerName())) {
     		throw new Error("Cannot retrieve customer name!");
@@ -136,10 +142,13 @@ function execute( pdict : PipelineDictionary ) : Number {
 		if(empty(destinationPath)) {
 			throw new Error("bvProductFeedExportPath site preference is null or empty!");
 		}
+		pdict.RemotePath = destinationPath;
+		
 		var destinationFilename : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportFileName");
     	if(empty(destinationFilename)) {
 			throw new Error("bvProductFeedExportFileName site preference is null or empty!");
 		}
+		pdict.RemoteFileName = destinationFilename;
        	
 	    /* Create an output stream */
 	    xsw = initFeed(file);
@@ -153,23 +162,18 @@ function execute( pdict : PipelineDictionary ) : Number {
         // Write the closing Feed element, then flush & close the stream
         finalizeFeed(xsw);
             	        
-        var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
-        
-        pdict.Message = ret;
+        //var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+        //pdict.Message = ret;
             
     } catch(ex) {
-        Logger.error("Exception caught during localized catalog export and upload: {0}", ex.message);
-        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during localized catalog export and upload: " + ex.message, "", "", "", "", "");         
+        Logger.error("Exception caught during localized catalog export: {0}", ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during localized catalog export: " + ex.message, "", "", "", "", "");         
         
         xsw.writeCharacters("\n\n*********************************\n" + ex.message + "\n*********************************\n");
 		xsw.flush();
 		xsw.close();	            
         return PIPELET_ERROR;    
-    } finally {
-        if (file.exists()) {
-            file.remove();
-        }
-    }        
+    }   
     
     return PIPELET_NEXT;    
 }
@@ -257,54 +261,50 @@ function writeCategory(xsw : XMLStreamWriter, category : Category, bvLocaleMap :
         
     if(allowedLocales.length > 1 && bvLocaleMap.size() > 0 && !catLocaleMap.empty){
     	//CategoryPageUrls
-    	var count : Number = 0;
-    	
-	    for each(var allowedLocale : String in allowedLocales){
-
-			for each(var dwLocale in bvLocaleMap.keySet()){
-	    		if(dwLocale.equals(allowedLocale)){
-	    			if(count == 0){
-	    				xsw.writeCharacters("\n");
-	    				xsw.writeStartElement("CategoryPageUrls");
-	    				count++;
-	    			}
-	    			
-	    			var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
-	    			writeLocalizedElement(xsw, "CategoryPageUrl", bvLocaleMap.get(dwLocale), dataMap.get("CategoryPageURL"));
-	    		
-	    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
-	    				xsw.writeCharacters("\n");
-	    				xsw.writeEndElement();
-	    			}
-	    		}	    		
-	    	}
-	    }
+    	var openTag : Boolean = false;
+    	var usedBVLocales : ArrayList = new ArrayList();
+		for each(var dwLocale in bvLocaleMap.keySet()){
+			if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
+				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
+				
+				if(!openTag){
+					xsw.writeCharacters("\n");
+					xsw.writeStartElement("CategoryPageUrls");
+					openTag = true;
+				}
+				
+				var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
+				writeLocalizedElement(xsw, "CategoryPageUrl", bvLocaleMap.get(dwLocale), dataMap.get("CategoryPageURL"));
+			}    		
+    	}
+    	if(openTag) {
+    		xsw.writeCharacters("\n");
+    		xsw.writeEndElement();
+    	}
 	    
 	    //ImageUrls
-    	count = 0;
-    	
-	    for each(var allowedLocale : String in allowedLocales){
-
-			for each(var dwLocale in bvLocaleMap.keySet()){
+    	openTag = false;
+    	usedBVLocales = new ArrayList();
+    	for each(var dwLocale in bvLocaleMap.keySet()){
+    		if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
+				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
+				
 				var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
 				if(dataMap.get("ImageURL")){
-		    		if(dwLocale.equals(allowedLocale)){
-		    			if(count == 0){
-		    				xsw.writeCharacters("\n");
-		    				xsw.writeStartElement("ImageUrls");
-		    				count++;
-		    			}
-		    			
-		    			writeLocalizedElement(xsw, "ImageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ImageURL"));
-		    		
-		    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
-		    				xsw.writeCharacters("\n");
-		    				xsw.writeEndElement();
-		    			}
-		    		}
-				}	    		
-	    	}
-	    }    
+		    		if(!openTag){
+	    				xsw.writeCharacters("\n");
+	    				xsw.writeStartElement("ImageUrls");
+	    				openTag = true;
+	    			}
+	    			
+	    			writeLocalizedElement(xsw, "ImageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ImageURL"));
+				}
+    		}
+    	}
+    	if(openTag) {
+    		xsw.writeCharacters("\n");
+    		xsw.writeEndElement();
+    	}
     }
     
     xsw.writeCharacters("\n");
@@ -334,7 +334,6 @@ function writeProducts(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLoca
         		break;
         	}
         }
-        
         
         if(product.online && product.searchable && !product.variant) {
             writeProduct(xsw, product, bvLocaleMap, allowedLocales, productObject);
@@ -411,7 +410,6 @@ function writeProduct(xsw : XMLStreamWriter, product : Product, bvLocaleMap : Ha
     }
         
     if(!bvLocaleMap.empty && allowedLocales.length > 1){
-    	xsw.writeCharacters("\n");
     	writeProductLocalizedElements(xsw, bvLocaleMap, allowedLocales, productObject);
     }
     
@@ -422,104 +420,99 @@ function writeProductLocalizedElements(xsw : XMLStreamWriter, bvLocaleMap : Hash
 	var prodLocaleMap : LinkedHashMap = productObject.getLocaleMap();
 
 	if(prodLocaleMap != null) {
-	//Names	
-	var count : Number = 0;
-	var lastIndex : Number = allowedLocales.length - 1;
-	for each(var allowedLocale : String in allowedLocales){
+		//Names	
+		var openTag : Boolean = false;
+		var usedBVLocales : ArrayList = new ArrayList();
 		for each(var dwLocale in bvLocaleMap.keySet()){
-			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
-			if(dataMap && dataMap.get("Name")){
-				if(dwLocale.equals(allowedLocale)){
-					if(count == 0){
+			if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
+				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
+				
+				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+				if(dataMap && dataMap.get("Name")){
+					if(!openTag){
+						xsw.writeCharacters("\n");
 						xsw.writeStartElement("Names");
-						count++;
+						openTag = true;
 					}
 					
 					writeLocalizedElement(xsw, "Name", bvLocaleMap.get(dwLocale), dataMap.get("Name"));
-				
-					if(allowedLocales.indexOf(allowedLocale) == lastIndex){
-						xsw.writeEndElement();
-						xsw.writeCharacters("\n");
-					}
 				}
-			}	    		
+			}
 		}
-	}
-
-	//Descriptions
-    count = 0;
-	for each(var allowedLocale : String in allowedLocales){
+		if(openTag){
+			xsw.writeCharacters("\n");
+			xsw.writeEndElement();
+		}
+	
+		//Descriptions
+	    openTag = false;
+	    usedBVLocales = new ArrayList();
 		for each(var dwLocale in bvLocaleMap.keySet()){
-			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
-			if(dataMap && dataMap.get("Description")){
-				if(dwLocale.equals(allowedLocale)){
-					if(count == 0){
+			if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
+				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
+				
+				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+				if(dataMap && dataMap.get("Description")){
+					if(!openTag){
+						xsw.writeCharacters("\n");
 						xsw.writeStartElement("Descriptions");
-						count++;
+						openTag = true;
 					}
 					
 					writeLocalizedElement(xsw, "Description", bvLocaleMap.get(dwLocale), dataMap.get("Description"));
-				
-					if(allowedLocales.indexOf(allowedLocale) == lastIndex){
-						xsw.writeEndElement();
-						xsw.writeCharacters("\n");
-					}
 				}
-			}	    		
+			}
 		}
-	}
-	
-	//ProductPageUrls
-    count = 0;
-    
-    for each(var allowedLocale : String in allowedLocales){
-
-		for each(var dwLocale in bvLocaleMap.keySet()){
-			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
-
-			if(dwLocale.equals(allowedLocale)){
-
-    			if(count == 0){
+		if(openTag){
+			xsw.writeCharacters("\n");
+			xsw.writeEndElement();
+		}
+		
+		//ProductPageUrls
+	    openTag = false;
+	    usedBVLocales = new ArrayList();
+	    for each(var dwLocale in bvLocaleMap.keySet()){
+	    	if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
+				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
+				
+				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+				if(!openTag){
+					xsw.writeCharacters("\n");
     				xsw.writeStartElement("ProductPageUrls");
-    				count++;
+    				openTag = true;
     			}
     			
     			writeLocalizedElement(xsw, "ProductPageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ProductPageURL"));
-    		
-    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
-    				xsw.writeEndElement();
-    				xsw.writeCharacters("\n");
-    			}
-    		}
-    			    		
+	    	}
     	}
-    }	
-	
-    
-    //ImageUrls
-    count = 0;
-    	
-    for each(var allowedLocale : String in allowedLocales){
-
-		for each(var dwLocale in bvLocaleMap.keySet()){
-			var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
-			if(dataMap && dataMap.get("ImageURL")){
-	    		if(dwLocale.equals(allowedLocale)){
-	    			if(count == 0){
+		if(openTag){
+			xsw.writeCharacters("\n");
+			xsw.writeEndElement();
+		}
+	    
+	    //ImageUrls
+	    openTag = false;
+	    usedBVLocales = new ArrayList();
+	    for each(var dwLocale in bvLocaleMap.keySet()){
+	    	if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
+				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
+				
+				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+				if(dataMap && dataMap.get("ImageURL")){
+		    		if(!openTag){
+		    			xsw.writeCharacters("\n");
 	    				xsw.writeStartElement("ImageUrls");
-	    				count++;
+	    				openTag = true;
 	    			}
 	    			
 	    			writeLocalizedElement(xsw, "ImageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ImageURL"));
-	    		
-	    			if(allowedLocales.indexOf(allowedLocale) == allowedLocales.length - 1){
-	    				xsw.writeEndElement();
-	    				xsw.writeCharacters("\n");
-	    			}
 	    		}
-			}	    		
+	    	}
     	}
-    }
+    	if(openTag){
+    		xsw.writeCharacters("\n");
+			xsw.writeEndElement();
+		}
     
 	}else {
 		return PIPELET_ERROR;

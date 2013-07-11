@@ -135,7 +135,7 @@ function writeOrder(xsw : XMLStreamWriter, order : Order, locale : String) {
 	        var externalID : String = bvHelper.replaceIllegalCharacters(prod.variant ? prod.variationModel.master.ID : prod.ID);
 	        var name : String = prod.name;
 	        var price : Number = lineItem.getPriceValue();
-	        var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PURCHASE);
+	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);
 	        
 	        xsw.writeStartElement("Product");
 	           bvHelper.writeElement(xsw, "ExternalId", externalID);

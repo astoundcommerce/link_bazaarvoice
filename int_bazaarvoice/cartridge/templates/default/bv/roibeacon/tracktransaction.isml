@@ -1,0 +1,57 @@
+<!--- TEMPLATENAME: tracktransaction.isml --->
+<isif condition="${pdict.Order != null}">
+	<isscript>
+	importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
+	importScript("int_bazaarvoice:/lib/libConstants.ds");
+	
+	var roiEnabled : Boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableROIBeacon");
+	
+	var bvHelper = getBazaarVoiceHelper();
+	var bvApiUrl = "";
+	var cust = pdict.Order.customer;
+	bvApiUrl = bvHelper.getBvApiHostUrl(pdict.RRDisplayCode);	
+	</isscript>
+
+	<isif condition="${roiEnabled && !empty(bvApiUrl)}">
+	
+		<script type="text/javascript" src="${bvApiUrl}/bvapi.js"></script>
+		
+		<script type="text/javascript">
+		$BV.SI.trackTransactionPageView({
+		"orderId"	:	"${pdict.Order.orderNo}",
+		"tax"		:	"${pdict.Order.totalTax.value}",
+		"shipping"	:	"${pdict.Order.shippingTotalPrice.value}",
+		"total"		:	"${pdict.Order.totalGrossPrice.value}",
+		"city"		:	"${pdict.Order.billingAddress.city}",
+		"state"		:	"${pdict.Order.billingAddress.stateCode}",
+		"country"	:	"${pdict.Order.billingAddress.countryCode}",
+		"currency"	:	"${pdict.Order.currencyCode}",
+		"items"		:	[
+		<isscript>var plicounter = 0;</isscript>
+		<isloop items="${pdict.Order.allProductLineItems}" var="item" status="itemstat">
+		<isif condition="${item.product != null}">
+		<isif condition="${plicounter > 0}">,</isif>
+		{
+		"sku"		:	"${bvHelper.replaceIllegalCharacters(item.product.variant ? item.product.variationModel.master.ID : item.product.ID)}",
+		"name"		:	"${item.product.name}",
+		"price"		:	"${item.getPriceValue()}",
+		<isif condition="${!empty(bvHelper.getImageURL(item.product, BV_Constants.PURCHASE))}">
+		"imageURL"	:	"${bvHelper.getImageURL(item.product, BV_Constants.PURCHASE)}",
+		</isif>
+		"quantity"	:	"${item.quantity.value.toFixed()}"
+		}
+		<isscript>plicounter++;</isscript>
+		</isif>
+		</isloop>
+		],
+		"userId"	:	"${pdict.Order.customerNo}",
+		"email"		:	"${pdict.Order.customerEmail}",
+		"nickname"	:	"${pdict.Order.customerName}"
+		<isif condition="${cust.profile != null && cust.profile.gender != null && cust.profile.gender.value != 0}">,
+		"gender"	:	"${pdict.Order.customer.profile.gender.value == 1 ? 'M' : 'F'}"
+		</isif>
+		});
+		</script>
+		
+	</isif>
+</isif>

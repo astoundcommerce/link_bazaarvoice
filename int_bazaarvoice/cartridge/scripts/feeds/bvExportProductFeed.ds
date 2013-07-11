@@ -77,6 +77,10 @@
 *</Feed>
 *
 * @output Message : String
+* @output File : dw.io.File
+* @output RemotePath : String
+* @output RemoteFileName : String
+* @output Enabled : Boolean
 */
  
  importPackage( dw.system );
@@ -103,6 +107,7 @@ function execute( pdict : PipelineDictionary ) : Number {
 	pdict.Message = "";
 	
 	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed");
+	pdict.Enabled = productFeedEnabled;
 	if (!productFeedEnabled) {
 	   //If the feed isn't enabled, just return.
 	   return PIPELET_NEXT;
@@ -111,7 +116,7 @@ function execute( pdict : PipelineDictionary ) : Number {
     var date : Date = new Date();
     var filename : String = "ProductFeed-" + date.getFullYear() + insertLeadingZero(date.getMonth()+1) + insertLeadingZero(date.getDate()+1) + insertLeadingZero(date.getHours()+1) + insertLeadingZero(date.getMinutes()+1) + insertLeadingZero(date.getMilliseconds()) + ".xml"; 
     var file : File = new File(File.TEMP + "/" + filename);
-        
+	pdict.File = file;
     
     try {
     	if(empty(bvHelper.getCustomerName())) {
@@ -135,25 +140,23 @@ function execute( pdict : PipelineDictionary ) : Number {
         	Logger.error("bvProductFeedExportPath site preference is null or empty!");
         	throw new Error("bvProductFeedExportPath site preference is null or empty!");
         }
+        pdict.RemotePath = destinationPath;
         
         var destinationFilename : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportFileName");
         if(empty(destinationPath)){
         	Logger.error("bvProductFeedExportFileName site preference is null or empty!");
         	throw new Error("bvProductFeedExportFileName site preference is null or empty!");
         }
+        pdict.RemoteFileName = destinationFilename;
         
-        var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
-        pdict.Message = ret;
+        //var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+        //pdict.Message = ret;
             
     } catch(ex) {
-        Logger.error("Exception caught during catalog export and upload: {0}", ex.message);
-        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during catalog export and upload: " + ex.message, "", "", "", "", "");         
+        Logger.error("Exception caught during catalog export: {0}", ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during catalog export: " + ex.message, "", "", "", "", "");         
         return PIPELET_ERROR;    
-    } finally {
-        if (file.exists()) {
-            file.remove();
-        }
-    }        
+    }     
     
     return PIPELET_NEXT;    
 }

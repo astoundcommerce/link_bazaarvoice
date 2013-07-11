@@ -24,10 +24,17 @@ function execute( pdict : PipelineDictionary ) : Number
    var validCodes : Array = new Array();
    var codeCount : Number = 0;
 
-   var regFull : RegExp = /^\d{4}-[a-z]{2}_[a-zA-Z]{2}$/;
-   var regDigit : RegExp = /^\d{4}$/;
-   var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-   var regDefault : RegExp = /default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
+   //regFull is just a BV display code with locale
+	//e.g. 1234-en_us, 12345-de_de, 1234redes-en_us, etc
+	var regFull : RegExp = /^\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
+	
+	//regDigit is just the BV display code with no locale
+	//e.g. 1234, 12345, 1234redes, 12345redes, etc
+	var regDigit : RegExp = /^\d{4,5}([a-zA-Z]*)?$/;
+	
+	//regPair is a full mapping from DW locale to BV display code with locale
+	//e.g. "de":"1234-de_de", "de_DE":"12345-de_de", "default":"1234redes-en_us", etc
+	var regPair : RegExp = /^(default|[a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
 
    //Get rr displaycode for current locale
    if(rrDCArray.length > 1){

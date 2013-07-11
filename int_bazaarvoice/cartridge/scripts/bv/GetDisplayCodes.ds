@@ -14,223 +14,117 @@ importPackage( dw.util );
 importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
 importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 
+var currentLocale : String = request.locale;
+var defaultLocale : String = Site.getCurrent().getDefaultLocale();
+var isCurrentDefault : Boolean = currentLocale.equals(defaultLocale);
+var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
+
+//regFull is just a BV display code with locale
+//e.g. 1234-en_us, 12345-de_de, 1234redes-en_us, etc
+var regFull : RegExp = /^\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
+
+//regDigit is just the BV display code with no locale
+//e.g. 1234, 12345, 1234redes, 12345redes, etc
+var regDigit : RegExp = /^\d{4,5}([a-zA-Z]*)?$/;
+
+//regPair is a full mapping from DW locale to BV display code with locale
+//e.g. "de":"1234-de_de", "de_DE":"12345-de_de", "default":"1234redes-en_us", etc
+var regPair : RegExp = /^(default|[a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
+
+//var regDefault : RegExp = /default:\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}/;
+   	
+   	
 function execute( pdict : PipelineDictionary ) : Number
 {
-   var bvHelper = getBazaarVoiceHelper();
+	var bvHelper = getBazaarVoiceHelper();
 
-   var currentLocale : String = pdict.CurrentLocale;
-   var defaultLocale : String = Site.getCurrent().getDefaultLocale();
-   var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
-   var rrDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvRRDisplayCodeMapping");
-   var aaDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvAADisplayCodeMapping");
-   var syDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvSYDisplayCodeMapping");
+	var rrDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvRRDisplayCodeMapping");
+	var aaDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvAADisplayCodeMapping");
+	var syDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvSYDisplayCodeMapping");
+	
+	var rrDisplayCode : String = "";
+	var aaDisplayCode : String = "";
+	var syDisplayCode : String = "";
    
-   var rrDisplayCode : String = "";
-   var aaDisplayCode : String = "";
-   var syDisplayCode : String = "";
-   
+	//test for duplicates.
+	//this does nothing functional, but adds messaging to the logs.
+	bvHelper.checkForDuplicateDisplayCodes(rrDCArray, "RR");
+	bvHelper.checkForDuplicateDisplayCodes(aaDCArray, "AA");
+	bvHelper.checkForDuplicateDisplayCodes(syDCArray, "SY");
 
-   var regFull : RegExp = /^\d{4}-[a-z]{2}_[a-zA-Z]{2}$/;
-   var regDigit : RegExp = /^\d{4}$/;
-   var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-   var regDefault : RegExp = /default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-
-   //Get rr displaycode for current locale
-   if(rrDCArray.length > 1){
-		var index = 0;
-		//var dupArray : Array = bvHelper.checkForDuplicateDisplayCodes(rrDCArray);
-		
-		for each(var item : String in rrDCArray){
-			item = item.replace(/[\s|\"]/g,"");
-							
-			if(regDigit.test(item) && currentLocale.equals(defaultLocale)){
-				Logger.error("Site Preferences bvRRDisplayCodeMapping has invalid input " + item);
-			}else if(regFull.test(item) && currentLocale.equals(defaultLocale)){
-				rrDisplayCode = item;
-				break;
-			}else if(regPair.test(item)){				
-				var a = item.split(":");			
-				if(allowedLocales.indexOf(a[0]) != -1){
-					if(a[0] == currentLocale){
-						rrDisplayCode = a[1];
-						break;
-					}
-				}else{
-					Logger.error("Site Preferences bvRRDisplayCodeMapping has inactive locale " + a[0]);
-				}
-			}else if(regDefault.test(item) && currentLocale.equals(defaultLocale)){
-				rrDisplayCode = item;
-				break;
-			}
-			
-			if(index == rrDCArray.length - 1){
-				rrDisplayCode = "";
-				Logger.error("Site Preferences bvRRDisplayCodeMapping has no match setting for " + currentLocale);
-			}
-			
-			index++;
-		}
-
-   }else if(rrDCArray.length == 1){
-		var item : String = rrDCArray[0];
-		
-		item = item.replace(/[\s|\"]/g,"");
-				
-		if((regDigit.test(item) || regFull.test(item)) && currentLocale.equals(defaultLocale)){
-			rrDisplayCode = item;
-		}else if(regPair.test(item)){
-			
-			var a = item.split(":");
-			if(allowedLocales.indexOf(a[0]) != -1){			
-				if(a[0] == currentLocale){
-					rrDisplayCode = a[1];
-				}else{
-					rrDisplayCode = "";
-					Logger.error("Site Preferences bvRRDisplayCodeMapping has no input for" + currentLocale);
-				}
-			}else{
-				Logger.error("Site Preferences bvRRDisplayCodeMapping has inactive locale " + currentLocale);
-			}
-		}else{
-			rrDisplayCode = "";
-			Logger.error("Site Preferences bvRRDisplayCodeMapping has invalid format for" + currentLocale);
-		}
-   }else{
-   	  Logger.error("Site Preferences bvRRDisplayCodeMapping requires at least one setting");
-   }
-   
-   //Get aa displaycode for current locale
-   if(aaDCArray.length > 1){
-   		var index = 0;
-   		var dupArray : Array = bvHelper.checkForDuplicateDisplayCodes(aaDCArray);
-   		
-		for each(var item : String in aaDCArray){
-			item = item.replace(/[\s|\"]/g,"");
-							
-			if(regDigit.test(item) && currentLocale.equals(defaultLocale)){
-				Logger.error("Site Preferences bvAADisplayCodeMapping has invalid input " + item);
-			}else if(regFull.test(item) && currentLocale.equals(defaultLocale)){
-				aaDisplayCode = item;
-				break;
-			}else if(regPair.test(item)){				
-				var a = item.split(":");			
-				if(allowedLocales.indexOf(a[0]) != -1){
-					if(a[0] == currentLocale && dupArray.indexOf(a[0]) == -1){	
-						aaDisplayCode = a[1];
-						break;	
-					}
-				}else{
-					Logger.error("Site Preferences bvAADisplayCodeMapping has inactive locale " + currentLocale);
-				}
-			}else if(regDefault.test(item) && currentLocale.equals(defaultLocale)){
-				aaDisplayCode = item;
-				break;
-			}
-			
-			if(index == aaDCArray.length - 1){
-				aaDisplayCode = "";
-				Logger.error("Site Preferences bvAADisplayCodeMapping has no match setting for " + currentLocale);				
-			}
-			
-			index++;
-		}
-   }else if(aaDCArray.length == 1){
-		var item : String = aaDCArray[0];
-		
-		item = item.replace(/[\s|\"]/g,"");
-		
-		if((regDigit.test(item) || regFull.test(item)) && currentLocale.equals(defaultLocale)){
-			aaDisplayCode = item;
-		}else if(regPair.test(item)){
-			
-			var a = item.split(":");
-			if(allowedLocales.indexOf(a[0]) != -1){			
-				if(a[0] == currentLocale){
-					aaDisplayCode = a[1];	
-				}else{
-					aaDisplayCode = "";
-					Logger.error("Site Preferences bvAADisplayCodeMapping has no input for" + currentLocale);
-				}
-			}else{
-				Logger.error("Site Preferences bvAADisplayCodeMapping has inactive locale" + currentLocale);
-			}
-		}else{
-			aaDisplayCode = "";
-			Logger.error("Site Preferences bvAADisplayCodeMapping has invalid format for" + currentLocale);
-		}
-   }else{
-   	  Logger.error("Site Preferences bvAADisplayCodeMapping requires at least one setting");
-   }
-   
-   
-   //Get sy displaycode for current locale
-   if(syDCArray.length > 1){
-   		var index = 0;
-   		var dupArray : Array = bvHelper.checkForDuplicateDisplayCodes(syDCArray);
-   		
-		for each(var item : String in syDCArray){
-			item = item.replace(/[\s|\"]/g,"");
-							
-			if(regDigit.test(item) && currentLocale.equals(defaultLocale)){
-				Logger.error("Site Preferences bvSYDisplayCodeMapping has invalid input " + item);
-			}else if(regFull.test(item) && currentLocale.equals(defaultLocale)){
-				syDisplayCode = item;
-				break;
-			}else if(regPair.test(item)){				
-				var a = item.split(":");
-				if(allowedLocales.indexOf(a[0]) != -1){			
-					if(a[0] == currentLocale && dupArray.indexOf(a[0]) == -1){					
-						syDisplayCode = a[1];
-						break;
-					}
-				}else{
-					Logger.error("Site Preferences bvSYDisplayCodeMapping has inactive locale" + currentLocale);
-				}
-			}else if(regDefault.test(item) && currentLocale.equals(defaultLocale)){
-				syDisplayCode = item;
-				break;
-			}
-			
-			if(index == syDCArray.length - 1){
-				syDisplayCode = "";
-				Logger.error("Site Preferences bvSYDisplayCodeMapping has no match setting for " + currentLocale);
-			}
-			
-			index++;
-		}
-   }else if(syDCArray.length == 1){
-		var item : String = syDCArray[0];
-		
-		item = item.replace(/[\s|\"]/g,"");
-		
-		if((regDigit.test(item) || regFull.test(item)) && currentLocale.equals(defaultLocale)){
-			syDisplayCode = item;
-		}else if(regPair.test(item)){
-			
-			var a = item.split(":");
-			if(allowedLocales.indexOf(a[0]) != -1){			
-				if(a[0] == currentLocale){				
-						syDisplayCode = a[1];				
-				}else{
-					syDisplayCode = "";
-					Logger.error("Site Preferences bvSYDisplayCodeMapping has no input for" + currentLocale);
-				}
-			
-			}else{
-					Logger.error("Site Preferences bvSYDisplayCodeMapping has inactive locale" + currentLocale);
-			}
-		}else{
-			syDisplayCode = "";
-			Logger.error("Site Preferences bvSYDisplayCodeMapping has invalid format for" + currentLocale);
-		}
-   }else{
-   	  Logger.error("Site Preferences bvSYDisplayCodeMapping requires at least one setting");
-   }
-
-
+	//Get displaycodes for current locale
+	rrDisplayCode = getDisplayCodeFromMapping(rrDCArray, "bvRRDisplayCodeMapping");
+	aaDisplayCode = getDisplayCodeFromMapping(aaDCArray, "bvAADisplayCodeMapping");
+	syDisplayCode = getDisplayCodeFromMapping(syDCArray, "bvSYDisplayCodeMapping");
+	
 	pdict.RRDisplayCode = rrDisplayCode;
 	pdict.AADisplayCode = aaDisplayCode;
 	pdict.SYDisplayCode = syDisplayCode;
 
-   return PIPELET_NEXT;
+	return PIPELET_NEXT;
+}
+
+function getDisplayCodeFromMapping(map : Array, prefName : String) : String {
+	var dc : String = "";
+	
+	if(map.length > 1){
+		var index = 0;
+		
+		for each(var item : String in map){
+			item = item.replace(/[\s|\"]/g,"");
+			
+			if(regDigit.test(item) && isCurrentDefault){
+				//if there is more than one mapping, then each entry needs to be a pair
+				//or else we don't know which dw locale maps to the display code
+				Logger.error("Site Preference {0} has invalid input " + item, prefName);
+			}else if(regFull.test(item) && isCurrentDefault){
+				dc = item;
+				break;
+			}else if(regPair.test(item)){
+				var a = item.split(":");
+				if(allowedLocales.indexOf(a[0]) != -1){
+					if(a[0] == currentLocale){
+						dc = a[1];
+						break;
+					}
+				}else{
+					Logger.error("Site Preference {0} has inactive locale " + a[0], prefName);
+				}
+			}
+			
+			if(index == map.length - 1){
+				Logger.error("Site Preference {0} has no match setting for " + currentLocale, prefName);
+			}
+			
+			index++;
+		}
+
+	}else if(map.length == 1){
+		var item : String = map[0];
+		
+		item = item.replace(/[\s|\"]/g,"");
+		
+		if(regDigit.test(item) || regFull.test(item)){
+			//there is only one display code, so it doesnt matter what dw locale we are on
+			dc = item;
+		}else if(regPair.test(item)){
+			
+			var a = item.split(":");
+			if(allowedLocales.indexOf(a[0]) != -1){			
+				if(a[0] == currentLocale){
+					dc = a[1];
+				}else{
+					Logger.error("Site Preference {0} has no input for" + currentLocale, prefName);
+				}
+			}else{
+				Logger.error("Site Preference {0} has inactive locale " + currentLocale, prefName);
+			}
+		}else{
+			Logger.error("Site Preference {0} has invalid format for" + currentLocale, prefName);
+		}
+	}else{
+		Logger.error("Site Preference {0} requires at least one setting", prefName);
+	}
+	
+	return dc;
 }

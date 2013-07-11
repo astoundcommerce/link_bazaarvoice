@@ -61,6 +61,7 @@
 *	....
 *</Feed>	
 *  
+* @input TempFile : dw.io.File
 *
 * @output Message : String
 */
@@ -86,42 +87,10 @@ function execute(pdict: PipelineDictionary): Number {
     var fname : String = "";
     
     try {
-        var ftpClient: SFTPClient = new SFTPClient();
-        
-        host = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
-		if(empty(host)){
-			throw new Error("bvFTPHost site preference is null or empty!");
-		}
-		user = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
-		if(empty(user)){
-			throw new Error("bvCustomerName site preference is null or empty!");
-		}
-		pwd = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
-		if(empty(pwd)){
-			throw new Error("bvFTPPassword site preference is null or empty!");
-		}
-		fpath = Site.getCurrent().getCustomPreferenceValue("bvInlineRatingsFeedPath");
-		if(empty(fpath)){
-			throw new Error("bvInlineRatingsFeedPath site preference is null or empty!");
-		}
-		fname = Site.getCurrent().getCustomPreferenceValue("bvInlineRatingsFeedFileName");
-		if(empty(fname)){
-			throw new Error("bvInlineRatingsFeedFileName site preference is null or empty!");
-		}
-
-        if (!ftpClient.connect(host, user, pwd)) {
-            throw new Error("Error while trying to connect to BV FTP server.");
-        }
-        if (!ftpClient.cd(fpath)) {
-            ftpClient.disconnect();
-            throw new Error("Error while accessing folder on BV FTP Server.");
-        }
-
-        var tempFile: File = new File(File.IMPEX + "/"+ "ratings.xml.tmp");
-        var gotRatingsFile: Boolean = ftpClient.getBinary(fname, tempFile); 
+    	var tempFile: File = pdict.TempFile;
         
         var productIds : Array = new Array();
-        if(gotRatingsFile){       
+        if(tempFile != null && tempFile.exists()){       
 		    var xmlReader : XMLStreamReader = new XMLStreamReader(new FileReader(tempFile));
 		    
 		    var productXML : XML = null;
@@ -171,8 +140,8 @@ function execute(pdict: PipelineDictionary): Number {
 						} else {
 						    iFailed++;
 						}
-					}				
-				}                
+					}
+				}
 		    }
 		
 			var products : SeekableIterator = ProductMgr.queryAllSiteProducts();
