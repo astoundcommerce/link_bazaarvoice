@@ -4,17 +4,17 @@
 	importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
 	importScript("int_bazaarvoice:/lib/libConstants.ds");
 	
-	var roiEnabled : Boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableROIBeacon");
+	var roiEnabled : Boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableROIBeacon_C2013");
 	
 	var bvHelper = getBazaarVoiceHelper();
 	var bvApiUrl = "";
 	var cust = pdict.Order.customer;
-	bvApiUrl = bvHelper.getBvApiHostUrl(pdict.RRDisplayCode);	
+	bvApiUrl = bvHelper.getBvApiHostUrl();	
 	</isscript>
 
 	<isif condition="${roiEnabled && !empty(bvApiUrl)}">
 	
-		<script type="text/javascript" src="${bvApiUrl}/bvapi.js"></script>
+		<script type="text/javascript" src="${bvApiUrl}"></script>
 		
 		<script type="text/javascript">
 		$BV.SI.trackTransactionPageView({
@@ -46,10 +46,9 @@
 		],
 		"userId"	:	"${pdict.Order.customerNo}",
 		"email"		:	"${pdict.Order.customerEmail}",
-		"nickname"	:	"${pdict.Order.customerName}"
-		<isif condition="${cust.profile != null && cust.profile.gender != null && cust.profile.gender.value != 0}">,
-		"gender"	:	"${pdict.Order.customer.profile.gender.value == 1 ? 'M' : 'F'}"
-		</isif>
+		"nickname"	:	"${pdict.Order.customerName}",
+		"locale"	:	"${bvHelper.getDisplayData().locale}",
+		"partnerSource"	:	"${BV_Constants.XML_GENERATOR}"
 		});
 		</script>
 		

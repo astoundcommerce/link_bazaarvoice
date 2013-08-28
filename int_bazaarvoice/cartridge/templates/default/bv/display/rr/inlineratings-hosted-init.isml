@@ -1,0 +1,7 @@
+<!--- TEMPLATENAME: inlineratings-hosted-init.isml --->
+<script type="text/javascript" language="javascript">
+$BV.ui( 'rr', 'inline_ratings', {
+	productIds : bvProdIds,
+	containerPrefix : 'BVRRInlineRating'
+});
+</script>

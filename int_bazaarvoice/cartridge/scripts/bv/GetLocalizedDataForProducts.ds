@@ -16,6 +16,7 @@ importPackage( dw.web );
 importPackage( dw.content );
 
 importScript( "int_bazaarvoice:/model/LocalizedProduct.ds" );
+importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
 importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 
 function execute( pdict : PipelineDictionary ) : Number
@@ -23,6 +24,7 @@ function execute( pdict : PipelineDictionary ) : Number
 	var productObjects : Collection = pdict.ProductObjects.asList();
 	var pObjList : Collection = new ArrayList();
 	var localeID : String = pdict.LocaleID;
+	var bvHelper = getBazaarVoiceHelper();
 	
 	for each(var prodObj in productObjects){
 
@@ -42,17 +44,11 @@ function execute( pdict : PipelineDictionary ) : Number
 		var action : URLAction = new URLAction('Product-Show', Site.getCurrent().getID(), localeID);
 		map.put("ProductPageURL", URLUtils.http(action, URLParameter('pid',product.ID)));
 		
-		
-		var IMAGE_SIZE : String = Site.getCurrent().getCustomPreferenceValue("bvProductImageType");
-		
-		if(!empty(IMAGE_SIZE)){
-			IMAGE_SIZE = BV_Constants.BV_DEFAULTIMAGETYPE;
-		}
-		var prodImage : MediaFile = product.getImage(IMAGE_SIZE)? product.getImage(IMAGE_SIZE) : product.getImage(BV_Constants.BV_DEFAULTIMAGETYPE);    
-	    if(prodImage){
-	    	map.put("ImageURL", prodImage.getAbsURL());
+		var prodImage = bvHelper.getImageURL(product, BV_Constants.PRODUCT);
+		if(!empty(prodImage)){
+	    	map.put("ImageURL", prodImage);
 	    }
-				
+		
 		
 		if(!map.empty){
 			localeMap.put(key, map);

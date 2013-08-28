@@ -23,10 +23,6 @@ importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 var DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
 var USER_STRING_TEMPLATE: String = "date={0}&userid={1}&username={2}";
 
-var CONST_SMARTSEO_BVRRP = "bvrrp";
-var CONST_SMARTSEO_BVQAP = "bvqap";
-var CONST_SMARTSEO_BVSYP = "bvsyp";
-
 var BazaarVoiceHelper = {
 	
 	/*******************************************************************************************************************
@@ -45,13 +41,13 @@ var BazaarVoiceHelper = {
  		var imgURL : String = "";
  
 		if(feed.equals(BV_Constants.PURCHASE)) {
-			if(Site.getCurrent().getCustomPreferenceValue("bvOrderImageType") != null) {
-				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvOrderImageType").toString();
+			if(Site.getCurrent().getCustomPreferenceValue("bvOrderImageType_C2013") != null) {
+				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvOrderImageType_C2013").toString();
 			}
 		}
 		else {
-			if(Site.getCurrent().getCustomPreferenceValue("bvProductImageType") != null) {
-				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvProductImageType").toString();
+			if(Site.getCurrent().getCustomPreferenceValue("bvProductImageType_C2013") != null) {
+				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue("bvProductImageType_C2013").toString();
 			}
 		}
 		
@@ -67,18 +63,21 @@ var BazaarVoiceHelper = {
 	/******************************************************************************************************************
 	*******************************************************************************************************************/
 	
+	//used
 	getCustomerName : function() : String {
 		var name : String = "";
-		if(Site.getCurrent().getCustomPreferenceValue("bvCustomerName") != null){
-			name = Site.getCurrent().getCustomPreferenceValue("bvCustomerName").toString();
+		if(Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013") != null){
+			name = Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013").toString();
 		}
 		return name;
 	},
 
+	//used
     replaceIllegalCharacters: function (rawId: String): String {
         return rawId.replace("&", "_and_");
     },
 
+	//remove????
     decodeId: function (id: String) {
         if (id.indexOf("_and_") != -1) {
             return id.replace("_and_", "&");
@@ -87,11 +86,13 @@ var BazaarVoiceHelper = {
         }
     },
 
+	//remove????
     md5: function (data: String) {
         var digest: MessageDigest = new MessageDigest(MessageDigest.DIGEST_MD5);
         return digest.digest(data);
     },
 
+	//remove????
     encodeHex: function (data: String) {
         var l: Number = data.length;
         var out: String = "";
@@ -103,11 +104,12 @@ var BazaarVoiceHelper = {
         return out;
     },
 
+	//remove????
     encryptReviewerId: function (reviewerId: String, reviewerNickname: String) {
         if (!empty(reviewerId) && !empty(reviewerNickname)) {
             var dateAndreviewerId: String = StringUtils.format(USER_STRING_TEMPLATE, StringUtils.formatCalendar(new Calendar(), 'yyyyMMdd'), reviewerId, reviewerNickname);
 
-            var sharedKey: String = Site.getCurrent().getCustomPreferenceValue("bvEncodingKey");
+            var sharedKey: String = Site.getCurrent().getCustomPreferenceValue("bvEncodingKey_C2013");
             var md5String: String = BazaarVoiceHelper.md5(sharedKey + dateAndreviewerId);
             var hexUserID: String = BazaarVoiceHelper.encodeHex(dateAndreviewerId);
 
@@ -116,45 +118,115 @@ var BazaarVoiceHelper = {
         return null;
     },
 
-    getBvUrl: function (isStatic: boolean, bvProduct : String, bvDisplayCode : String): String {
-        var protocol = request.httpProtocol;
-        var hostSubdomain = BazaarVoiceHelper.getSubDomainForBVProduct(bvProduct);
-        var hostDomain = Site.getCurrent().getCustomPreferenceValue("bvHostDomain");
-        var bvStaging = BazaarVoiceHelper.getBvStaging();
-        var stat = "";
-        if (isStatic) {
-            stat = "static/";
+	//used
+    getBvApiHostUrl: function (): String {
+    	var client : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013");
+    	if(empty(client)) {
+    		Logger.error("Site Preference bvCustomerName is null or empty!");
+    		client = "CLIENTNAME";
+    	}
+    	
+        var bvdisplay : String = BazaarVoiceHelper.getDisplayData();
+        
+        var env : String = BazaarVoiceHelper.getEnvironment();
+        var host : String = BV_Constants.APIHostStaging;
+        if(!empty(env) && env.toLowerCase() == "production") {
+        	host = BV_Constants.APIHostProduction;
         }
-
-        return protocol + "://" + hostSubdomain + "." + hostDomain + bvStaging + stat + bvDisplayCode;
+        
+        return "//" + host + "/static/" + client + "/" + encodeURI(bvdisplay.zone) + "/" + bvdisplay.locale + "/bvapi.js";
     },
-
-    getBvApiHostUrl: function (displayCode): String {
-        var protocol = request.httpProtocol;
-        var bvApiHostname = Site.getCurrent().getCustomPreferenceValue("bvAPIHostname");
-        var bvStaging = BazaarVoiceHelper.getBvStaging();
-        var bvDefaultDisplayCode = displayCode;
-
-        return protocol + "://" + bvApiHostname + bvStaging + "static/" + bvDefaultDisplayCode;
-    },
-
-    getBvStaging: function (): String {
-        var bvStaging = Site.getCurrent().getCustomPreferenceValue("bvStaging");
-        if (bvStaging == "") {
-            bvStaging = "/";
-        } else {
-            //Add the leading slash if it doesn't already have it
-            if (bvStaging.match("^\/") != "/") {
-                bvStaging = "/" + bvStaging;
-            }
-            //Add the trailing slash if it doesn't already have it
-            if (bvStaging.match("\/$") != "/") {
-                bvStaging = bvStaging + "/";
-            }
-        }
-        return bvStaging;
-    }, 
     
+    //used
+    getDisplayData : function() {
+    	var currentLocale : String = request.locale;
+		var defaultLocale : String = Site.getCurrent().getDefaultLocale();
+		var isCurrentDefault : Boolean = currentLocale.equals(defaultLocale);
+		var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
+		
+		var bvzone : String = "";
+    	var bvlocale : String = "";
+		
+    	var map : Array = Site.getCurrent().getCustomPreferenceValue("bvLocaleMapping_C2013");
+		
+		if(map.length > 1){
+			var index = 0;
+			for each(var item : String in map){
+				item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
+				
+				if(BV_Constants.regFull.test(item) && isCurrentDefault){
+					bvlocale = item;
+					break;
+				}
+				else if(BV_Constants.regPair.test(item)){
+					var a = item.split(":");
+					a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
+					a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
+					
+					if(allowedLocales.indexOf(a[0]) != -1){
+						if(a[0] == currentLocale){
+							bvlocale = a[1];
+							if(bvlocale.indexOf("/") != -1) {
+								var b = bvlocale.split("/");
+								bvzone = decodeURI(b[0]);
+								bvlocale = b[1];
+							}
+							break;
+						}
+					}else{
+						Logger.error("Site Preference bvLocaleMapping has inactive locale " + a[0]);
+					}
+				}
+				
+				if(index == map.length - 1){
+					Logger.error("Site Preference bvLocaleMapping has no match setting for " + currentLocale);
+				}
+				index++;
+			}
+		}
+		else if(map.length == 1){
+			var item : String = map[0];
+			item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
+			
+			if(BV_Constants.regFull.test(item)){
+				//there is only one display code, so it doesnt matter what dw locale we are on
+				bvlocale = item;
+			}
+			else if(BV_Constants.regPair.test(item)){
+				var a = item.split(":");
+				a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
+				a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
+				
+				if(allowedLocales.indexOf(a[0]) != -1){			
+					if(a[0] == currentLocale){
+						bvlocale = a[1];
+					}else{
+						Logger.error("Site Preference bvLocaleMapping has no input for" + currentLocale);
+					}
+				}else{
+					Logger.error("Site Preference bvLocaleMapping has inactive locale " + currentLocale);
+				}
+			}else{
+				Logger.error("Site Preference bvLocaleMapping has invalid format for" + currentLocale);
+			}
+		}else{
+			Logger.error("Site Preference bvLocaleMapping requires at least one setting");
+		}
+		
+		//Deployment Zone was not overridden in the locale mapping, so grab it from the preference
+		//If no DZ is defined, default to 'Main Site'
+		if(empty(bvzone)) {
+			bvzone = Site.getCurrent().getCustomPreferenceValue("bvDeploymentZone_C2013");
+			if(empty(bvzone)) {
+	        	Logger.error("Site Preference bvDeploymentZone is null or empty!. Using 'Main Site'.");
+	        	bvzone = BV_Constants.DEFAULT_ZONE;
+	        }
+		}
+		
+		return {"zone" : bvzone, "locale" : bvlocale};
+    },
+    
+    //used
     getExternalSubjectForPage: function(pdict : PipelineDictionary) : Object {
         var ret = {};
         
@@ -183,80 +255,7 @@ var BazaarVoiceHelper = {
         }
         
         return ret;
-    }, 
-    
-    getSmartSEOContent: function(pdict : PipelineDictionary, bvProduct : String, bvDisplayCode : String, bvSubject : Object, pageFormat : String) : String {
-        var baseFolder : String = "smartSEO/";
-        
-        var content : String = null;
-        var smartSEOEnabled = Site.getCurrent().getCustomPreferenceValue("bvEnableSmartSEO");
-        if (smartSEOEnabled) {
-            var displayCode = bvDisplayCode;
-            if (pageFormat != "") {
-            	pageFormat += "/";
-            }     
-            var smartSEOFile : File = new File(new File(File.IMPEX),baseFolder + displayCode + "/" + bvProduct + "/" + bvSubject.bvSubjectType + "/1/" + pageFormat + bvSubject.bvExternalSubjectID + ".htm");
-            
-            if (!empty(pdict.CurrentHttpParameterMap)) {
-                if (pdict.CurrentHttpParameterMap.isParameterSubmitted(CONST_SMARTSEO_BVRRP)) {
-                    smartSEOFile = new File(new File(File.IMPEX), baseFolder + pdict.CurrentHttpParameterMap.get(CONST_SMARTSEO_BVRRP).stringValue);
-                }else if (pdict.CurrentHttpParameterMap.isParameterSubmitted(CONST_SMARTSEO_BVQAP)) {
-                    smartSEOFile = new File(new File(File.IMPEX), baseFolder + pdict.CurrentHttpParameterMap.get(CONST_SMARTSEO_BVQAP).stringValue);
-                }else if (pdict.CurrentHttpParameterMap.isParameterSubmitted(CONST_SMARTSEO_BVSYP)) {
-                    smartSEOFile = new File(new File(File.IMPEX), baseFolder + pdict.CurrentHttpParameterMap.get(CONST_SMARTSEO_BVSYP).stringValue);
-                }
-            }
-
-            if (smartSEOFile.exists()) {
-                var reader : FileReader = new FileReader(smartSEOFile);
-                content = reader.getString();
-                reader.close();
-            }
-
-            //Replace any occurrences of "{INSERT_PAGE_URI}" with product or category page URL, ensuring that it ends with either ? or & as appropriate.
-            if (content) {
-                var currentPage = pdict.CurrentRequest.getHttpProtocol()+'://'+pdict.CurrentRequest.getHttpHost()+pdict.CurrentRequest.getHttpPath();
-                currentPage += "?";
-                if (!empty(pdict.CurrentRequest.getHttpQueryString())) {
-                	for each(var param : String in pdict.CurrentHttpParameterMap.getParameterNames()){
-                		if (param != CONST_SMARTSEO_BVRRP && param != CONST_SMARTSEO_BVQAP && param != CONST_SMARTSEO_BVSYP) {
-                			currentPage += param + "=" + pdict.CurrentHttpParameterMap.get(param) + "&";
-                		}
-                	}
-                }
-                
-                content = content.replace(/{INSERT_PAGE_URI}/g, currentPage);
-            }
-        }
-        return content;
-    },  
-    
-    getSubDomainForBVProduct: function(bvProduct : String) : String {
-        if (bvProduct == "questions") {
-            return Site.getCurrent().getCustomPreferenceValue("bvAASubDomain");
-        } else if (bvProduct == "stories") {
-            return Site.getCurrent().getCustomPreferenceValue("bvSYSubDomain");
-        } else if (bvProduct == "activeprofiles") {
-            return Site.getCurrent().getCustomPreferenceValue("bvCPSubDomain");
-        }
-        
-        // Default to RR display code
-        return Site.getCurrent().getCustomPreferenceValue("bvRRSubDomain");
-    },
-    
-    getActiveProfilesEditProfileLink: function(customerNo : String, customerNick : String) : String {
-        //Construct a URL that looks like the following.
-        //http://ugc.int-demandware.bazaarvoice.com/bvstaging/profiles/6725/editprofile.htm?user=[TO-DO: REPLACE WITH ENCODED USER]
-     
-        var protocol = request.httpProtocol;
-        var bvCPSubDomain = Site.getCurrent().getCustomPreferenceValue("bvCPSubDomain");
-        var bvHostDomain = Site.getCurrent().getCustomPreferenceValue("bvHostDomain");
-        var bvStaging = BazaarVoiceHelper.getBvStaging();
-        var bvCPDefaultDisplayCode = Site.getCurrent().getCustomPreferenceValue("bvCPDefaultDisplayCode");
-        var bvUAS = BazaarVoiceHelper.encryptReviewerId(customerNo, customerNick);
-        
-        return protocol + "://" + bvCPSubDomain + "." + bvHostDomain + bvStaging + "profiles/" + bvCPDefaultDisplayCode + "/editprofile.htm?user=" + bvUAS;
-    },
+    },     
     
     finalizeFeed: function(xsw : XMLStreamWriter) {
         xsw.writeEndElement();  //</Feed>
@@ -272,6 +271,7 @@ var BazaarVoiceHelper = {
         xsw.writeEndElement();
     },
 
+	//used
     insertLeadingZero: function(nb : Number) : String {
         if(nb < 10) {
             return "0"+nb;
@@ -280,36 +280,56 @@ var BazaarVoiceHelper = {
         }
     },
     
+    //used
+    getEnvironment : function() : String {
+    	var env : EnumValue = Site.getCurrent().getCustomPreferenceValue("bvEnvironment_C2013");
+    	if(empty(env) || empty(env.value)) {
+    		Logger.error("bvEnvironment is null or empty!");
+			return "";
+    	}
+    	return env.value;
+    },
+    
+    //used
     uploadFile: function(destinationPath : String, destinationFilename : String, localFile : File, pdict : PipelineDictionary) : String {
     	var ftpClient : SFTPClient = new SFTPClient();
     	
-        var host  : String = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
-        if(empty(host)){
-			Logger.error("bvFTPHost is null or empty!");
-			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server: bvFTPHost is null or empty!","", "", "", "", "");
+    	var env : String = BazaarVoiceHelper.getEnvironment();
+    	if(empty(env)) {
+    		return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: bvEnvironment is null or empty!","", "", "", "", "");
+    	}
+    	
+        var host : String = BV_Constants.FTPHostStaging;
+        if(env.toLowerCase() == "production") {
+        	host = BV_Constants.FTPHostProduction;
         }
         
-        var user  : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName");
+        if(empty(host)) {
+        	Logger.error("SFTP host is null or empty! Verify the configuration in libConstants.ds");
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: SFTP host is null or empty! Verify the configuration in libConstants.ds","", "", "", "", "");
+        }
+        
+        var user  : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013");
         if(empty(user)){
 			Logger.error("bvCustomerName is null or empty!");
-			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server: bvCustomerName is null or empty!","", "", "", "", "");
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: bvCustomerName is null or empty!","", "", "", "", "");
         }
         
-        var pwd   : String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword");
+        var pwd   : String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword_C2013");
         if(empty(pwd)){
 			Logger.error("bvFTPPassword is null or empty!");
-			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server: bvFTPPassword is null or empty!","", "", "", "", "");
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: bvFTPPassword is null or empty!","", "", "", "", "");
         }
         
         if(!ftpClient.connect(host, user, pwd)) {
         	Logger.error("Could not connect to sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
-            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV FTP server.",host, user, "XXXXX", destinationPath, destinationFilename);
+            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server.",host, user, "XXXXX", destinationPath, destinationFilename);
         } 
         
         if( !ftpClient.cd(destinationPath)) {
         	Logger.error("Could not change directory on sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
             ftpClient.disconnect();        
-            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while accessing folder on BV FTP Server.",host, user, "XXXXX", destinationPath, destinationFilename);            
+            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while accessing folder on BV SFTP Server.",host, user, "XXXXX", destinationPath, destinationFilename);            
 		}
                 
         //there might be an old one
@@ -320,40 +340,6 @@ var BazaarVoiceHelper = {
         ftpClient.disconnect();
         return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"SUCCESS", "Export Processed - Connecton Details" ,host, user, "XXXXX", destinationPath, destinationFilename);
     
-    },
-    
-    checkForDuplicateDisplayCodes: function(dcArray : Array, type : String) {
-    	
-		//var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-		//var regDefault : RegExp = /default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-		var regPair : RegExp = /^(default|[a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
-		
-		var currentLocale : String = request.locale;
-		var defaultLocale : String = Site.getCurrent().getDefaultLocale();
-		var isCurrentDefault : Boolean = currentLocale.equals(defaultLocale);
-		
-		var dupArray : Array = new Array();
-    	var tmpArray : Array = new Array();
-    	
-    	for each(var item : String in dcArray){
-    		item = item.replace(/[\s|\"]/g,"");
-							
-			if(regPair.test(item)){				
-				var a = item.split(":");			
-				if(tmpArray.indexOf(a[0]) == -1){
-					tmpArray.push(a[0]);
-				}else{
-					dupArray.push(a[0]);
-					Logger.error(type + " Display Code Mapping has duplicate dwLocale " + a[0] + " to bvDisplayCode " + a[1]);
-				}
-			}
-			else if(dcArray.length > 1) {
-				Logger.error(type + " Display Code Mapping has invalid bvDisplayCode " + item);
-			}
-    	}
-    
-    
-    	return;
     }
 
 };

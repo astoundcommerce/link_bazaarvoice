@@ -20,7 +20,7 @@ var bvHelper = getBazaarVoiceHelper();
  
 function execute( pdict : PipelineDictionary ) : Number {
     
-    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed");
+    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed_C2013");
     if (!purchaseFeedEnabled) {
        //If the feed isn't enabled, just return.
        pdict.Message = "Purchase Feed is not enabled!";
@@ -28,7 +28,7 @@ function execute( pdict : PipelineDictionary ) : Number {
     }
     
     //Establish whom to notify if this export fails
-    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail");
+    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail_C2013");
     
     var date : Date = new Date();
     var filename : String = "PurchaseFeed-" 
@@ -51,8 +51,8 @@ function execute( pdict : PipelineDictionary ) : Number {
         // Write the closing Feed element, then flush & close the stream
         bvHelper.finalizeFeed(xsw);
             
-        var destinationPath : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedPath");
-        var uploadFilename : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedFileName");
+        var destinationPath : String = BV_Constants.PurchaseFeedPath;
+        var uploadFilename : String = BV_Constants.PurchaseFeedFilename;
         var destinationFilename : String = uploadFilename.substr(0, uploadFilename.length - 4) + "-" + StringUtils.formatCalendar(Site.getCalendar(), "yyyy-MM-dd") + ".xml";
         
         
@@ -78,7 +78,7 @@ function execute( pdict : PipelineDictionary ) : Number {
 
 function writeOrders(xsw : XMLStreamWriter) : Number { 
     
-    var numDaysLookback : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedNumDaysLookback");
+    var numDaysLookback : Number = BV_Constants.PurchaseFeedNumDays;
     
     var numDaysLookbackStartDate : Date = null;
     var helperCalendar = new Calendar();
@@ -151,7 +151,7 @@ function writeOrder(xsw : XMLStreamWriter, order : Order, locale : String) {
 function shouldIncludeOrder(order : Order) : String {
 	var locale : String = "-";
 	var triggeringEvent : String = getTriggeringEvent();
-    var delayDaysSinceEvent : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedDelayDaysSinceEvent");
+    var delayDaysSinceEvent : Number = BV_Constants.PurchaseFeedWaitDays;
     
     // Have we already included this order in a previous feed?  If so, don't re-export it.
     var custAttribs : CustomAttributes = order.getCustom();
@@ -202,74 +202,65 @@ function shouldIncludeOrder(order : Order) : String {
     //We need to find out if the order is placed with the bv locale
     var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
     var defaultLocale : String = Site.getCurrent().defaultLocale;
-    var rrDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvRRDisplayCodeMapping");
+    var DCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvLocaleMapping_C2013");
     
-    var regFull : RegExp = /^\d{4}-[a-z]{2}_[a-zA-Z]{2}$/;
-    var regDigit : RegExp = /^\d{4}$/;
-    var regPair : RegExp = /([a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-    var regDefault : RegExp = /^default:\d{4}-[a-z]{2}_[a-zA-Z]{2}/;
-    
-    if(rrDCArray.length > 1){
-    	
+    if(DCArray.length > 1){
     	var index = 0;
-    	for each(var item : String in rrDCArray){
-    		item = item.replace(/[\s|\"]/g,"");
+    	for each(var item : String in DCArray){
+    		item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
 
-            if(regFull.test(item) && order.getCustomerLocaleID().equals(defaultLocale)){
-				var tmp : String = item.substr(5);
-	    		locale = tmp.replace(/_[a-z]{2}(_[0-9a-zA-Z_]+)?/, tmp.substr(2).toUpperCase());
+            if(BV_Constants.regFull.test(item) && order.getCustomerLocaleID().equals(defaultLocale)){
+				locale = item;
 	    		break;
-			}else if(regDefault.test(item)){
+			}
+			else if(BV_Constants.regPair.test(item)){				
 				var a = item.split(":");
-				if(order.getCustomerLocaleID().equals(defaultLocale)){
-					var tmp : String = a[1].substr(5);
-		    		locale = tmp.replace(/_[a-z]{2}(_[0-9a-zA-Z_]+)?/, tmp.substr(2).toUpperCase());
-		    		break;
-				}            
-            }else if(regPair.test(item)){				
-				var a = item.split(":");			
+				a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
+				a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
+				
 				if(allowedLocales.indexOf(a[0]) != -1 && order.getCustomerLocaleID().equals(a[0])){
-					var tmp : String = a[1].substr(5);
-		    		locale = tmp.replace(/_[a-z]{2}(_[0-9a-zA-Z_]+)?/, tmp.substr(2).toUpperCase());
+					locale = a[1];
+					if(locale.indexOf("/") != -1) {
+						locale = locale.split("/")[1];
+					}
 		    		break;
 				}
 			}
 			
-			if(index == rrDCArray.length - 1 && locale.equals("-")){
-				Logger.error("[ExportPurchaseFeed][bvExportPurchaseFeed]Site Preferences bvRRDisplayCodeMapping has no match setting for allowedlocales");
+			if(index == DCArray.length - 1 && locale.equals("-")){
+				Logger.error("[ExportPurchaseFeed][bvExportPurchaseFeed]Site Preferences bvLocaleMapping has no match setting for allowedlocales");
 				locale = "-";
 				break;
 			}   		
-
     		index++;
     	}
-    }else if(rrDCArray.length == 1){
-    	var item : String = rrDCArray[0];
+    }
+    else if(DCArray.length == 1){
+    	var item : String = DCArray[0];
+		item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
 		
-		item = item.replace(/[\s|\"]/g,"");
-				
-		if(regDigit.test(item)){
-			locale = "i";
-		}else if (regFull.test(item)){
-			locale = "i";
-		}else if(regDefault.test(item)){
-			if(order.getCustomerLocaleID().equals(defaultLocale)){
-	    		locale = "i";
-			}else{
-				locale = "-";
-			}          
-        }else if(regPair.test(item)){
-			var a = item.split(":");			
+		if (BV_Constants.regFull.test(item)){
+			locale = item;
+		}
+		else if(BV_Constants.regPair.test(item)){
+			var a = item.split(":");
+			a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
+			a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
+			
 			if(allowedLocales.indexOf(a[0]) != -1 && order.getCustomerLocaleID().equals(a[0])){
-	    		locale = "i";
-			}else{
+	    		locale = a[1];
+	    		if(locale.indexOf("/") != -1) {
+					locale = locale.split("/")[1];
+				}
+			}
+			else{
 				locale = "-";
 			}
-		}else{
-			Logger.error("[ExportPurchaseFeed][bvExportPurchaseFeed]Site Preferences bvRRDisplayCodeMapping has no match setting for allowedlocales");
+		}
+		else{
+			Logger.error("[ExportPurchaseFeed][bvExportPurchaseFeed]Site Preferences bvLocaleMapping has no match setting for allowedlocales");
 			locale = "-";
 		}
-    
     }
         
 	return locale;
@@ -298,7 +289,7 @@ function getTransactionDate(order : Order) : Date {
 }
 
 function getTriggeringEvent() : String {
-    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent");
+    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent_C2013");
     if (!triggeringEvent) {
         triggeringEvent = "shipping";
     } else {

@@ -7,10 +7,55 @@ importPackage( dw.system );
 
 function BV_Constants(){};
 
+/*****************************************************************
+**  CONFIGURATION VARIABLES:
+**	Most of these settings were removed from Site Preferences.
+**	If customization is needed, change their values here.
+******************************************************************/
+BV_Constants.FTPHostStaging = "sftp-stg.bazaarvoice.com";
+BV_Constants.FTPHostProduction = "sftp.bazaarvoice.com";
+
+BV_Constants.SEOFeedPath = "feeds";
+BV_Constants.SEOMaxStaleness = 5;
+BV_Constants.SEOHostStaging = "seo-stg.bazaarvoice.com";
+BV_Constants.SEOHostProduction = "seo.bazaarvoice.com";
+
+BV_Constants.RatingsFeedPath = "feeds";
+BV_Constants.RatingsFeedFilename = "ratings.xml";
+
+BV_Constants.PurchaseFeedPath = "/ppe/inbox";
+BV_Constants.PurchaseFeedFilename = "bazaarvoice-order-data.xml";
+BV_Constants.PurchaseFeedWaitDays = 0;
+BV_Constants.PurchaseFeedNumDays = 14;
+
+BV_Constants.ProductFeedPath = "import-inbox";
+BV_Constants.ProductFeedFilename = "productfeed.xml";
+
+BV_Constants.APIHostStaging = "display-stg.ugc.bazaarvoice.com";
+BV_Constants.APIHostProduction = "display.ugc.bazaarvoice.com";
+
+/*****************************************************************
+*	END CONFIGURATION VARIABLES
+******************************************************************/
+
+
+
+//regFull is just a BV locale
+//e.g. en_US, de_DE, etc
+BV_Constants.regFull = /^[a-z]{2}_[a-zA-Z]{2}$/;
+
+//regPair is a full mapping from DW locale to BV display code with locale
+//e.g. "de":"de_DE", "de_DE":"de_DE", "default":"en_US", etc
+//
+//also supports overriding the Deployment Zone in the mapping
+//e.g. "de":"Second Zone/de_DE"
+BV_Constants.regPair = /^(default|[a-z]{2}|[a-z]{2}_[a-zA-Z]{2})[\s]*:[\s]*([\w\s%]*\/)?[a-z]{2}_[a-zA-Z]{2}$/;
+
+
 BV_Constants.MESSAGE_TEMPLATE = "[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}]";
 BV_Constants.MESSAGE_TEMPLATE_LOCALE = "[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}] [Locale = {7}]";
 
-BV_Constants.XML_GENERATOR = "Demandware LINK cartridge 5.3";
+BV_Constants.XML_GENERATOR = "Demandware LINK cartridge 6.0";
 BV_Constants.XML_NAMESPACE_PRODUCT = "http://www.bazaarvoice.com/xs/PRR/ProductFeed/5.2";
 BV_Constants.XML_NAMESPACE_PURCHASE = "http://www.bazaarvoice.com/xs/PRR/PostPurchaseFeed/4.9";
 BV_Constants.XML_INCREMENTAL = "false";
@@ -22,6 +67,7 @@ BV_Constants.PURCHASE = "PURCHASE";
 BV_Constants.PRODUCT = "PRODUCT";
 
 BV_Constants.BV_DEFAULTLOCALE = "default";
+BV_Constants.DEFAULT_ZONE = "Main Site";
 BV_Constants.BV_DISPLAY_PATH = "bv/display/";
 BV_Constants.BV_RR_PROJECT = "rr";
 BV_Constants.BV_QA_PROJECT = "qa";

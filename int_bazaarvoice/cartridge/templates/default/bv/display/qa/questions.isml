@@ -5,50 +5,41 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
      importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
      importPackage( dw.io );
      
-     var qaEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableAA");
+     var qaEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableAA_C2013");
      
      // Determine if we are rendering on a product or category page.
      var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
      
-     // Obtain SmartSEO content      
-     var content : String = getBazaarVoiceHelper().getSmartSEOContent(pdict, "questions", pdict.AADisplayCode, bvSubject, "");  
+    // Obtain SmartSEO content      
+    importScript("int_bazaarvoice:lib/libCloudSEO.ds");
+	var CSEO = getBVSEO({"product_id" : bvSubject.bvExternalSubjectID});
 </isscript>
 <isif condition="${qaEnabled}">
     <!-- Questions -->
     <div id="BVQAContainer">
-        <isif condition="${content}">
-            <isprint value="${content}" encoding="off" >
-        </isif>
+        <isprint value="${CSEO.renderReviewContent()}" encoding="off" />
     </div>
     <script type="text/javascript" language="javascript">
-        function getAADisplayCode() {
-            try {
-                <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAADisplayCodeJavascript')}" encoding="off" >
-            }catch(e){
-                //The JS in the try-catch above is user-definable.  Catch and suppress any errors and just return a default.
-            }
-            return '${pdict.AADisplayCode}';
-        }
-
-        var configData = {};
-        configData.displayCode = getAADisplayCode();
-        configData.summaryContainerDiv = "BVQASummaryContainer";
-        configData.contentContainerDiv = "BVQAContainer";
-        configData.subjectType = "${bvSubject.bvSubjectType}";
-        if ("${bvSubject.bvSubjectType}" == "product") {
-            configData.productId = "${bvSubject.bvExternalSubjectID}";
-        } else {
-            configData.categoryId = "${bvSubject.bvExternalSubjectID}";
-        }
-        configData.onEvent = function(json) {
-            <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAAOnEventJavascript')}" encoding="off" >
-        };
-
-        configData.doShowContent = function(json) {
-            <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvQAShowQuestionsTabJavascript')}" encoding="off" />
+    	var qaConfigData = {};
+    	<isif condition="${bvSubject.bvSubjectType == 'product'}">
+    		qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
+    	<iselse/>
+	    	qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
+	    	qaConfigData.categoryId = "${bvSubject.bvExternalSubjectID}";
+    	</isif>
+		
+        qaConfigData.doShowContent = function(json) {
+            <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAAShowReviewsTabJavascriptPDP_C2013')}" encoding="off" />
         };
         
-        $BV.ui("qa", "show_questions", configData);
+        function loadQA() {
+        	$BV.ui("qa", "show_questions", qaConfigData);
+        }
+        loadQA();
     </script>       
     <!-- End Questions -->
+<iselse/>
+	<script type="text/javascript">
+	function loadQA(){}
+	</script>
 </isif>

@@ -101,9 +101,9 @@ function execute(pdict: PipelineDictionary): Number {
 						    iProcessed++;
 						} else {
 						    iFailed++;
-						}									
-					}			                
-	    		}	    
+						}
+					}
+	    		}
 	    	}
 	    }
 	

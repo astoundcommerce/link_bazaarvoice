@@ -15,90 +15,93 @@ importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 
 function execute( pdict : PipelineDictionary ) : Number
 {
-   var bvHelper = getBazaarVoiceHelper();
+   	var bvHelper = getBazaarVoiceHelper();
 
-   var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
-   var defaultLocale : String = Site.getCurrent().getDefaultLocale();
-   var rrDCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvRRDisplayCodeMapping");
+   	var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
+   	var defaultLocale : String = Site.getCurrent().getDefaultLocale();
+   	var DCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvLocaleMapping_C2013");
    
-   var validCodes : Array = new Array();
-   var codeCount : Number = 0;
+   	var validCodes : Array = new Array();
+   	var codeCount : Number = 0;
 
-   //regFull is just a BV display code with locale
-	//e.g. 1234-en_us, 12345-de_de, 1234redes-en_us, etc
-	var regFull : RegExp = /^\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
-	
-	//regDigit is just the BV display code with no locale
-	//e.g. 1234, 12345, 1234redes, 12345redes, etc
-	var regDigit : RegExp = /^\d{4,5}([a-zA-Z]*)?$/;
-	
-	//regPair is a full mapping from DW locale to BV display code with locale
-	//e.g. "de":"1234-de_de", "de_DE":"12345-de_de", "default":"1234redes-en_us", etc
-	var regPair : RegExp = /^(default|[a-z]{2}|[a-z]{2}_[a-zA-Z]{2}):\d{4,5}([a-zA-Z]*)?-[a-z]{2}_[a-zA-Z]{2}$/;
-
-   //Get rr displaycode for current locale
-   if(rrDCArray.length > 1){
+	//Get displaycode for current locale
+   	if(DCArray.length > 1){
 		var index = 0;
 		var dupArray : Array = new Array();
 		
-		for each(var item : String in rrDCArray){
-			item = item.replace(/[\s|\"]/g,"");
+		for each(var item : String in DCArray){
+			item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
 							
-			if(regDigit.test(item)){
-				Logger.error("[ExportProductFeed][ValidateDisplayCodes]Site Preferences bvRRDisplayCodeMapping has invalid input " + item);
-			}else if(regFull.test(item) && dupArray.indexOf(defaultLocale) == -1){
+			if(BV_Constants.regFull.test(item) && dupArray.indexOf(defaultLocale) == -1){
 				validCodes.push(item);
 				dupArray.push(defaultLocale);
 				codeCount++;
-			}else if(regPair.test(item)){				
-				var a = item.split(":");			
+			}else if(BV_Constants.regPair.test(item)){				
+				var a = item.split(":");
+				a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
+				a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
+				
 				if(allowedLocales.indexOf(a[0]) != -1 && dupArray.indexOf(a[0]) == -1){
 					validCodes.push(item);
 					dupArray.push(a[0]);
 					codeCount++;
 				}else{
-					Logger.error("[ExportProductFeed][ValidateDisplayCodes]Site Preferences bvRRDisplayCodeMapping has inactive locale " + a[0]);
+					Logger.error("[ExportProductFeed][ValidateDisplayCodes]Site Preferences bvLocaleMapping has inactive locale " + a[0]);
 				}
 			}
 			
-			if(index == rrDCArray.length - 1 && validCodes.length == 0){
-				Logger.error("[ExportProductFeed][ValidateDisplayCodes]Site Preferences bvRRDisplayCodeMapping has no match setting for allowedlocales");
-				pdict.Message = "Site Preferences bvRRDisplayCodeMapping has no match setting for allowedlocales";
+			if(index == DCArray.length - 1 && validCodes.length == 0){
+				Logger.error("[ExportProductFeed][ValidateDisplayCodes]Site Preferences bvLocaleMapping has no match setting for allowedlocales");
+				pdict.Message = "Site Preferences bvLocaleMapping has no match setting for allowedlocales";
 			}
 			
 			index++;
 		}
 
-   }else if(rrDCArray.length == 1){
-		var item : String = rrDCArray[0];
+	}else if(DCArray.length == 1){
+		var item : String = DCArray[0];
 		
-		item = item.replace(/[\s|\"]/g,"");
+		item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
 				
-		if(regDigit.test(item) || regFull.test(item)){
+		if(BV_Constants.regFull.test(item)){
 			validCodes.push(item);
 			codeCount++;
-		}else if(regPair.test(item)){
+		}else if(BV_Constants.regPair.test(item)){
 			
 			var a = item.split(":");
-			if(allowedLocales.indexOf(a[0]) != -1 && a[0].equals(defaultLocale)){			
-				validCodes.push(a[1]);
+			a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
+			a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
+			
+			if(allowedLocales.indexOf(a[0]) != -1 && a[0].equals(defaultLocale)){
+				var bvlocale : String = a[1];
+				if(bvlocale.indexOf("/") != -1) {
+					bvlocale = bvlocale.split("/")[1];
+				}
+				validCodes.push(bvlocale);
 				codeCount++;
-			}else if(allowedLocales.indexOf(a[0]) != -1 && !(a[0].equals(defaultLocale))){
+			}
+			//there is only one mapping, and it does not match the (radio button) default DW locale
+			//In this case, the job needs to explicitly set the locale to the mapped DW locale
+			else if(allowedLocales.indexOf(a[0]) != -1 && !(a[0].equals(defaultLocale))){
 				pdict.SingleLocale = a[0];
-				validCodes.push(a[1]);
+				var bvlocale : String = a[1];
+				if(bvlocale.indexOf("/") != -1) {
+					bvlocale = bvlocale.split("/")[1];
+				}
+				validCodes.push(bvlocale);
 				codeCount++;
 			}
 		}else{
 			codeCount = 0;
-			pdict.Message = "Site Preferences bvRRDisplayCodeMapping does not have valid mapping for default locale" + defaultLocale;
+			pdict.Message = "Site Preferences bvLocaleMapping does not have valid mapping for default locale" + defaultLocale;
 			return PIPELET_ERROR;
 		}
-   }else{
-   	  pdict.Message = "Site Preferences bvRRDisplayCodeMapping does not have valid mapping for default locale" + defaultLocale;
-   }
+   	}else{
+   		pdict.Message = "Site Preferences bvLocaleMapping does not have valid mapping for default locale" + defaultLocale;
+   	}
    
-   pdict.ValidCodes = validCodes;
-   pdict.CodeCount = codeCount;
+   	pdict.ValidCodes = validCodes;
+   	pdict.CodeCount = codeCount;
 
-   return PIPELET_NEXT;
+   	return PIPELET_NEXT;
 }

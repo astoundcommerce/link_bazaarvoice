@@ -25,7 +25,7 @@ function execute( pdict : PipelineDictionary ) : Number
     var orderList : XML = pdict.OrderList;
     var orderCount : Number = pdict.OrderCount;
     
-    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed");
+    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed_C2013");
     if (!purchaseFeedEnabled) {
        //If the feed isn't enabled, just return.
        pdict.Message = "Purchase Feed is not enabled!";
@@ -39,7 +39,7 @@ function execute( pdict : PipelineDictionary ) : Number
 	}
     
     //Establish whom to notify if this export fails
-    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail");
+    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail_C2013");
     
     var date : Date = new Date();
     var filename : String = "PurchaseFeed-" 
@@ -57,8 +57,8 @@ function execute( pdict : PipelineDictionary ) : Number
         /* Create an output stream */
         var xsw : XMLStreamWriter = writeFeed(file, orderList);
             
-        var destinationPath : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedPath");
-        var uploadFilename : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedFileName");
+        var destinationPath : String = BV_Constants.PurchaseFeedPath;
+        var uploadFilename : String = BV_Constants.PurchaseFeedFilename;
         var destinationFilename : String = uploadFilename.substr(0, uploadFilename.length - 4) + "-" + StringUtils.formatCalendar(Site.getCalendar(), "yyyy-MM-dd") + ".xml";
         
         

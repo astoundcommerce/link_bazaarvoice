@@ -3,7 +3,7 @@
      importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
      importPackage( dw.io );
      
-     var inlineRatingEnabled : Boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableInlineRatings");
+     var inlineRatingEnabled : Boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableInlineRatings_C2013");
      if (inlineRatingEnabled && (Product != null)) {
         var masterProduct : Product = (Product.variant) ? Product.variationModel.master : Product;
         var bvAvgRating : String = masterProduct.custom.bvAverageRating;
@@ -28,6 +28,6 @@
 
 <isif condition="${starsFile && inlineRatingEnabled && bvReviewCount}">
     <div id="BVInlineRatings">
-        <img alt="" src="${ URLUtils.webRoot() + '/images/stars/' + starsFile }"/> ${bvAvgRatingNum.toFixed(1).toString()}/${bvRatingRange.toString()} (${bvReviewCount})
+        <img alt="" src="${URLUtils.absStatic('/images/stars/' + starsFile)}"/> ${bvAvgRatingNum.toFixed(1).toString()}/${bvRatingRange.toString()} (${bvReviewCount})
     </div>
 </isif>

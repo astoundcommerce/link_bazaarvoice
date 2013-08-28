@@ -44,7 +44,7 @@
           <key-binding alias="null" key="From_9"/>
           <key-binding alias="null" key="To_9"/>
         </pipelet-node>
-        <node-display x="0" y="2"/>
+        <node-display x="0" y="1"/>
       </node>
       <simple-transition>
         <transition-display>
@@ -63,7 +63,7 @@
               <decision-node condition-key="empty(CategoryID)" condition-operator="expr"/>
               <node-display orientation="horizontal" x="1" y="0"/>
               <branch basename="b2" source-connector="yes">
-                <transition target-connector="in1" target-path="../+1/b2.1/b3.2">
+                <transition target-connector="in1" target-path="../b3.1">
                   <transition-display>
                     <bend-point relative-to="source" x="2" y="0"/>
                   </transition-display>
@@ -82,7 +82,7 @@
               </pipelet-node>
               <node-display x="0" y="2"/>
               <branch basename="b3" source-connector="error">
-                <transition target-connector="in1" target-path="../+1/b2.1/b3.2"/>
+                <transition target-connector="in1" target-path="../b3.2"/>
               </branch>
             </node>
             <transition target-connector="in1" target-path="../+1">
@@ -105,11 +105,21 @@
         </pipelet-node>
         <node-display x="0" y="1"/>
         <branch basename="b3" source-connector="error">
-          <transition target-connector="in1" target-path="./+1/b2.1/b3.2">
-            <transition-display>
-              <bend-point relative-to="target" x="0" y="-2"/>
-            </transition-display>
-          </transition>
+          <transition target-connector="in1"/>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="2" y="0"/>
+            </node>
+            <transition target-connector="in1" target-path="./+1"/>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1/b3.1"/>
+          </segment>
         </branch>
       </node>
       <transition target-connector="in1" target-path="./+1"/>
@@ -119,125 +129,61 @@
         <join-node/>
         <node-display x="0" y="2"/>
       </node>
+      <simple-transition/>
+      <node>
+        <call-node start-name-ref="Bazaarvoice-RequireLogin"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="Error">
+          <transition target-connector="in1" target-path="./b3.1"/>
+        </branch>
+      </node>
       <simple-transition>
         <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
-          <bend-point relative-to="source" x="-1" y="1"/>
-          <bend-point relative-to="target" x="-1" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
         </transition-display>
       </simple-transition>
       <node>
-        <decision-node condition-key="CurrentHttpParameterMap.bvauthenticateuser.stringValue == &quot;true&quot;" condition-operator="expr"/>
-        <node-display orientation="horizontal" x="0" y="1"/>
-        <branch basename="b2" source-connector="yes">
-          <transition target-connector="in">
-            <transition-display>
-              <bend-point relative-to="source" x="2" y="0"/>
-              <bend-point relative-to="target" x="0" y="-1"/>
-            </transition-display>
-          </transition>
+        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
+          <config-property key="Transactional" value="false"/>
+          <config-property key="OnError" value="PIPELET_ERROR"/>
+          <config-property key="ScriptFile" value="lib/GetEncryptedUserID.ds"/>
+          <key-binding alias="Log" key="ScriptLog"/>
+          <key-binding alias="!empty(CurrentCustomer.profile) ? CurrentCustomer.profile.customerNo : ''" key="customerNo"/>
+          <key-binding alias="!empty(CurrentCustomer.profile) ? ('bvDisplayName' in CurrentCustomer.profile.custom ? CurrentCustomer.profile.custom.bvDisplayName : CurrentCustomer.profile.firstName) : ''" key="displayName"/>
+          <key-binding alias="bvoiceUser" key="reviewerID"/>
+        </pipelet-node>
+        <node-display x="0" y="2"/>
+        <branch basename="b3" source-connector="error">
+          <transition target-connector="in1"/>
           <segment>
             <node>
-              <call-node start-name-ref="Bazaarvoice-RequireLogin"/>
-              <node-display x="1" y="1"/>
-              <branch basename="b2" source-connector="Error">
-                <transition target-connector="in1" target-path="./b3.1"/>
-              </branch>
+              <join-node/>
+              <node-display x="2" y="0"/>
             </node>
             <simple-transition>
               <transition-display>
-                <bend-point relative-to="target" x="0" y="-1"/>
+                <bend-point relative-to="source" x="0" y="1"/>
               </transition-display>
             </simple-transition>
             <node>
-              <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-                <config-property key="Transactional" value="false"/>
-                <config-property key="OnError" value="PIPELET_ERROR"/>
-                <config-property key="ScriptFile" value="lib/GetEncryptedUserID.ds"/>
-                <key-binding alias="Log" key="ScriptLog"/>
-                <key-binding alias="!empty(CurrentCustomer.profile) ? CurrentCustomer.profile.customerNo : ''" key="customerNo"/>
-                <key-binding alias="!empty(CurrentCustomer.profile) ? ('bvDisplayName' in CurrentCustomer.profile.custom ? CurrentCustomer.profile.custom.bvDisplayName : CurrentCustomer.profile.firstName) : ''" key="displayName"/>
-                <key-binding alias="bvoiceUser" key="reviewerID"/>
-              </pipelet-node>
-              <node-display x="0" y="2"/>
-              <branch basename="b3" source-connector="error">
-                <transition target-connector="in1">
-                  <transition-display>
-                    <bend-point relative-to="source" x="2" y="0"/>
-                  </transition-display>
-                </transition>
-                <segment>
-                  <node>
-                    <join-node/>
-                    <node-display x="1" y="-1"/>
-                  </node>
-                  <transition target-connector="in1" target-path="./+1"/>
-                </segment>
-                <segment>
-                  <node>
-                    <join-node/>
-                    <node-display x="0" y="-4"/>
-                  </node>
-                  <simple-transition>
-                    <transition-display>
-                      <bend-point relative-to="source" x="1" y="0"/>
-                    </transition-display>
-                  </simple-transition>
-                  <node>
-                    <interaction-node transaction-required="false">
-                      <template buffered="true" dynamic="false" name="error/notfound"/>
-                    </interaction-node>
-                    <node-display orientation="horizontal" x="1" y="0"/>
-                  </node>
-                </segment>
-              </branch>
-            </node>
-            <transition target-connector="in1" target-path="../+1"/>
-          </segment>
-        </branch>
-      </node>
-      <transition target-connector="in1" target-path="./+1"/>
-    </segment>
-    <segment>
-      <node>
-        <join-node/>
-        <node-display x="0" y="3"/>
-      </node>
-      <simple-transition/>
-      <node>
-        <call-node start-name-ref="Bazaarvoice-GetDisplayCode"/>
-        <node-display x="0" y="1"/>
-      </node>
-      <simple-transition>
-        <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
-        </transition-display>
-      </simple-transition>
-      <node>
-        <decision-node condition-key="CurrentHttpParameterMap.bvcontenttype.stringValue == &quot;PROFILE_SUBMISSION&quot;" condition-operator="expr"/>
-        <node-display x="0" y="1"/>
-        <branch basename="b2" source-connector="yes">
-          <transition target-connector="in">
-            <transition-display>
-              <bend-point relative-to="source" x="0" y="1"/>
-            </transition-display>
-          </transition>
-          <segment>
-            <node>
               <interaction-node transaction-required="false">
-                <template buffered="true" dynamic="false" name="bv/submit/cp/submissioncontainer"/>
+                <template buffered="true" dynamic="false" name="error/notfound"/>
               </interaction-node>
               <node-display x="0" y="1"/>
             </node>
           </segment>
         </branch>
       </node>
-      <simple-transition/>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="1"/>
+        </transition-display>
+      </simple-transition>
       <node>
         <interaction-node transaction-required="false">
           <template buffered="true" dynamic="false" name="bv/submit/other/submissioncontainer"/>
         </interaction-node>
-        <node-display x="1" y="1"/>
+        <node-display x="0" y="1"/>
       </node>
     </segment>
   </branch>
@@ -428,280 +374,6 @@
             </node>
           </segment>
         </branch>
-      </node>
-    </segment>
-  </branch>
-  <branch basename="_ANONYMOUS_BRANCH_5">
-    <segment>
-      <node>
-        <text-node>
-          <description>Displays the profile display container</description>
-        </text-node>
-        <node-display x="10" y="0"/>
-      </node>
-    </segment>
-  </branch>
-  <branch basename="ProfileDisplay">
-    <segment>
-      <node>
-        <start-node name="ProfileDisplay" secure="false"/>
-        <node-display x="10" y="1"/>
-      </node>
-      <simple-transition>
-        <transition-display>
-          <bend-point relative-to="target" x="0" y="-1"/>
-        </transition-display>
-      </simple-transition>
-      <node>
-        <interaction-node transaction-required="false">
-          <template buffered="true" dynamic="false" name="bv/display/cp/profiledisplaycontainer"/>
-        </interaction-node>
-        <node-display x="0" y="2"/>
-      </node>
-    </segment>
-  </branch>
-  <branch basename="GetDisplayCode">
-    <segment>
-      <node>
-        <start-node call-mode="private" name="GetDisplayCode" secure="false"/>
-        <node-display x="12" y="1"/>
-      </node>
-      <simple-transition>
-        <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
-        </transition-display>
-      </simple-transition>
-      <node>
-        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-          <config-property key="Transactional" value="false"/>
-          <config-property key="OnError" value="PIPELET_ERROR"/>
-          <config-property key="ScriptFile" value="bv/GetDisplayCodes.ds"/>
-          <key-binding alias="CurrentRequest.locale" key="CurrentLocale"/>
-          <key-binding alias="AADisplayCode" key="AADisplayCode"/>
-          <key-binding alias="RRDisplayCode" key="RRDisplayCode"/>
-          <key-binding alias="SYDisplayCode" key="SYDisplayCode"/>
-          <key-binding alias="ScriptLog" key="ScriptLog"/>
-        </pipelet-node>
-        <node-display x="0" y="1"/>
-        <branch basename="b2" source-connector="error">
-          <transition target-connector="in1" target-path="./+1">
-            <transition-display>
-              <bend-point relative-to="source" x="1" y="0"/>
-              <bend-point relative-to="target" x="1" y="0"/>
-            </transition-display>
-          </transition>
-        </branch>
-      </node>
-      <transition target-connector="in1" target-path="./+1"/>
-    </segment>
-    <segment>
-      <node>
-        <join-node/>
-        <node-display x="0" y="1"/>
-      </node>
-      <simple-transition>
-        <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
-        </transition-display>
-      </simple-transition>
-      <node>
-        <end-node/>
-        <node-display x="0" y="1"/>
-      </node>
-    </segment>
-  </branch>
-  <branch basename="_ANONYMOUS_BRANCH_8">
-    <segment>
-      <node>
-        <text-node>
-          <description>Renders the Bazaarvoice submission container for Active Profiles</description>
-        </text-node>
-        <node-display x="0" y="5"/>
-      </node>
-    </segment>
-  </branch>
-  <branch basename="EditProfile">
-    <segment>
-      <node>
-        <start-node name="EditProfile" secure="false"/>
-        <node-display x="0" y="6"/>
-      </node>
-      <transition target-connector="in1" target-path="/SubmissionContainer.2">
-        <transition-display>
-          <bend-point relative-to="source" x="0" y="2"/>
-        </transition-display>
-      </transition>
-    </segment>
-  </branch>
-  <branch basename="TestDC">
-    <segment>
-      <node>
-        <start-node name="TestDC" secure="false"/>
-        <node-display x="12" y="6"/>
-      </node>
-      <simple-transition/>
-      <node>
-        <call-node start-name-ref="Bazaarvoice-GetDisplayCode"/>
-        <node-display x="0" y="1"/>
-      </node>
-      <simple-transition/>
-      <node>
-        <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-          <config-property key="Transactional" value="false"/>
-          <config-property key="OnError" value="PIPELET_ERROR"/>
-          <config-property key="ScriptFile" value="bv/ValidateDisplayCodes.ds"/>
-          <key-binding alias="VDCScriptLog" key="ScriptLog"/>
-          <key-binding alias="CodeCount" key="CodeCount"/>
-          <key-binding alias="Message" key="Message"/>
-          <key-binding alias="SingleLocale" key="SingleLocale"/>
-          <key-binding alias="ValidCodes" key="ValidCodes"/>
-        </pipelet-node>
-        <node-display x="0" y="1"/>
-        <branch basename="b2" source-connector="error">
-          <transition target-connector="in1" target-path="./+1">
-            <transition-display>
-              <bend-point relative-to="source" x="1" y="0"/>
-              <bend-point relative-to="target" x="1" y="0"/>
-            </transition-display>
-          </transition>
-        </branch>
-      </node>
-      <transition target-connector="in1" target-path="./+1"/>
-    </segment>
-    <segment>
-      <node>
-        <join-node/>
-        <node-display x="0" y="1"/>
-      </node>
-      <simple-transition/>
-      <node>
-        <pipelet-node pipelet-name="Assign" pipelet-set-identifier="bc_api">
-          <config-property key="Transactional" value="false"/>
-          <key-binding alias="new dw.util.HashMap()" key="From_0"/>
-          <key-binding alias="ImportLocales" key="To_0"/>
-          <key-binding alias="new dw.util.HashMap()" key="From_1"/>
-          <key-binding alias="ExportLocales" key="To_1"/>
-          <key-binding alias="null" key="From_2"/>
-          <key-binding alias="null" key="To_2"/>
-          <key-binding alias="null" key="From_3"/>
-          <key-binding alias="null" key="To_3"/>
-          <key-binding alias="null" key="From_4"/>
-          <key-binding alias="null" key="To_4"/>
-          <key-binding alias="null" key="From_5"/>
-          <key-binding alias="null" key="To_5"/>
-          <key-binding alias="null" key="From_6"/>
-          <key-binding alias="null" key="To_6"/>
-          <key-binding alias="null" key="From_7"/>
-          <key-binding alias="null" key="To_7"/>
-          <key-binding alias="null" key="From_8"/>
-          <key-binding alias="null" key="To_8"/>
-          <key-binding alias="null" key="From_9"/>
-          <key-binding alias="null" key="To_9"/>
-        </pipelet-node>
-        <node-display x="0" y="1"/>
-      </node>
-      <transition target-connector="in" target-path="./+1"/>
-    </segment>
-    <segment>
-      <node>
-        <loop-node element-key="ValidCode" iterator-key="ValidCodes"/>
-        <node-display x="0" y="1"/>
-        <branch basename="b2" source-connector="do">
-          <transition target-connector="in">
-            <transition-display>
-              <bend-point relative-to="source" x="0" y="1"/>
-            </transition-display>
-          </transition>
-          <segment>
-            <node>
-              <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-                <config-property key="Transactional" value="false"/>
-                <config-property key="OnError" value="PIPELET_ERROR"/>
-                <config-property key="ScriptFile" value="bv/GetLocaleAndCodeForImport.ds"/>
-                <key-binding alias="ImportScriptLog" key="ScriptLog"/>
-                <key-binding alias="ImportLocales" key="BVLocales"/>
-                <key-binding alias="ImportLocales" key="BVLocalesIn"/>
-                <key-binding alias="ImportLocales" key="BVLocalesOut"/>
-                <key-binding alias="ValidCode" key="ValidCode"/>
-                <key-binding alias="DWLocale" key="DWLocale"/>
-              </pipelet-node>
-              <node-display x="0" y="1"/>
-              <branch basename="b2" source-connector="error">
-                <transition target-connector="in1" target-path="./+1">
-                  <transition-display>
-                    <bend-point relative-to="source" x="1" y="0"/>
-                    <bend-point relative-to="target" x="1" y="0"/>
-                  </transition-display>
-                </transition>
-              </branch>
-            </node>
-            <transition target-connector="in1" target-path="./+1"/>
-          </segment>
-          <segment>
-            <node>
-              <join-node/>
-              <node-display x="0" y="1"/>
-            </node>
-            <simple-transition>
-              <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
-              </transition-display>
-            </simple-transition>
-            <node>
-              <pipelet-node pipelet-name="Script" pipelet-set-identifier="bc_api">
-                <config-property key="Transactional" value="false"/>
-                <config-property key="OnError" value="PIPELET_ERROR"/>
-                <config-property key="ScriptFile" value="bv/GetLocaleAndCodeForExport.ds"/>
-                <key-binding alias="ExportScriptLog" key="ScriptLog"/>
-                <key-binding alias="ExportLocales" key="BVLocalesIn"/>
-                <key-binding alias="ExportLocales" key="BVLocalesOut"/>
-                <key-binding alias="ValidCode" key="ValidCode"/>
-                <key-binding alias="DWLocale" key="DWLocale"/>
-              </pipelet-node>
-              <node-display x="0" y="1"/>
-              <branch basename="b2" source-connector="error">
-                <transition target-connector="in1" target-path="./+1">
-                  <transition-display>
-                    <bend-point relative-to="source" x="1" y="0"/>
-                    <bend-point relative-to="target" x="1" y="0"/>
-                  </transition-display>
-                </transition>
-              </branch>
-            </node>
-            <transition target-connector="in1" target-path="./+1"/>
-          </segment>
-          <segment>
-            <node>
-              <join-node/>
-              <node-display x="0" y="1"/>
-            </node>
-            <transition target-connector="loop" target-path="..">
-              <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
-                <bend-point relative-to="source" x="-1" y="1"/>
-                <bend-point relative-to="target" x="-1" y="0"/>
-              </transition-display>
-            </transition>
-          </segment>
-        </branch>
-      </node>
-      <transition target-connector="in1" target-path="./+1"/>
-    </segment>
-    <segment>
-      <node>
-        <join-node/>
-        <node-display x="1" y="0"/>
-      </node>
-      <simple-transition>
-        <transition-display>
-          <bend-point relative-to="target" x="0" y="-1"/>
-        </transition-display>
-      </simple-transition>
-      <node>
-        <interaction-node transaction-required="false">
-          <template buffered="true" dynamic="false" name="test"/>
-        </interaction-node>
-        <node-display x="0" y="5"/>
       </node>
     </segment>
   </branch>

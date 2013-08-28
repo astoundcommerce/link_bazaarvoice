@@ -47,7 +47,7 @@ function execute( args : PipelineDictionary ) : Number
 		var ret : String = bvHelper.uploadFile(path, name, file, args);
         args.Message = ret;
 	}
-	catch(e) {
+	catch(ex) {
 		Logger.error("Exception caught during localized catalog upload: {0}", ex.message);
         args.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during localized catalog upload: " + ex.message, "", "", "", "", "");         
         return PIPELET_ERROR;

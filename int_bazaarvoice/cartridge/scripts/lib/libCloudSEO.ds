@@ -1,0 +1,382 @@
+/**
+* libCloudSEO.ds
+*
+*	Library code to render the Cloud SEO content.
+*	Based on the PHP SDK found at 
+*	https://github.com/bazaarvoice/HostedUIResources/blob/master/SEOIntegration/examples/php/bvseosdk.php
+*
+*/
+importPackage( dw.system );
+importPackage( dw.util );
+importPackage( dw.net );
+
+importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
+
+/**
+* BVSEO class
+*
+*	Usage:
+*		var bvSeo = getBVSEO({
+*			"deployment_zone_id" : "12345",
+*			"product_id" : "123456789",
+*			"cloud_key" : "123123123asdasdasd"
+*		});
+*		bvSeo.renderReviewContent();
+*		bvSeo.renderQuestionContent();
+*
+*   Required fields:
+*      deployment_zone_id (string)
+*      product_id (string)
+*      cloud_key (string)
+*
+*	Optional fields
+*      	current_page_url (string) (defaults to detecting the current_page automtically)
+*      	staging (boolean) (defaults to true, need to put false when go to production)
+*      	subject_type (string) (defaults to product, for questions you can pass in categories here if needed)
+*      	latency_timeout (int) (in millseconds) (defaults to 1000ms)
+*		bv_product (string) (defaults to reviews which is the only supported product right now)
+*   	bot_list (string) (defualts to msnbot|googlebot|teoma|bingbot|yandexbot|yahoo)
+*		bot_detection (boolean) (defaults to true, only rendering content if a bot is detected, or bvreveal is a uri parameter)
+*/
+function BVSEO() {
+	
+	//put this first so it can initialize the current_page_url paramter
+	/******************
+	* PRIVATE METHODS *
+	******************/
+	var _getCurrentUrl = function() {
+		var url = "http://";
+		if(request.isHttpSecure()) {
+			url = "https://";
+		}
+		url += request.httpHost + request.httpPath;
+		if(!empty(request.httpQueryString)) {
+			url += "?" + request.httpQueryString;
+		}
+		return url;
+	};
+	
+	
+	/******************
+	* PRIVATE MEMBERS *
+	******************/
+	var _reviews, _questions;
+	var configMap : HashMap = new HashMap();
+	
+	//required configurations, no defaults
+	configMap["product_id"] = "";
+	configMap["deployment_zone_id"] = "";
+	configMap["cloud_key"] = "";
+	
+	//optional configurations
+	configMap["staging"] = true;
+	configMap["current_page_url"] = _getCurrentUrl();
+	configMap["subject_type"] = "product";
+	configMap["latency_timeout"] = 1000;
+	configMap["bv_product"] = "reviews";
+	configMap["bot_list"] = "(msnbot|google|teoma|bingbot|yandexbot|yahoo)";
+	configMap["bot_detection"] = true;
+	
+		
+	/******************
+	* PUBLIC METHODS  *
+	******************/
+	return {
+		init : function(config) {
+			for(var param in config) {
+				if(configMap.containsKey(param)) {
+					configMap[param] = config[param];
+				}
+				else {
+					Logger.debug("[libCloudSEO.ds] Incorrect parameter passed to BVSEO: " + param);
+				}
+			}
+			
+			_reviews = new SEOContent(configMap, "reviews");
+			_questions = new SEOContent(configMap, "questions");
+		},
+		
+		renderReviewContent : function(){
+			return _reviews.renderSEO();
+		},
+		
+		renderQuestionContent : function(){
+			return _questions.renderSEO();
+		}
+	};
+}
+
+
+
+
+/**
+* class SEOContent
+*
+*/
+function SEOContent(config : HashMap, seoProduct : String) {
+	var configMap : HashMap;
+	if(config == null || config.empty) {
+		Logger.error("[libCloudSEO.ds] Cannot create SEOContent object.  Config parameter is null or empty.");
+		return null;
+	}
+	configMap = config.clone();
+	
+	if(!empty(seoProduct)) {
+		configMap["bv_product"] = seoProduct;
+	}
+	
+	
+	/******************
+	* PRIVATE METHODS *
+	******************/
+	
+	/**
+	* isBot()
+	*
+	* Helper method to determine if current request is a bot or not. Will 
+    * use the configured regex string which can be overriden with params.
+    */
+	var _isBot = function() {
+		// we need to check the user agent string to see if this is a bot,
+        // unless the bvreveal parameter is there or we have disabled bot
+        // detection through the bot_detection flag
+		if(request.httpParameters.containsKey("bvreveal") || !configMap["bot_detection"]) {
+			return true;
+		}
+		
+		// search the user agent string for an indictation if this is a search bot or not
+		var regex : RegExp = new RegExp(configMap["bot_list"]);
+		Logger.debug("[libCloudSEO.ds] isBot() regex: " + configMap['bot_list']);
+		Logger.debug("[libCloudSEO.ds] isBot() result: " + regex.test(request.httpUserAgent.toLowerCase()));
+		return regex.test(request.httpUserAgent.toLowerCase());
+	};
+	
+	/**
+	* getPageNumber()
+	*
+	* Helper method to pull from the URL the page of SEO we need to view.
+	*/
+	var _getPageNumber = function() {
+		//default to page 1 if a page is not specified in the URL
+		var pageNumber = "1";
+		
+		//some implementations wil use bvpage query parameter like ?bvpage=2
+		if(request.httpParameters.containsKey("bvpage")) {
+			pageNumber = request.httpParameters["bvpage"][0];
+			
+			//remove the bvpage parameter from the current URL so we don't keep appending it
+			var param = request.httpParameters["bvpage"][0].replace("/", "\/", "g");
+			var regex : RegExp = new RegExp("/[?&]bvpage=" + param + "/");
+			configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
+		}
+		//other implementations use the bvrrp, bvqap, or bvsyp parameter ?bvrrp=1234-en_us/reviews/product/2/ASF234.htm
+		else if(request.httpParameters.containsKey("bvrrp") || request.httpParameters.containsKey("bvqap") || request.httpParameters.containsKey("bvsyp")) {
+			var param;
+			if(request.httpParameters.containsKey("bvrrp")) {
+				param = request.httpParameters["bvrrp"][0].replace("/", "\/", "g");
+				var regex : RegExp = new RegExp("/[?&]bvrrp=" + param + "/");
+				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
+			}
+			else if(request.httpParameters.containsKey("bvqap")) {
+				param = request.httpParameters["bvqap"][0].replace("/", "\/", "g");
+				var regex : RegExp = new RegExp("/[?&]bvqap=" + param + "/");
+				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
+			}
+			else {
+				param = request.httpParameters["bvsyp"][0].replace("/", "\/", "g");
+				var regex : RegExp = new RegExp("/[?&]bvsyp=" + param + "/");
+				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
+			}
+			
+			var regex : RegExp = /\/(\d+?)\/[^\/]+$/;
+			var matches = request.httpQueryString.match(regex);
+			pageNumber = matches[1];
+		}
+		
+		return pageNumber;
+	};
+	
+	/**
+	* buildSeoUrl()
+	*
+	* Helper method to that builds the URL to the SEO payload
+	*/
+	var _buildSeoUrl = function(page : String) {
+		//staging or production?
+		var host : String = BV_Constants.SEOHostStaging;
+		if(configMap["staging"] == false) {
+			host = BV_Constants.SEOHostProduction;
+		}
+		var url = "http://" + host;
+		url += "/" + configMap["cloud_key"];
+		url += "/" + encodeURI(configMap["deployment_zone_id"].replace(" ", "_", "g"));
+		url += "/" + configMap["bv_product"];
+		url += "/" + configMap["subject_type"];
+		url += "/" + page;
+		url += "/" + encodeURI(configMap["product_id"]) + ".htm";
+		Logger.debug("[libCloudSEO.ds] seoUrl: " + url);
+		return url;
+	};
+	
+	/**
+	* fetchSeoContent()
+	*
+	* Helper method that will take in a URL and return it's payload
+	*/
+	var _fetchSeoContent = function(url : String) {
+		try {
+			var client : HTTPClient = new HTTPClient();
+			client.setTimeout(configMap["latency_timeout"]);
+			client.open("GET", url);
+			var timer : Calendar = new Calendar();
+			client.send();
+			var timer2 : Calendar = new Calendar();
+			var timespan : Number = timer2.getTime().getTime() - timer.getTime().getTime(); 
+			
+			if(client.statusCode == 200) {
+				var msg : String = client.text + _buildComment("timer " + timespan + "ms");
+				return msg; 
+			}
+			else if(client.statusCode >= 400) {
+				throw new Error("Http repsonse status: " + client.statusCode + " - " + client.statusMessage);
+			}
+			else {
+				throw new Error("Http repsonse status: " + client.statusCode + " - " + client.statusMessage);
+			}
+		}
+		catch(ex) {
+			Logger.error("[libCloudSEO.ds] Exception while retrieving cloud content from " + url + ": " + ex.message);
+			return _buildComment(ex.message);
+		}
+	};
+	
+	/**
+	* replaceTokens()
+	*
+	* After we have an SEO payload we need to replace the {INSERT_PAGE_URI}
+	* tokens with the current page url so pagination works. 
+	*/
+	var _replaceTokens = function(content : String) {
+		//determine if query string exists in current page url
+		var prefix : String = "?";
+		if(configMap["current_page_url"].indexOf("?") != -1) {
+			prefix = "&";
+		}
+		return content.replace("{INSERT_PAGE_URI}", configMap["current_page_url"] + prefix, "g");
+	};
+	
+	/**
+	* buildComment()
+	*
+	* Helper method to add a comment to the seo content
+	*/
+	var _buildComment = function(msg : String) {
+		return "\n" + "<!--BVSEO|dp: " + configMap["deployment_zone_id"] + "|sdk: v1.0-p|msg: " + msg + "-->";
+	};
+	
+	/**
+	* toString()
+	*
+	* Print the config values of this object
+	*/
+	var _toString = function() {
+		var str : String = "";
+		for each(var key : String in configMap.keySet()) {
+			if(key != "cloud_key") {
+				str += "(" + key + " >>> " + configMap[key] + ")\n";
+			}
+		}
+		return str;
+	};
+	
+	
+	/******************
+	* PUBLIC METHODS  *
+	******************/
+	return {
+		/**
+		* Render SEO
+		*
+		* Method used to do all the work to fetch, parse, and then return
+		* the SEO payload.
+		*/
+		renderSEO : function() {
+			var payload : String = "";
+			
+			if(_isBot()) {
+				//get the page number of SEO content to load
+				var pageNumber : String = _getPageNumber();
+				
+				//build the URL to access the SEO content for
+            	//this product / page combination
+				var seoUrl : String = _buildSeoUrl(pageNumber);
+				
+				//make call to get SEO payload from cloud
+				var seoContent = _fetchSeoContent(seoUrl);
+				
+				//replace uri tokens with page url
+				seoContent = _replaceTokens(seoContent);
+				
+				//if we ar ein debug mode, add config to comments
+				if(request.httpParameters.containsKey("bvreveal") && request.httpParameters["bvreveal"][0] == "debug") {
+					seoContent += _buildComment(_toString());
+				}
+				
+				payload = seoContent;
+			}
+			else {
+				payload = _buildComment("Bot not detected, Javascript only.");	
+			}
+			
+			Logger.debug("[libCloudSEO.ds] rendered SEO content: \n" + payload);
+			return payload;
+		}
+	};
+}
+
+function getBVSEO(config) {
+	//test for required parameters before we begin
+	if(empty(config.product_id)) {
+		Logger.error("[libCloudSEO.ds] Error initializing cloud SEO object.  Missing product_id.");
+		return null;
+	}
+	
+	/*
+	* The BV cloud SEO SDKs all pass in the key and deployment zone id as config parameters.
+	* For this cartridge, it makes more sense to pull the values from the Site Preferences here.
+	* The only dynamic parameter is the product id, so why complicate the integration?
+	*/
+	config.cloud_key = dw.system.Site.getCurrent().getCustomPreferenceValue("bvCloudSEOKey_C2013");
+	if(empty(config.cloud_key)) {
+		Logger.error("[libCloudSEO.ds] Error initializing cloud SEO object.  Missing cloud_key.");
+		return null;
+	}
+	
+	var bvdisplay = getBazaarVoiceHelper().getDisplayData();
+	
+	/*
+	* Deployment Zone is not ready for the cloud SEO offering yet.
+	* It will continue to use the legacy display code and locale.
+	* If the display code preference is empty, then try to use the Deployment Zone.
+	* This will allow merchants to migrate without a code change when Deployment Zone is supported.
+	*/
+	config.deployment_zone_id = dw.system.Site.getCurrent().getCustomPreferenceValue("bvCloudSEODisplayCode_C2013");
+	if(empty(config.deployment_zone_id)) {
+		config.deployment_zone_id = bvdisplay.zone;
+		if(empty(config.deployment_zone_id)) {
+			Logger.error("[libCloudSEO.ds] Error initializing cloud SEO object.  Missing deployment_zone_id.  You must supply either bvCloudSEODisplayCode_C2013 or bvDeploymentZone_C2013");
+			return null;
+		}
+	}
+	
+	
+	var locale = bvdisplay.locale;
+	if(!empty(locale)) {
+		config.deployment_zone_id += "-" + locale;
+	}
+	
+	var bvseo = new BVSEO();
+	bvseo.init(config);
+	return bvseo;
+}

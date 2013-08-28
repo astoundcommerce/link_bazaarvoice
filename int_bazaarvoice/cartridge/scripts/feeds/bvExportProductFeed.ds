@@ -106,7 +106,7 @@
 function execute( pdict : PipelineDictionary ) : Number {
 	pdict.Message = "";
 	
-	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed");
+	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed_C2013");
 	pdict.Enabled = productFeedEnabled;
 	if (!productFeedEnabled) {
 	   //If the feed isn't enabled, just return.
@@ -135,17 +135,17 @@ function execute( pdict : PipelineDictionary ) : Number {
         // Write the closing Feed element, then flush & close the stream
         finalizeFeed(xsw);
             
-        var destinationPath : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportPath");
+        var destinationPath : String = BV_Constants.ProductFeedPath;
         if(empty(destinationPath)){
-        	Logger.error("bvProductFeedExportPath site preference is null or empty!");
-        	throw new Error("bvProductFeedExportPath site preference is null or empty!");
+        	Logger.error("BV_Constants.ProductFeedPath is null or empty!");
+        	throw new Error("BV_Constants.ProductFeedPath is null or empty!");
         }
         pdict.RemotePath = destinationPath;
         
-        var destinationFilename : String = Site.getCurrent().getCustomPreferenceValue("bvProductFeedExportFileName");
+        var destinationFilename : String = BV_Constants.ProductFeedFilename;
         if(empty(destinationPath)){
-        	Logger.error("bvProductFeedExportFileName site preference is null or empty!");
-        	throw new Error("bvProductFeedExportFileName site preference is null or empty!");
+        	Logger.error("BV_Constants.ProductFeedFilename is null or empty!");
+        	throw new Error("BV_Constants.ProductFeedFilename is null or empty!");
         }
         pdict.RemoteFileName = destinationFilename;
         
@@ -202,7 +202,7 @@ function writeCategory(xsw : XMLStreamWriter, category : Category){
         }
     }
     
-    writeElement(xsw, "Name", category.displayName);
+    writeElementCDATA(xsw, "Name", category.displayName);
     writeElement(xsw, "CategoryPageUrl", URLUtils.http('Search-Show','cgid',category.ID));
     
     xsw.writeEndElement();
@@ -233,14 +233,14 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
     xsw.writeStartElement("Product");
     
     writeElement(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(product.ID));
-    writeElement(xsw, "Name", product.name);
-    writeElement(xsw, "Description", (product.shortDescription == null ? product.name : product.shortDescription));
+    writeElementCDATA(xsw, "Name", product.name);
+    writeElementCDATA(xsw, "Description", (product.shortDescription == null ? product.name : product.shortDescription));
     
     if (product.getBrand() != null && !empty(product.brand) ) {
     	xsw.writeCharacters("\n");
     	xsw.writeStartElement("Brand");
-        writeElement(xsw, "Name", product.brand);
-        writeElement(xsw, "ExternalId", product.brand);
+        writeElementCDATA(xsw, "Name", product.brand);
+        writeElementCDATA(xsw, "ExternalId", product.brand);
         xsw.writeEndElement();
     }
     
@@ -341,9 +341,10 @@ function writeElement(xsw : XMLStreamWriter, elementName : String, chars : Strin
     xsw.writeEndElement();
 }
 
-
-
-
-
+function writeElementCDATA(xsw : XMLStreamWriter, elementName : String, chars : String) {
+    xsw.writeStartElement(elementName);
+    xsw.writeCData(chars);
+    xsw.writeEndElement();
+}
 
 

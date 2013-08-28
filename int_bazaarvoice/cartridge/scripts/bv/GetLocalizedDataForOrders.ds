@@ -30,8 +30,7 @@ function execute( pdict : PipelineDictionary ) : Number
 	var bvLocale : String = bvLocales.get(localeID);
 	var orderCount : Number = pdict.OrderCount;
 	
-	
-	var numDaysLookback : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedNumDaysLookback");	
+	var numDaysLookback : Number = BV_Constants.PurchaseFeedNumDays;	
 	var numDaysLookbackStartDate : Date = null;
     var helperCalendar = new Calendar();
     helperCalendar.add(Calendar.DATE, (-1 * numDaysLookback));  //Subtract numDaysLookback days from the current date.
@@ -44,9 +43,9 @@ function execute( pdict : PipelineDictionary ) : Number
 		var order : Order = orderItr.next();
 		if(order.customerLocaleID.equals(localeID) && shouldIncludeOrder(order)){
 			writeOrder(order, bvLocale, orderList);
+			order.custom[BV_Constants.CUSTOM_FLAG] = true;
 			orderCount++;
-		}	
-		order.custom[BV_Constants.CUSTOM_FLAG] = true;
+		}
 	}
 	
 	pdict.OrderCount = orderCount;
@@ -79,7 +78,7 @@ function writeOrder(order : Order, locale : String, orderList : XML) {
 	        var externalID : String = bvHelper.replaceIllegalCharacters(prod.variant ? prod.variationModel.master.ID : prod.ID);
 	        var name : String = prod.name;
 	        var price : Number = lineItem.getPriceValue();
-	        var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PURCHASE);
+	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);
 	        
 	        var pdct : XML = <product>
 	        	<ExternalId>{externalID}</ExternalId>
@@ -111,7 +110,7 @@ function writeOrder(order : Order, locale : String, orderList : XML) {
 
 function shouldIncludeOrder(order : Order) : Boolean {
 	var triggeringEvent : String = getTriggeringEvent();
-    var delayDaysSinceEvent : Number = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedDelayDaysSinceEvent");
+    var delayDaysSinceEvent : Number = BV_Constants.PurchaseFeedWaitDays;
     
     // Have we already included this order in a previous feed?  If so, don't re-export it.
     var custAttribs : CustomAttributes = order.getCustom();
@@ -174,7 +173,7 @@ function getTransactionDate(order : Order) : Date {
 }
 
 function getTriggeringEvent() : String {
-    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent");
+    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent_C2013");
     if (!triggeringEvent) {
         triggeringEvent = "shipping";
     } else {
