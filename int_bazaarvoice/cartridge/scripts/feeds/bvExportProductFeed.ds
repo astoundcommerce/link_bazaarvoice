@@ -198,7 +198,7 @@ function writeCategory(xsw : XMLStreamWriter, category : Category){
         //We don't want to set our ParentExternalId to "root", so make sure the parent of this parent is non-null
         var parentOfParent = parent.getParent();    
         if(parentOfParent!=null) {
-            writeElement(xsw, "ParentExternalId", parent.ID);
+            writeElement(xsw, "ParentExternalId", bvHelper.replaceIllegalCharacters(parent.ID));
         }
     }
     
@@ -240,7 +240,7 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
     	xsw.writeCharacters("\n");
     	xsw.writeStartElement("Brand");
         writeElementCDATA(xsw, "Name", product.brand);
-        writeElementCDATA(xsw, "ExternalId", product.brand);
+        writeElementCDATA(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(product.brand));
         xsw.writeEndElement();
     }
     
@@ -253,7 +253,7 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
             categoryExternalId = allCategories.iterator().next().ID;
         } 
     }
-    writeElement(xsw, "CategoryExternalId", categoryExternalId);
+    writeElement(xsw, "CategoryExternalId", bvHelper.replaceIllegalCharacters(categoryExternalId));
     
     writeElement(xsw, "ProductPageUrl", URLUtils.http('Product-Show','pid',product.ID));
     

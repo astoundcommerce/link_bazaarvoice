@@ -97,7 +97,7 @@ function execute(pdict: PipelineDictionary): Number {
 						    product.custom.bvReviewCount = bvReviewCount;
 						    product.custom.bvRatingRange = bvRatingRange;
 						    
-						    productIds.push(id);
+						    productIds.push(product.ID);
 						    iProcessed++;
 						} else {
 						    iFailed++;
