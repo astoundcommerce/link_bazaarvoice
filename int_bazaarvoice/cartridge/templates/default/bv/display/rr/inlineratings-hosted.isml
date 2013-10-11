@@ -1,6 +1,6 @@
 <!--- TEMPLATENAME: inlineratings-hosted.isml --->
 <isif condition="${Product != null && dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableInlineRatings_C2013')}">
-	<isset name="bvPID" value="${(Product.variant) ? Product.variationModel.master.ID : Product.ID}" scope="page" />
+	<isset name="bvPID" value="${(Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase()}" scope="page" />
 	<isif condition="${!empty(bvPID)}">
 		<div id="BVRRInlineRating-${bvPID}"></div>
 		
