@@ -40,7 +40,7 @@ function execute( pdict : PipelineDictionary ) : Number
 	    	map.put("ImageURL", catImage.getAbsURL());
 	    }
 				
-		
+		map.put("Name", category.displayName);
 		
 		if(!map.empty){
 			localeMap.put(key, map);

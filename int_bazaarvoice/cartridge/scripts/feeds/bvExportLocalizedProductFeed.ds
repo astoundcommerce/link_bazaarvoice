@@ -305,6 +305,30 @@ function writeCategory(xsw : XMLStreamWriter, category : Category, bvLocaleMap :
     		xsw.writeCharacters("\n");
     		xsw.writeEndElement();
     	}
+    	
+    	//Names
+    	openTag = false;
+    	usedBVLocales = new ArrayList();
+    	for each(var dwLocale in bvLocaleMap.keySet()){
+    		if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
+				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
+				
+				var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
+				if(dataMap.get("Name")){
+		    		if(!openTag){
+	    				xsw.writeCharacters("\n");
+	    				xsw.writeStartElement("Names");
+	    				openTag = true;
+	    			}
+	    			
+	    			writeLocalizedElementCDATA(xsw, "Name", bvLocaleMap.get(dwLocale), dataMap.get("Name"));
+				}
+    		}
+    	}
+    	if(openTag) {
+    		xsw.writeCharacters("\n");
+    		xsw.writeEndElement();
+    	}
     }
     
     xsw.writeCharacters("\n");
@@ -435,7 +459,7 @@ function writeProductLocalizedElements(xsw : XMLStreamWriter, bvLocaleMap : Hash
 						openTag = true;
 					}
 					
-					writeLocalizedElement(xsw, "Name", bvLocaleMap.get(dwLocale), dataMap.get("Name"));
+					writeLocalizedElementCDATA(xsw, "Name", bvLocaleMap.get(dwLocale), dataMap.get("Name"));
 				}
 			}
 		}
@@ -459,7 +483,7 @@ function writeProductLocalizedElements(xsw : XMLStreamWriter, bvLocaleMap : Hash
 						openTag = true;
 					}
 					
-					writeLocalizedElement(xsw, "Description", bvLocaleMap.get(dwLocale), dataMap.get("Description"));
+					writeLocalizedElementCDATA(xsw, "Description", bvLocaleMap.get(dwLocale), dataMap.get("Description"));
 				}
 			}
 		}
@@ -585,14 +609,16 @@ function writeLocalizedElement(xsw : XMLStreamWriter, elementName : String, loca
 	xsw.writeAttribute("locale", locale);
 	xsw.writeCharacters(chars);
 	xsw.writeEndElement();
-
 }
 
+function writeLocalizedElementCDATA(xsw : XMLStreamWriter, elementName : String, locale : String, chars : String) {
+	xsw.writeCharacters("\n");
+	
+    xsw.writeStartElement(elementName);
+	xsw.writeAttribute("locale", locale);
+	xsw.writeCData(chars);
+	xsw.writeEndElement();
 
-
-
-
-
-
+}
 
 
