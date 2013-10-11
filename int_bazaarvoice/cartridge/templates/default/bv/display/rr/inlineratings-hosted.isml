@@ -2,6 +2,12 @@
 <isif condition="${Product != null && dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableInlineRatings_C2013')}">
 	<isset name="bvPID" value="${(Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase()}" scope="page" />
 	<isif condition="${!empty(bvPID)}">
+		<isscript>
+		importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
+		var bvHelper = getBazaarVoiceHelper();
+		bvPID = bvHelper.replaceIllegalCharacters(bvPID);
+		</isscript>
+		
 		<div id="BVRRInlineRating-${bvPID}"></div>
 		
 		<script type="text/javascript" language="javascript">
