@@ -74,12 +74,12 @@ var BazaarVoiceHelper = {
 
 	//used
     replaceIllegalCharacters: function (rawId: String): String {
-        return rawId.replace("&", "_and_", "g").replace("/", "%2f", "g");
+        return rawId.replace("&", "_and_", "g").replace("/", "_fslash_", "g");
     },
 
 	//used
     decodeId: function (id: String) {
-        return id.replace("_and_", "&", "g").replace("%2f", "/", "g");
+        return id.replace("_and_", "&", "g").replace("_fslash_", "/", "g");
     },
 
 	//remove????
