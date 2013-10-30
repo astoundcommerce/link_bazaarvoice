@@ -370,11 +370,18 @@ function getBVSEO(config) {
 		}
 	}
 	
-	
 	var locale = bvdisplay.locale;
 	if(!empty(locale)) {
 		config.deployment_zone_id += "-" + locale;
 	}
+	
+	/*
+	* Check the site preference to decide if this is the staging or production environment.
+	*/
+	var env : String = getBazaarVoiceHelper().getEnvironment();
+	if(!empty(env) && env.toLowerCase() == "production") {
+    	config.staging = false;
+    }
 	
 	var bvseo = new BVSEO();
 	bvseo.init(config);

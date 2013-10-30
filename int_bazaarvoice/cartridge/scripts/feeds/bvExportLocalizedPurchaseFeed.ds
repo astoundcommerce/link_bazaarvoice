@@ -86,7 +86,7 @@ function writeFeed(file : File, orderlist : XML) : XMLStreamWriter {
 
     
     var xmlns : String = BV_Constants.XML_NAMESPACE_PURCHASE;
-    var feed : XML = <feed xmlns={xmlns}>
+    var feed : XML = <Feed xmlns={xmlns}>
     {orderlist.children()}
     </feed>;
     
