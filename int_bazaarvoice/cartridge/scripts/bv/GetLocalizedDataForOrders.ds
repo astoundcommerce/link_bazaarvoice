@@ -66,7 +66,7 @@ function writeOrder(order : Order, locale : String, orderList : XML) {
     
 
 	    var lineItems : Collection = order.getAllProductLineItems();
-		var productList : XML = <products></products>;
+		var productList : XML = <Products></Products>;
 	    for each(var lineItem : ProductLineItem in lineItems) {
 	        var prod : Product = lineItem.getProduct();
 	        
@@ -80,11 +80,11 @@ function writeOrder(order : Order, locale : String, orderList : XML) {
 	        var price : Number = lineItem.getPriceValue();
 	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);
 	        
-	        var pdct : XML = <product>
+	        var pdct : XML = <Product>
 	        	<ExternalId>{externalID}</ExternalId>
 	        	<Name>{name}</Name>
         		<Price>{price}</Price>
-        		</product>;
+        		</Product>;
 				
 			if(!empty(prodImage)) {
 				pdct.appendChild(<ImageUrl>{prodImage}</ImageUrl>);
@@ -99,7 +99,7 @@ function writeOrder(order : Order, locale : String, orderList : XML) {
 		    <Locale>{locale}</Locale>
 		    <UserName>{userName}</UserName>
 		    <UserID>{userID}</UserID>
-		    <TransactionDate>{txnDate}</TransactionDate>
+		    <TransactionDate>{txnDate.toISOString()}</TransactionDate>
 		    <Products>{productList.children()}</Products>
 		  </Interaction>;
 	    
