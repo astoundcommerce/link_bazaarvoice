@@ -20,6 +20,13 @@ BV_Constants.SEOMaxStaleness = 5;
 BV_Constants.SEOHostStaging = "seo-stg.bazaarvoice.com";
 BV_Constants.SEOHostProduction = "seo.bazaarvoice.com";
 
+// If the SEODisplayCode is empty, then the Deployment Zone is used in the cloud SEO url.
+// This is to provide legacy display code support while the cloud SEO platform 
+// transitions to use deployment zone.
+//
+// Only define a display code here if directed by a BazaarVoice representative
+BV_Constants.SEODisplayCode = "";
+
 BV_Constants.RatingsFeedPath = "feeds";
 BV_Constants.RatingsFeedFilename = "ratings.xml";
 

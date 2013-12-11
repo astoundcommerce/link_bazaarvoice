@@ -356,12 +356,9 @@ function getBVSEO(config) {
 	var bvdisplay = getBazaarVoiceHelper().getDisplayData();
 	
 	/*
-	* Deployment Zone is not ready for the cloud SEO offering yet.
-	* It will continue to use the legacy display code and locale.
-	* If the display code preference is empty, then try to use the Deployment Zone.
-	* This will allow merchants to migrate without a code change when Deployment Zone is supported.
+	* If the SEODisplayCode constant is empty, then try to use the Deployment Zone.
 	*/
-	config.deployment_zone_id = dw.system.Site.getCurrent().getCustomPreferenceValue("bvCloudSEODisplayCode_C2013");
+	config.deployment_zone_id = BV_Constants.SEODisplayCode;
 	if(empty(config.deployment_zone_id)) {
 		config.deployment_zone_id = bvdisplay.zone;
 		if(empty(config.deployment_zone_id)) {

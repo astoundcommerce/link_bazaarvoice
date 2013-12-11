@@ -63,7 +63,6 @@ var BazaarVoiceHelper = {
 	/******************************************************************************************************************
 	*******************************************************************************************************************/
 	
-	//used
 	getCustomerName : function() : String {
 		var name : String = "";
 		if(Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013") != null){
@@ -72,24 +71,20 @@ var BazaarVoiceHelper = {
 		return name;
 	},
 
-	//used
-    replaceIllegalCharacters: function (rawId: String): String {
+	replaceIllegalCharacters: function (rawId: String): String {
         return rawId.replace("&", "_and_", "g").replace("/", "_fslash_", "g");
     },
 
-	//used
-    decodeId: function (id: String) {
+	decodeId: function (id: String) {
         return id.replace("_and_", "&", "g").replace("_fslash_", "/", "g");
     },
 
-	//remove????
-    md5: function (data: String) {
+	md5: function (data: String) {
         var digest: MessageDigest = new MessageDigest(MessageDigest.DIGEST_MD5);
         return digest.digest(data);
     },
 
-	//remove????
-    encodeHex: function (data: String) {
+	encodeHex: function (data: String) {
         var l: Number = data.length;
         var out: String = "";
         // two characters form the hex value.
@@ -100,8 +95,7 @@ var BazaarVoiceHelper = {
         return out;
     },
 
-	//remove????
-    encryptReviewerId: function (reviewerId: String, reviewerNickname: String) {
+	encryptReviewerId: function (reviewerId: String, reviewerNickname: String) {
         if (!empty(reviewerId) && !empty(reviewerNickname)) {
             var dateAndreviewerId: String = StringUtils.format(USER_STRING_TEMPLATE, StringUtils.formatCalendar(new Calendar(), 'yyyyMMdd'), reviewerId, reviewerNickname);
 
@@ -114,8 +108,7 @@ var BazaarVoiceHelper = {
         return null;
     },
 
-	//used
-    getBvApiHostUrl: function (): String {
+	getBvApiHostUrl: function (): String {
     	var client : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013");
     	if(empty(client)) {
     		Logger.error("Site Preference bvCustomerName is null or empty!");
@@ -133,7 +126,6 @@ var BazaarVoiceHelper = {
         return "//" + host + "/static/" + client + "/" + encodeURI(bvdisplay.zone) + "/" + bvdisplay.locale + "/bvapi.js";
     },
     
-    //used
     getDisplayData : function() {
     	var currentLocale : String = request.locale;
 		var defaultLocale : String = Site.getCurrent().getDefaultLocale();
@@ -222,7 +214,6 @@ var BazaarVoiceHelper = {
 		return {"zone" : bvzone, "locale" : bvlocale};
     },
     
-    //used
     getExternalSubjectForPage: function(pdict : PipelineDictionary) : Object {
         var ret = {};
         
@@ -267,8 +258,7 @@ var BazaarVoiceHelper = {
         xsw.writeEndElement();
     },
 
-	//used
-    insertLeadingZero: function(nb : Number) : String {
+	insertLeadingZero: function(nb : Number) : String {
         if(nb < 10) {
             return "0"+nb;
         } else {
@@ -276,7 +266,6 @@ var BazaarVoiceHelper = {
         }
     },
     
-    //used
     getEnvironment : function() : String {
     	var env : EnumValue = Site.getCurrent().getCustomPreferenceValue("bvEnvironment_C2013");
     	if(empty(env) || empty(env.value)) {
@@ -286,7 +275,6 @@ var BazaarVoiceHelper = {
     	return env.value;
     },
     
-    //used
     uploadFile: function(destinationPath : String, destinationFilename : String, localFile : File, pdict : PipelineDictionary) : String {
     	var ftpClient : SFTPClient = new SFTPClient();
     	
@@ -317,17 +305,21 @@ var BazaarVoiceHelper = {
 			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: bvFTPPassword is null or empty!","", "", "", "", "");
         }
         
+        //The client name may be mixed case, so
+        //force it to be lowercase for the sftp username
+        user = user.toLowerCase();
+        
         if(!ftpClient.connect(host, user, pwd)) {
         	Logger.error("Could not connect to sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
             return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server.",host, user, "XXXXX", destinationPath, destinationFilename);
-        } 
+        }
         
         if( !ftpClient.cd(destinationPath)) {
         	Logger.error("Could not change directory on sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
             ftpClient.disconnect();        
             return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while accessing folder on BV SFTP Server.",host, user, "XXXXX", destinationPath, destinationFilename);            
 		}
-                
+		
         //there might be an old one
         ftpClient.del(destinationFilename);
         
