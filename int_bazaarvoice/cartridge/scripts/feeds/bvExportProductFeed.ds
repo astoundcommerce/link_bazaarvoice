@@ -221,7 +221,7 @@ function writeProducts(xsw : XMLStreamWriter) {
     var productIterator : SeekableIterator = ProductMgr.queryAllSiteProducts();
     while(productIterator.hasNext()) {
         var product : Product = productIterator.next();
-        if(product.online && product.searchable && !product.variant) {
+        if(product.online && product.searchable && (BV_Constants.EnableProductFamilies || !product.variant)) {
             writeProduct(xsw, product);
         }
     }
@@ -284,6 +284,31 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
     	xsw.writeStartElement("UPCs");
         writeElement(xsw, "UPC", product.UPC);
         xsw.writeEndElement();
+    }
+    
+    //add product family attributes here for variants and masters,
+    //only if Product Families are enabled in libConstants.ds
+    if(BV_Constants.EnableProductFamilies && (product.master || product.variant)) {
+    	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("Attributes");
+    	
+    	//use the master ID plus "-family" as the family ID
+    	var familyId = product.master ? product.ID : product.variationModel.master.ID;
+    	familyId = bvHelper.replaceIllegalCharacters(familyId + "-family");
+    	
+    	//write family attribute
+    	xsw.writeStartElement("Attribute");
+    	xsw.writeAttribute("id", "BV_FE_FAMILY");
+    	writeElement(xsw, "Value", familyId);
+    	xsw.writeEndElement();
+    	
+    	//write expand attribute
+    	xsw.writeStartElement("Attribute");
+    	xsw.writeAttribute("id", "BV_FE_EXPAND");
+    	writeElement(xsw, "Value", "BV_FE_FAMILY:" + familyId);
+    	xsw.writeEndElement();
+    	
+    	xsw.writeEndElement();
     }
             
     

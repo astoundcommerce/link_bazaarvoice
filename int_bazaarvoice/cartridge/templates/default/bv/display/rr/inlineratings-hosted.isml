@@ -1,13 +1,20 @@
 <!--- TEMPLATENAME: inlineratings-hosted.isml --->
 <isif condition="${Product != null && dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableInlineRatings_C2013')}">
-	<isset name="bvPID" value="${(Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase()}" scope="page" />
-	<isif condition="${!empty(bvPID)}">
-		<isscript>
-		importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-		var bvHelper = getBazaarVoiceHelper();
-		bvPID = bvHelper.replaceIllegalCharacters(bvPID);
-		</isscript>
+	<isscript>
+	importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
+	importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+	var bvHelper = getBazaarVoiceHelper();
+	var bvPID = "";
+	if(BV_Constants.EnableProductFamilies) {
+		bvPID = Product.ID.toLowerCase();
+	}
+	else {
+		bvPID = (Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase();
+	}
+	bvPID = bvHelper.replaceIllegalCharacters(bvPID);
+	</isscript>
 		
+	<isif condition="${!empty(bvPID)}">	
 		<div id="BVRRInlineRating-${bvPID}"></div>
 		
 		<script type="text/javascript" language="javascript">

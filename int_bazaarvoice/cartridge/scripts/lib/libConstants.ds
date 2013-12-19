@@ -41,6 +41,13 @@ BV_Constants.ProductFeedFilename = "productfeed.xml";
 BV_Constants.APIHostStaging = "display-stg.ugc.bazaarvoice.com";
 BV_Constants.APIHostProduction = "display.ugc.bazaarvoice.com";
 
+//By default, Product Families are not used, and all variation product content is handled by
+//the master product.  
+//If you show inline ratings for variations of the same master on a product grid (slicing for example),
+//then you need to enable the use of product families here.  This will add all variations to the product
+//feed, group them into families based on the master ID, and will use variation IDs for inline ratings. 
+BV_Constants.EnableProductFamilies = false;
+
 /*****************************************************************
 *	END CONFIGURATION VARIABLES
 ******************************************************************/

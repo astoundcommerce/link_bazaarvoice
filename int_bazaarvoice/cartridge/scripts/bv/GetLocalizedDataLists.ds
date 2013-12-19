@@ -13,7 +13,8 @@ importPackage( dw.catalog );
 
 importScript("model/LocalizedCategory.ds");
 importScript("model/LocalizedProduct.ds");
-
+importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+ 
 function execute( pdict : PipelineDictionary ) : Number
 {
 	var catObjects : Collection = new ArrayList();
@@ -29,7 +30,7 @@ function execute( pdict : PipelineDictionary ) : Number
 	var productIterator : SeekableIterator = ProductMgr.queryAllSiteProducts();
     while(productIterator.hasNext()) {
         var product : Product = productIterator.next();
-        if(product.online && product.searchable && !product.variant) {
+        if(product.online && product.searchable && (BV_Constants.EnableProductFamilies || !product.variant)) {
             var prodObject = new Product_Object();
             prodObject.create(product.ID);
             
