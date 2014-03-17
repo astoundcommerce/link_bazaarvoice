@@ -3,7 +3,6 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
  ---> 
 <isscript>
      importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-     importPackage( dw.io );
      
      var qaEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableAA_C2013");
      
@@ -12,34 +11,30 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
      
     // Obtain SmartSEO content      
     importScript("int_bazaarvoice:lib/libCloudSEO.ds");
-	var CSEO = getBVSEO({"product_id" : bvSubject.bvExternalSubjectID});
+    var CSEO = null;
+    if(!empty(pdict.CSEO_QA_PID)) {
+    	CSEO = getBVSEO({"product_id" : pdict.CSEO_QA_PID});
+    }
 </isscript>
+
 <isif condition="${qaEnabled}">
     <!-- Questions -->
     <div id="BVQAContainer">
-        <isprint value="${CSEO.renderReviewContent()}" encoding="off" />
+    	<isif condition="${CSEO != null}">
+	    	<isprint value="${CSEO.renderQuestionContent()}" encoding="off" />
+	    </isif>
     </div>
-    <script type="text/javascript" language="javascript">
-    	var qaConfigData = {};
-    	<isif condition="${bvSubject.bvSubjectType == 'product'}">
-    		qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
-    	<iselse/>
+    
+    <isif condition="${bvSubject.bvSubjectType == 'category'}">
+	    <script type="text/javascript" language="javascript">
+	    	var qaConfigData = {};
 	    	qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
-	    	qaConfigData.categoryId = "${bvSubject.bvExternalSubjectID}";
-    	</isif>
-		
-        qaConfigData.doShowContent = function(json) {
-            <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAAShowReviewsTabJavascriptPDP_C2013')}" encoding="off" />
-        };
-        
-        function loadQA() {
-        	$BV.ui("qa", "show_questions", qaConfigData);
-        }
-        loadQA();
-    </script>       
+		    qaConfigData.categoryId = "${bvSubject.bvExternalSubjectID}";
+	        
+	        jQuery(document).ready(function(){
+		    	$BV.ui("qa", "show_questions", qaConfigData);
+		    });
+	    </script>
+    </isif>       
     <!-- End Questions -->
-<iselse/>
-	<script type="text/javascript">
-	function loadQA(){}
-	</script>
 </isif>

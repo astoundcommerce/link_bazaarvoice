@@ -65,7 +65,7 @@ function execute( pdict : PipelineDictionary ) : Number {
         }
             
     } catch(ex) {
-        Logger.error("[exception caught]" + ex.message);
+        Logger.error("[bvExportPurchaseFeed.ds exception caught]" + ex.message);
         return PIPELET_ERROR;    
     } finally {
         if (file.exists()) {
@@ -132,7 +132,7 @@ function writeOrder(xsw : XMLStreamWriter, order : Order, locale : String) {
 	        	continue;
 	        }
 	        
-	        var externalID : String = bvHelper.replaceIllegalCharacters(prod.variant ? prod.variationModel.master.ID : prod.ID);
+	        var externalID : String = bvHelper.replaceIllegalCharacters((prod.variant && !BV_Constants.UseVariantID) ? prod.variationModel.master.ID : prod.ID);
 	        var name : String = prod.name;
 	        var price : Number = lineItem.getPriceValue();
 	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);

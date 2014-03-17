@@ -1,2 +1,29 @@
 <!--- TEMPLATENAME: questionsummary.isml --->
-<div id="BVQASummaryContainer"></div>
+<isscript>
+     importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
+     
+     var qaEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableAA_C2013");
+     
+     // Determine if we are rendering on a product or category page.
+     var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
+</isscript>
+<isset name="CSEO_QA_PID" value="${bvSubject.bvExternalSubjectID}" scope="pdict" />
+
+<isif condition="${qaEnabled && bvSubject.bvSubjectType == 'product'}">
+	<!-- Questions Summary -->
+	<div id="BVQASummaryContainer"></div>
+	
+	<script type="text/javascript" language="javascript">
+		var qaConfigData = {};
+		qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
+		
+		qaConfigData.doShowContent = function(json) {
+	        <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAAShowReviewsTabJavascriptPDP_C2013')}" encoding="off" />
+	    };
+	    
+	    jQuery(document).ready(function(){
+	    	$BV.ui("qa", "show_questions", qaConfigData);
+	    });
+	</script>
+	<!-- End Questions Summary -->
+</isif>

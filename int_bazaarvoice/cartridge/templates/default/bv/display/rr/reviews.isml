@@ -2,39 +2,22 @@
 Embeds the container that reviews are injected to and the javascript that accesses the review content.
  --->
 <isscript>
-	importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-    importPackage( dw.io );
-     
-    var rrEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableRR_C2013");
-     
-    // Determine if we are rendering on a product or category page.
-    var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
-     
-    // Obtain SmartSEO content      
+	var rrEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableRR_C2013");
+    
+	// Obtain SmartSEO content      
     importScript("int_bazaarvoice:lib/libCloudSEO.ds");
-	var CSEO = getBVSEO({"product_id" : bvSubject.bvExternalSubjectID});
+    var CSEO = null;
+    if(!empty(pdict.CSEO_RR_PID)) {
+    	CSEO = getBVSEO({"product_id" : pdict.CSEO_RR_PID});
+    }
 </isscript>
 
 <isif condition="${rrEnabled}">
 	<!-- Reviews -->
 	<div id="BVRRContainer">
-	    <isprint value="${CSEO.renderReviewContent()}" encoding="off" />
+		<isif condition="${CSEO != null}">
+	    	<isprint value="${CSEO.renderReviewContent()}" encoding="off" />
+	    </isif>
 	</div>
-	<script type="text/javascript" language="javascript">
-		var rrConfigData = {};
-		rrConfigData.productId = "${bvSubject.bvExternalSubjectID}";
-		rrConfigData.doShowContent = function(json) {
-		    <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRShowReviewsTabJavascript_C2013')}" encoding="off" />
-		};
-		
-		function loadRR() {
-			$BV.ui("rr", "show_reviews", rrConfigData);
-		}
-		loadRR();
-	</script>       
 	<!-- End Reviews -->
-<iselse/>
-	<script type="text/javascript" language="javascript">
-	function loadRR(){}
-	</script>
 </isif>

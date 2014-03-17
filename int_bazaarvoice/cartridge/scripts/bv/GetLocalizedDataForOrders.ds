@@ -75,7 +75,7 @@ function writeOrder(order : Order, locale : String, orderList : XML) {
 	        	continue;
 	        }
 	        
-	        var externalID : String = bvHelper.replaceIllegalCharacters(prod.variant ? prod.variationModel.master.ID : prod.ID);
+	        var externalID : String = bvHelper.replaceIllegalCharacters((prod.variant && !BV_Constants.UseVariantID) ? prod.variationModel.master.ID : prod.ID);
 	        var name : String = prod.name;
 	        var price : Number = lineItem.getPriceValue();
 	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);

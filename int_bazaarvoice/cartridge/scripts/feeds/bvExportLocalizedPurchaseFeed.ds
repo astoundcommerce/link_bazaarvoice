@@ -84,16 +84,14 @@ function writeFeed(file : File, orderlist : XML) : XMLStreamWriter {
     
     xsw.writeStartDocument("UTF-8", "1.0");
 
-    
     var xmlns : String = BV_Constants.XML_NAMESPACE_PURCHASE;
     var feed : XML = <Feed xmlns={xmlns}>
     {orderlist.children()}
-    </feed>;
+    </Feed>;
     
     xsw.writeRaw(feed);
     
-
-    xsw.writeEndDocument();
+	xsw.writeEndDocument();
    
     xsw.flush();
     xsw.close();

@@ -32,7 +32,7 @@
 		<isif condition="${item.product != null}">
 		<isif condition="${plicounter > 0}">,</isif>
 		{
-		"sku"		:	"${bvHelper.replaceIllegalCharacters(item.product.variant ? item.product.variationModel.master.ID : item.product.ID)}",
+		"sku"		:	"${bvHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
 		"name"		:	"${item.product.name}",
 		"price"		:	"${item.getPriceValue()}",
 		<isif condition="${!empty(bvHelper.getImageURL(item.product, BV_Constants.PURCHASE))}">

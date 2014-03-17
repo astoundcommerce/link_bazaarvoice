@@ -1,2 +1,28 @@
 <!--- TEMPLATENAME: reviewsummary.isml --->
-<div id="BVRRSummaryContainer"></div>
+<isscript>
+	importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
+	
+    var rrEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableRR_C2013");
+    
+    // Determine if we are rendering on a product or category page.
+    var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
+</isscript>
+<isset name="CSEO_RR_PID" value="${bvSubject.bvExternalSubjectID}" scope="pdict" />
+
+<isif condition="${rrEnabled}">
+	<!-- Reviews Summary -->
+	<div id="BVRRSummaryContainer"></div>
+	
+	<script type="text/javascript" language="javascript">
+		var rrConfigData = {};
+		rrConfigData.productId = "${bvSubject.bvExternalSubjectID}";
+		rrConfigData.doShowContent = function(json) {
+		    <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRShowReviewsTabJavascript_C2013')}" encoding="off" />
+		};
+		
+		jQuery(document).ready(function(){
+			$BV.ui("rr", "show_reviews", rrConfigData);
+		});
+	</script>       
+	<!-- End Reviews Summary -->
+</isif>
