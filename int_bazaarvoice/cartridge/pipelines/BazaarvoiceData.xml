@@ -48,11 +48,14 @@ Starting point for the job to export catalog data to Bazaarvoice.  This export c
           </segment>
         </branch>
       </node>
-      <simple-transition>
-        <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
-        </transition-display>
-      </simple-transition>
+      <simple-transition/>
+      <node>
+        <pipelet-node pipelet-name="GetBrands" pipelet-set-identifier="bc_api">
+          <key-binding alias="Brands" key="Brands"/>
+        </pipelet-node>
+        <node-display x="0" y="1"/>
+      </node>
+      <simple-transition/>
       <node>
         <decision-node condition-key="CodeCount &gt; 1" condition-operator="expr"/>
         <node-display orientation="horizontal" x="0" y="1"/>
@@ -92,6 +95,7 @@ Starting point for the job to export catalog data to Bazaarvoice.  This export c
                       <key-binding alias="LocalFile" key="File"/>
                       <key-binding alias="RemoteFileName" key="RemoteFileName"/>
                       <key-binding alias="RemotePath" key="RemotePath"/>
+                      <key-binding alias="Brands" key="Brands"/>
                     </pipelet-node>
                     <node-display x="0" y="2"/>
                     <branch basename="b2" source-connector="error">
@@ -182,6 +186,7 @@ Starting point for the job to export catalog data to Bazaarvoice.  This export c
           <key-binding alias="LocalFile" key="File"/>
           <key-binding alias="RemoteFileName" key="RemoteFileName"/>
           <key-binding alias="RemotePath" key="RemotePath"/>
+          <key-binding alias="Brands" key="Brands"/>
         </pipelet-node>
         <node-display x="0" y="3"/>
         <branch basename="b2" source-connector="error">

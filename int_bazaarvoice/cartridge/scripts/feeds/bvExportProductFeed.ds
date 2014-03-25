@@ -12,6 +12,13 @@
 * 		  incremental="false"  
 *		  extractDate="2007-01-01T12:00:00.000000"
 *		  generator="demandware-r5.1.1">
+*		<Brands>
+*			<Brand>
+*				<Name><![CDATA[ProductBrandId]]></Name>
+*				<ExternalId><![CDATA[ProductBrandId]]></ExternalId>
+*			</Brand>
+*			..... 0-n brands
+*		<Brands>
 *		<Categories>
 *			<Category>
 *				<ExternalId>1010</ExternalId>
@@ -36,10 +43,7 @@
 *				<ExternalId>2000001</ExternalId>
 *				<Name>First Product</Name>
 *				<Description>First Product Description Text</Description> 
-*				<Brand>
-*					<Name>ProductBrand</Name>
-*					<ExternalId>ProductBrandId</ExternalId>
-*				</Brand>
+*				<BrandExternalId><![CDATA[ProductBrandId]]></BrandExternalId>
 *				<CategoryExternalId>1010</CategoryExternalId>
 *				<ProductPageUrl>http://www.site.com/product.htm?prod=2000001</ProductPageUrl>
 *				<ImageUrl>http://images.site.com/prodimages/2000001.gif</ImageUrl>
@@ -76,6 +80,7 @@
 *		</Products>
 *</Feed>
 *
+* @input Brands : dw.util.ArrayList
 * @output Message : String
 * @output File : dw.io.File
 * @output RemotePath : String
@@ -125,6 +130,11 @@ function execute( pdict : PipelineDictionary ) : Number {
         
         /* Create an output stream */
         var xsw : XMLStreamWriter = initFeed(file);
+        
+        /* Process Brands */
+        if(pdict.Brands != null && pdict.Brands.length > 0) {
+        	writeBrands(xsw, pdict.Brands);
+        }
         
         /* Process categories */
         writeCategories(xsw);
@@ -208,6 +218,26 @@ function writeCategory(xsw : XMLStreamWriter, category : Category){
     xsw.writeEndElement();
 }
 
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Brands
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+function writeBrands(xsw : XMLStreamWriter, brands : ArrayList) {
+	 xsw.writeStartElement("Brands");
+	 for each(var brand in brands) {
+	 	xsw.writeCharacters("\n");
+    	xsw.writeStartElement("Brand");
+        writeElementCDATA(xsw, "Name", brand.value);
+        writeElementCDATA(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(brand.value));
+        xsw.writeEndElement();
+	 }
+	 xsw.writeEndElement();
+}
+
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -238,10 +268,10 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
     
     if (product.getBrand() != null && !empty(product.brand) ) {
     	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("Brand");
-        writeElementCDATA(xsw, "Name", product.brand);
-        writeElementCDATA(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(product.brand));
-        xsw.writeEndElement();
+    	//xsw.writeStartElement("Brand");
+        //writeElementCDATA(xsw, "Name", product.brand);
+        writeElementCDATA(xsw, "BrandExternalId", bvHelper.replaceIllegalCharacters(product.brand));
+        //xsw.writeEndElement();
     }
     
     var categoryExternalId : String = BV_Constants.CATEGORY_NONE;

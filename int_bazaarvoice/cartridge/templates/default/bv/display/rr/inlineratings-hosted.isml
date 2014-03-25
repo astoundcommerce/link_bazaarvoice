@@ -6,12 +6,22 @@
 	var bvHelper = getBazaarVoiceHelper();
 	var bvPID = "";
 	if(BV_Constants.EnableProductFamilies) {
-		bvPID = Product.ID.toLowerCase();
+		//showswatches means this is a master product tile
+		if(pdict.CurrentHttpParameterMap.showswatches.submitted && pdict.CurrentHttpParameterMap.showswatches.booleanValue == true) {
+			bvPID = Product.ID.toLowerCase();
+		}
+		else if(pdict.FirstProduct) {
+			bvPID = pdict.FirstProduct.ID.toLowerCase();
+		}
+		else {
+			bvPID = Product.ID.toLowerCase();
+		}
 	}
 	else {
 		bvPID = (Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase();
 	}
 	bvPID = bvHelper.replaceIllegalCharacters(bvPID);
+	//out.print(pdict.CurrentHttpParameterMap.showswatches.submitted && pdict.CurrentHttpParameterMap.showswatches.value == true);
 	</isscript>
 		
 	<isif condition="${!empty(bvPID)}">	
