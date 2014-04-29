@@ -51,7 +51,7 @@ function execute(pdict: PipelineDictionary): Number {
 		if(empty(fpath)){
 			throw new Error("BV_Constants.RatingsFeedPath is null or empty! Verify the configuration in libConstants.ds");
 		}
-		fname = BV_Constants.RatingsFeedFilename;
+		fname = BazaarVoiceHelper.getRatingsFeedName();
 		if(empty(fname)){
 			throw new Error("BV_Constants.RatingsFeedFilename is null or empty! Verify the configuration in libConstants.ds");
 		}
@@ -65,10 +65,11 @@ function execute(pdict: PipelineDictionary): Number {
             throw new Error("Error while accessing folder on BV FTP Server.");
         }
 
-        tempFile = new File(File.IMPEX + "/"+ "ratings.xml.tmp");
+        tempFile = new File(File.IMPEX + "/"+ "ratings.xml.gz");
         var gotRatingsFile: Boolean = ftpClient.getBinary(fname, tempFile); 
         
-        if(gotRatingsFile){       
+        if(gotRatingsFile){
+        	tempFile.gunzip(new File(File.IMPEX));
 			pdict.TempFile = tempFile;
         }else{
         	pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "No File to Import!", host, user, pwd, fpath, fname);

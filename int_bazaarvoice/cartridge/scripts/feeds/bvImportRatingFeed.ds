@@ -91,7 +91,7 @@ function execute(pdict: PipelineDictionary): Number {
         
         var productIds : Array = new Array();
         if(tempFile != null && tempFile.exists()){       
-		    var xmlReader : XMLStreamReader = new XMLStreamReader(new FileReader(tempFile));
+		    var xmlReader : XMLStreamReader = new XMLStreamReader(new FileReader(tempFile, "UTF-8"));
 		    
 		    var productXML : XML = null;
 		    var iProcessed: Number = new Number(0);

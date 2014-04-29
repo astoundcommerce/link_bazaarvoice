@@ -28,7 +28,8 @@ BV_Constants.SEOHostProduction = "seo.bazaarvoice.com";
 BV_Constants.SEODisplayCode = "";
 
 BV_Constants.RatingsFeedPath = "feeds";
-BV_Constants.RatingsFeedFilename = "ratings.xml";
+BV_Constants.RatingsFeedFilename = "ratings.xml.gz";
+BV_Constants.RatingsFeedPrefix = "bv";
 
 BV_Constants.PurchaseFeedPath = "/ppe/inbox";
 BV_Constants.PurchaseFeedFilename = "bazaarvoice-order-data.xml";
