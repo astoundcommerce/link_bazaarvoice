@@ -652,7 +652,7 @@ function writeElement(xsw : XMLStreamWriter, elementName : String, chars : Strin
 
 function writeElementCDATA(xsw : XMLStreamWriter, elementName : String, chars : String) {
     xsw.writeStartElement(elementName);
-    xsw.writeCData(chars);
+    xsw.writeCData(chars != null ? chars : "");
     xsw.writeEndElement();
 }
 
@@ -670,7 +670,7 @@ function writeLocalizedElementCDATA(xsw : XMLStreamWriter, elementName : String,
 	
     xsw.writeStartElement(elementName);
 	xsw.writeAttribute("locale", locale);
-	xsw.writeCData(chars);
+	xsw.writeCData(chars != null ? chars : "");
 	xsw.writeEndElement();
 
 }

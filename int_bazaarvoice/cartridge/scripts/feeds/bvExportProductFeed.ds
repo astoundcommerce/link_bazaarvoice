@@ -398,7 +398,7 @@ function writeElement(xsw : XMLStreamWriter, elementName : String, chars : Strin
 
 function writeElementCDATA(xsw : XMLStreamWriter, elementName : String, chars : String) {
     xsw.writeStartElement(elementName);
-    xsw.writeCData(chars);
+    xsw.writeCData(chars != null ? chars : "");
     xsw.writeEndElement();
 }
 
