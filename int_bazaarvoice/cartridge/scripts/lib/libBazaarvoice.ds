@@ -329,7 +329,12 @@ var BazaarVoiceHelper = {
 		}
 		
         //there might be an old one
-        ftpClient.del(destinationFilename);
+        var allRemoteFiles = ftpClient.list();
+        for each(var f : SFTPFileInfo in allRemoteFiles) {
+        	if(f.name == destinationFilename) {
+        		ftpClient.del(destinationFilename);
+        	}
+        }
         
         // send file to server
         var success = ftpClient.putBinary(destinationFilename, localFile);
