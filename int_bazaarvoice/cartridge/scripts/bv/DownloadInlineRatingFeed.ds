@@ -70,6 +70,10 @@ function execute(pdict: PipelineDictionary): Number {
         
         if(gotRatingsFile){
         	tempFile.gunzip(new File(File.IMPEX));
+        	tempFile = new File(File.IMPEX + "/"+ "ratings.xml");
+        	if(!tempFile.exists()) {
+        		throw new Error("GUNZIP of ratings.xml.gz was unsuccessful.  ratings.xml does not exist.");
+        	}
 			pdict.TempFile = tempFile;
         }else{
         	pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "No File to Import!", host, user, pwd, fpath, fname);
