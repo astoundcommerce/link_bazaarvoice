@@ -16,6 +16,58 @@
             </attribute-group>
         </group-definitions>
     </type-extension>
+	
+	<type-extension type-id="Product">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvAverageRating">
+                <display-name xml:lang="x-default">Bazaarvoice Average Rating</display-name>
+                <type>string</type>
+                <localizable-flag>true</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRatingRange">
+                <display-name xml:lang="x-default">Bazaarvoice Rating Range</display-name>
+                <type>string</type>
+                <localizable-flag>true</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvReviewCount">
+                <display-name xml:lang="x-default">Bazaarvoice Review Count</display-name>
+                <type>string</type>
+                <localizable-flag>true</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Custom">
+                <display-name xml:lang="x-default">Custom Attribute</display-name>
+                <attribute attribute-id="bvAverageRating"/>
+                <attribute attribute-id="bvReviewCount"/>
+                <attribute attribute-id="bvRatingRange"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
 
     <type-extension type-id="SitePreferences">
         <custom-attribute-definitions>
