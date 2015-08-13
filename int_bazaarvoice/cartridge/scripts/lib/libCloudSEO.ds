@@ -193,7 +193,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			var matches = request.httpQueryString.match(regex);
 			pageNumber = matches[1];
 		}
-		
+		Logger.debug("[libCloudSEO.ds] request: " + request.httpPath);
 		return pageNumber;
 	};
 	
