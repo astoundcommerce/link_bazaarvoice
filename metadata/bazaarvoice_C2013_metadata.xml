@@ -60,7 +60,7 @@
             </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
-            <attribute-group group-id="Custom">
+            <attribute-group group-id="Bazaarvoice">
                 <display-name xml:lang="x-default">Custom Attribute</display-name>
                 <attribute attribute-id="bvAverageRating"/>
                 <attribute attribute-id="bvReviewCount"/>
