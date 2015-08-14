@@ -50,7 +50,7 @@ function BVSEO() {
 		if(request.isHttpSecure()) {
 			url = "https://";
 		}
-		url += request.httpHost + request.httpPath;
+		url += request.httpHost + request.httpPath.replace("Product-Detail", "Product-Show");
 		if(!empty(request.httpQueryString)) {
 			url += "?" + request.httpQueryString;
 		}
