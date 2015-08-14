@@ -14,16 +14,23 @@
 	<div id="BVQASummaryContainer"></div>
 	
 	<script type="text/javascript" language="javascript">
-		var qaConfigData = {};
-		qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
-		
-		qaConfigData.doShowContent = function(json) {
-	        <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAAShowReviewsTabJavascriptPDP_C2013')}" encoding="off" />
-	    };
-	    
-	    jQuery(document).ready(function(){
-	    	$BV.ui("qa", "show_questions", qaConfigData);
-	    });
+	function waitForJQueryQA(){
+		if(window.jQuery) {
+			var qaConfigData = {};
+			qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
+			
+			qaConfigData.doShowContent = function(json) {
+		        <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAAShowReviewsTabJavascriptPDP_C2013')}" encoding="off" />
+		    };
+		    
+		    jQuery(document).ready(function(){
+		    	$BV.ui("qa", "show_questions", qaConfigData);
+		    });
+		} else {
+			setTimeout(waitForJQueryQA, 50);
+		}
+	}
+	waitForJQueryQA();
 	</script>
 	<!-- End Questions Summary -->
 </isif>

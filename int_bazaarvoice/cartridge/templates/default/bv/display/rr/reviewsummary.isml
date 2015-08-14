@@ -14,15 +14,22 @@
 	<div id="BVRRSummaryContainer"></div>
 	
 	<script type="text/javascript" language="javascript">
-		var rrConfigData = {};
-		rrConfigData.productId = "${bvSubject.bvExternalSubjectID}";
-		rrConfigData.doShowContent = function(json) {
-		    <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRShowReviewsTabJavascript_C2013')}" encoding="off" />
-		};
-		
-		jQuery(document).ready(function(){
-			$BV.ui("rr", "show_reviews", rrConfigData);
-		});
+		function waitForJQueryRR(){
+			if(window.jQuery) {
+				var rrConfigData = {};
+				rrConfigData.productId = "${bvSubject.bvExternalSubjectID}";
+				rrConfigData.doShowContent = function(json) {
+				    <isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRShowReviewsTabJavascript_C2013')}" encoding="off" />
+				};
+				
+				jQuery(document).ready(function(){
+					$BV.ui("rr", "show_reviews", rrConfigData);
+				});
+			} else {
+				setTimeout(waitForJQueryRR, 50);
+			}
+		}
+		waitForJQueryRR();
 	</script>       
 	<!-- End Reviews Summary -->
 </isif>
