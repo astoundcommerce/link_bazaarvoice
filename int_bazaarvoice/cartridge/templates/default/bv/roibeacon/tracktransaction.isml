@@ -17,38 +17,40 @@
 		<script type="text/javascript" src="${bvApiUrl}"></script>
 		
 		<script type="text/javascript">
-		$BV.SI.trackTransactionPageView({
-		"orderId"	:	"${pdict.Order.orderNo}",
-		"tax"		:	"${pdict.Order.totalTax.value}",
-		"shipping"	:	"${pdict.Order.shippingTotalPrice.value}",
-		"total"		:	"${pdict.Order.totalGrossPrice.value}",
-		"city"		:	"${pdict.Order.billingAddress.city}",
-		"state"		:	"${pdict.Order.billingAddress.stateCode}",
-		"country"	:	"${pdict.Order.billingAddress.countryCode}",
-		"currency"	:	"${pdict.Order.currencyCode}",
-		"items"		:	[
-		<isscript>var plicounter = 0;</isscript>
-		<isloop items="${pdict.Order.allProductLineItems}" var="item" status="itemstat">
-		<isif condition="${item.product != null}">
-		<isif condition="${plicounter > 0}">,</isif>
-		{
-		"sku"		:	"${bvHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
-		"name"		:	"${item.product.name}",
-		"price"		:	"${item.getPriceValue()}",
-		<isif condition="${!empty(bvHelper.getImageURL(item.product, BV_Constants.PURCHASE))}">
-		"imageURL"	:	"${bvHelper.getImageURL(item.product, BV_Constants.PURCHASE)}",
-		</isif>
-		"quantity"	:	"${item.quantity.value.toFixed()}"
-		}
-		<isscript>plicounter++;</isscript>
-		</isif>
-		</isloop>
-		],
-		"userId"	:	"${pdict.Order.customerNo}",
-		"email"		:	"${pdict.Order.customerEmail}",
-		"nickname"	:	"${pdict.Order.customerName}",
-		"locale"	:	"${bvHelper.getDisplayData().locale}",
-		"partnerSource"	:	"${BV_Constants.XML_GENERATOR}"
+		jQuery(document).ready(function(){
+			$BV.SI.trackTransactionPageView({
+				"orderId"	:	"${pdict.Order.orderNo}",
+				"tax"		:	"${pdict.Order.totalTax.value}",
+				"shipping"	:	"${pdict.Order.shippingTotalPrice.value}",
+				"total"		:	"${pdict.Order.totalGrossPrice.value}",
+				"city"		:	"${pdict.Order.billingAddress.city}",
+				"state"		:	"${pdict.Order.billingAddress.stateCode}",
+				"country"	:	"${pdict.Order.billingAddress.countryCode}",
+				"currency"	:	"${pdict.Order.currencyCode}",
+				"items"		:	[
+				<isscript>var plicounter = 0;</isscript>
+				<isloop items="${pdict.Order.allProductLineItems}" var="item" status="itemstat">
+				<isif condition="${item.product != null}">
+				<isif condition="${plicounter > 0}">,</isif>
+				{
+				"sku"		:	"${bvHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
+				"name"		:	"${item.product.name}",
+				"price"		:	"${item.getPriceValue()}",
+				<isif condition="${!empty(bvHelper.getImageURL(item.product, BV_Constants.PURCHASE))}">
+				"imageURL"	:	"${bvHelper.getImageURL(item.product, BV_Constants.PURCHASE)}",
+				</isif>
+				"quantity"	:	"${item.quantity.value.toFixed()}"
+				}
+				<isscript>plicounter++;</isscript>
+				</isif>
+				</isloop>
+				],
+				"userId"	:	"${pdict.Order.customerNo}",
+				"email"		:	"${pdict.Order.customerEmail}",
+				"nickname"	:	"${pdict.Order.customerName}",
+				"locale"	:	"${bvHelper.getDisplayData().locale}",
+				"partnerSource"	:	"${BV_Constants.XML_GENERATOR}"
+			});
 		});
 		</script>
 		
