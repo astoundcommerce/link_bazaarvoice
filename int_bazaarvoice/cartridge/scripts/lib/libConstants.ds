@@ -71,7 +71,7 @@ BV_Constants.regPair = /^(default|[a-z]{2}|[a-z]{2}_[a-zA-Z]{2})[\s]*:[\s]*([\w\
 BV_Constants.MESSAGE_TEMPLATE = "[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}]";
 BV_Constants.MESSAGE_TEMPLATE_LOCALE = "[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}] [Locale = {7}]";
 
-BV_Constants.XML_GENERATOR = "Demandware LINK cartridge 14.1.0";
+BV_Constants.XML_GENERATOR = "Demandware LINK cartridge 15.1.0";
 BV_Constants.XML_NAMESPACE_PRODUCT = "http://www.bazaarvoice.com/xs/PRR/ProductFeed/5.2";
 BV_Constants.XML_NAMESPACE_PURCHASE = "http://www.bazaarvoice.com/xs/PRR/PostPurchaseFeed/4.9";
 BV_Constants.XML_INCREMENTAL = "false";
