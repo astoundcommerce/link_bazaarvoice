@@ -283,8 +283,17 @@ var BazaarVoiceHelper = {
     	return env.value;
     },
     
+    getFtpTimeout : function() : Number {
+    	var milli : Number = Site.getCurrent().getCustomPreferenceValue("bvFtpTimeout_C2013");
+    	if(empty(milli)) {
+    		milli = 5000;
+    	}
+    	return milli;
+    },
+    
     uploadFile: function(destinationPath : String, destinationFilename : String, localFile : File, pdict : PipelineDictionary) : String {
     	var ftpClient : SFTPClient = new SFTPClient();
+    	ftpClient.setTimeout(BazaarVoiceHelper.getFtpTimeout());
     	
     	var env : String = BazaarVoiceHelper.getEnvironment();
     	if(empty(env)) {

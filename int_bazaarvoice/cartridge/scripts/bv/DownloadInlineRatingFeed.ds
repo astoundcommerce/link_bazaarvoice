@@ -25,6 +25,7 @@ function execute(pdict: PipelineDictionary): Number {
     
     try {
         var ftpClient: SFTPClient = new SFTPClient();
+        ftpClient.setTimeout(BazaarVoiceHelper.getFtpTimeout());
         
         var env : String = BazaarVoiceHelper.getEnvironment();
     	if(empty(env)) {

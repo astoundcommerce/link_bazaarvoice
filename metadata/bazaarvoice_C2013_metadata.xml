@@ -216,6 +216,14 @@
                 <min-length>0</min-length>
                 <field-length>0</field-length>
             </attribute-definition>
+			<attribute-definition attribute-id="bvFtpTimeout_C2013">
+                <display-name xml:lang="x-default">FTP Client Timeout</display-name>
+                <description xml:lang="x-default">FtP Client timeout in milliseconds</description>
+                <type>double</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>5000.0</default-value>
+            </attribute-definition>
             <attribute-definition attribute-id="bvLocaleMapping_C2013">
                 <display-name xml:lang="x-default">Locale Mapping(s)</display-name>
                 <description xml:lang="x-default">Colon separated value pairs that define how DW Locales are mapped to BV Locales.  DW Locales must be enabled in the current DW Site.  BV Locales must be enabled within your BV platform acocunt.  Format: ["(DW Locale ID)":]"(BV Locale)"</description>
@@ -276,6 +284,7 @@
                 <attribute attribute-id="bvEnvironment_C2013"/>
                 <attribute attribute-id="bvCustomerName_C2013"/>
                 <attribute attribute-id="bvFTPPassword_C2013"/>
+				<attribute attribute-id="bvFtpTimeout_C2013"/>
                 <attribute attribute-id="bvDeploymentZone_C2013"/>
                 <attribute attribute-id="bvLocaleMapping_C2013"/>
                 <attribute attribute-id="bvEnableRR_C2013"/>
