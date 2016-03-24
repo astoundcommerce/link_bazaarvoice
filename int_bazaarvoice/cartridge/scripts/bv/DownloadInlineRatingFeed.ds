@@ -44,6 +44,8 @@ function execute(pdict: PipelineDictionary): Number {
 		if(empty(user)){
 			throw new Error("bvCustomerName site preference is null or empty!");
 		}
+		user = user.toLowerCase();
+		
 		pwd = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword_C2013");
 		if(empty(pwd)){
 			throw new Error("bvFTPPassword site preference is null or empty!");

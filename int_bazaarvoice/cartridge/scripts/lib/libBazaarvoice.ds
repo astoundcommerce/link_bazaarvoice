@@ -74,7 +74,7 @@ var BazaarVoiceHelper = {
 	getRatingsFeedName : function() : String {
 		var fname : String = BV_Constants.RatingsFeedFilename;
 		if(Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013") != null){
-			fname = BV_Constants.RatingsFeedPrefix + "_" + Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013").toString() + "_" + BV_Constants.RatingsFeedFilename;
+			fname = BV_Constants.RatingsFeedPrefix + "_" + Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013").toString().toLowerCase() + "_" + BV_Constants.RatingsFeedFilename;
 		}
 		return fname;
 	},
