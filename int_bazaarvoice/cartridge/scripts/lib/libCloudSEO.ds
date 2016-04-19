@@ -73,12 +73,19 @@ function BVSEO() {
 	configMap["staging"] = true;
 	configMap["current_page_url"] = _getCurrentUrl();
 	configMap["subject_type"] = "product";
-	configMap["latency_timeout"] = 1000;
+	configMap["execution_timeout"] = 500;
+	configMap["execution_timeout_bot"] = 2000;
+	configMap["charset"] = "UTF-8";
 	configMap["bv_product"] = "reviews";
 	configMap["bot_list"] = "(msnbot|google|teoma|bingbot|yandexbot|yahoo)";
 	configMap["bot_detection"] = true;
+	configMap["seo_sdk_enabled"] = true;
+	configMap["page"] = 1;
+	configMap["page_params"] = [];
+	configMap["bvreveal"] = request.httpParameters.containsKey("bvreveal") ? request.httpParameters["bvreveal"][0] : "";
+	configMap["ssl_enabled"] = false;
 	
-		
+	
 	/******************
 	* PUBLIC METHODS  *
 	******************/
@@ -93,17 +100,23 @@ function BVSEO() {
 				}
 			}
 			
+			//we may need to pull the bvreveal parameter from the session
+			if(empty(configMap["bvreveal"]) && !empty(session.custom.bvreveal)) {
+				configMap["bvreveal"] = session.custom.bvreveal;
+			}
+			
 			_reviews = new SEOContent(configMap, "reviews");
 			_questions = new SEOContent(configMap, "questions");
 		},
 		
-		renderReviewContent : function(){
-			return _reviews.renderSEO();
+		reviews : function() {
+			return _reviews;
 		},
 		
-		renderQuestionContent : function(){
-			return _questions.renderSEO();
+		questions : function() {
+			return _questions;
 		}
+		
 	};
 }
 
@@ -127,9 +140,35 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	}
 	
 	
+	
+	var msg = "";
+	var seo_url = "";
+	var response_time = 0;
+	
 	/******************
 	* PRIVATE METHODS *
 	******************/
+	
+	/**
+	* _setBuildMessage
+	*
+	*/
+	var _setBuildMessage = function(str){
+		str = StringUtils.rtrim(str);
+		msg += " " + str + ";";
+	};
+	
+	/**
+	* _getBVReveal()
+	*
+	*/
+	var _getBVReveal = function() {
+		if(!empty(configMap["bvreveal"]) && configMap["bvreveal"] == "debug") {
+			return true;
+		}
+		
+		return false;
+	};
 	
 	/**
 	* isBot()
@@ -141,7 +180,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		// we need to check the user agent string to see if this is a bot,
         // unless the bvreveal parameter is there or we have disabled bot
         // detection through the bot_detection flag
-		if(request.httpParameters.containsKey("bvreveal") || !configMap["bot_detection"]) {
+		if(_getBVReveal()) {
 			return true;
 		}
 		
@@ -152,6 +191,11 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		return regex.test(request.httpUserAgent.toLowerCase());
 	};
 	
+	//set the timeout
+	configMap["latency_timeout"] = _isBot() ? configMap['execution_timeout_bot'] : configMap['execution_timeout'];
+	
+	
+	
 	/**
 	* getPageNumber()
 	*
@@ -161,8 +205,12 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		//default to page 1 if a page is not specified in the URL
 		var pageNumber = "1";
 		
+		if(configMap.containsKey("page") && configMap["page"] != pageNumber) {
+			pageNumber = configMap["page"];
+		}
+		
 		//some implementations wil use bvpage query parameter like ?bvpage=2
-		if(request.httpParameters.containsKey("bvpage")) {
+		else if(request.httpParameters.containsKey("bvpage")) {
 			pageNumber = request.httpParameters["bvpage"][0];
 			
 			//remove the bvpage parameter from the current URL so we don't keep appending it
@@ -193,7 +241,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			var matches = request.httpQueryString.match(regex);
 			pageNumber = matches[1];
 		}
-		Logger.debug("[libCloudSEO.ds] request: " + request.httpPath);
+		
 		return pageNumber;
 	};
 	
@@ -208,13 +256,16 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		if(configMap["staging"] == false) {
 			host = BV_Constants.SEOHostProduction;
 		}
-		var url = "http://" + host;
+		var scheme = configMap["ssl_enabled"] ? "https://" : "http://";
+		
+		var url = scheme + host;
 		url += "/" + configMap["cloud_key"];
 		url += "/" + encodeURI(configMap["deployment_zone_id"].replace(" ", "_", "g"));
 		url += "/" + configMap["bv_product"];
 		url += "/" + configMap["subject_type"];
 		url += "/" + page;
 		url += "/" + encodeURI(configMap["product_id"]) + ".htm";
+		
 		Logger.debug("[libCloudSEO.ds] seoUrl: " + url);
 		return url;
 	};
@@ -235,7 +286,8 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			var timespan : Number = timer2.getTime().getTime() - timer.getTime().getTime(); 
 			
 			if(client.statusCode == 200) {
-				var msg : String = client.text + _buildComment("timer " + timespan + "ms");
+				response_time = timespan;
+				var msg : String = client.text;
 				return msg; 
 			}
 			else if(client.statusCode >= 400) {
@@ -247,7 +299,8 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		}
 		catch(ex) {
 			Logger.error("[libCloudSEO.ds] Exception while retrieving cloud content from " + url + ": " + ex.message);
-			return _buildComment(ex.message);
+			_setBuildMessage(ex.message);
+			return "";
 		}
 	};
 	
@@ -271,8 +324,43 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	*
 	* Helper method to add a comment to the seo content
 	*/
-	var _buildComment = function(msg : String) {
-		return "\n" + "<!--BVSEO|dp: " + configMap["deployment_zone_id"] + "|sdk: v1.0-p|msg: " + msg + "-->";
+	var _buildComment = function(method : String) {
+		var footer = '\n<ul id="BVSEOSDK_meta" style="display: none !important;">';
+		footer += '\n	<li data-bvseo="sdk">bvseo_sdk, dw_sdk, 15.1.0, (p_sdk, 3.2.0)</li>';
+		footer += '\n	<li data-bvseo="sp_mt">CLOUD, '+method+', '+response_time+'ms</li>';
+		footer += '\n	<li data-bvseo="ct_st">'+configMap["bv_product"]+', '+configMap["subject_type"]+'</li>';
+		if(!empty(msg)) {
+			footer += '\n	<li data-bvseo="ms">bvseo-msg: '+msg+'</li>';
+		}
+		footer += '\n</ul>';
+		
+		if(_getBVReveal()) {
+			footer += '\n<ul id="BVSEOSDK_DEBUG" style="display:none;">';
+			footer += '\n	<li data-bvseo="staging">'+configMap["staging"]+'</li>';
+			footer += '\n	<li data-bvseo="seo.sdk.enabled">'+configMap["seo_sdk_enabled"]+'</li>';
+			footer += '\n	<li data-bvseo="seo.sdk.execution.timeout.bot">'+configMap["execution_timeout_bot"]+'</li>';
+			footer += '\n	<li data-bvseo="seo.sdk.execution.timeout">'+configMap["execution_timeout"]+'</li>';
+			footer += '\n	<li data-bvseo="cloudKey">'+configMap["cloud_key"]+'</li>';
+			footer += '\n	<li data-bvseo="bv.root.folder">'+encodeURI(configMap["deployment_zone_id"].replace(" ", "_", "g"))+'</li>';
+			footer += '\n	<li data-bvseo="seo.sdk.charset">'+configMap["charset"]+'</li>';
+			footer += '\n	<li data-bvseo="seo.sdk.ssl.enabled">'+configMap["ssl_enabled"]+'</li>';
+			footer += '\n	<li data-bvseo="crawlerAgentPattern">'+configMap["bot_list"]+'</li>';
+			footer += '\n	<li data-bvseo="subjectID">'+encodeURI(configMap["product_id"])+'</li>';
+			
+			footer += '\n	<li data-bvseo="en">'+configMap["sdk_enabled"]+'</li>';
+			footer += '\n	<li data-bvseo="pn">'+configMap["page"]+'</li>';
+			footer += '\n	<li data-bvseo="userAgent">'+request.httpUserAgent.toLowerCase()+'</li>';
+			footer += '\n	<li data-bvseo="pageURI">'+configMap["current_page_url"]+'</li>';
+			footer += '\n	<li data-bvseo="contentType">'+configMap["bv_product"]+'</li>';
+			footer += '\n	<li data-bvseo="subjectType">'+configMap["subject_type"]+'</li>';
+			
+			if(!empty(seo_url)) {
+				footer += '\n	<li data-bvseo="contentURL">'+seo_url+'</li>';
+			}
+			footer += '\n</ul>';
+		}
+		
+		return footer;
 	};
 	
 	/**
@@ -291,51 +379,146 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	};
 	
 	
+	
+	/**
+	* _isSdkEnabled
+	*
+	*/
+	var _isSdkEnabled = function() {
+		return configMap["seo_sdk_enabled"] || _getBVReveal();
+	};
+	
+	/**
+	* _getFullSeoContents
+	*/
+	var _getFullSeoContents = function(method) {
+		var seo_content = "";
+		
+		var page_number = _getPageNumber();
+		
+		seo_url = _buildSeoUrl(page_number);
+		
+		if(_isSdkEnabled()) {
+			seo_content = _fetchSeoContent(seo_url);
+			
+			seo_content = _replaceTokens(seo_content);
+		} else {
+			_setBuildMessage("SEO SDK is disabled. Enable by setting seo.sdk.enabled to true.");
+		}
+		
+		return seo_content;
+	};
+	
+	/**
+	* _replaceSection()
+	*/
+	var _replaceSection = function(str, begin, end) {
+		var result = str;
+		var start_index = str.indexOf(begin);
+		if(start_index != -1) {
+			var end_index = str.indexOf(end);
+			if(end_index != -1) {
+				end_index += end.length;
+				var str_begin = str.substring(0, start_index);
+				var str_end = str.substring(end_index);
+				result = str_begin + str_end;
+			}
+		}
+		
+		return result;
+	};
+	
+	/**
+	* _renderReviews()
+	*/
+	var _renderReviews = function() {
+		var payload = _renderSEO("getReviews");
+		
+		payload = _replaceSection(payload, "<!--begin-aggregate-rating-->", "<!--end-aggregate-rating-->");
+		
+		var schema_org_text = "itemscope itemtype=\"http://schema.org/Product\"";
+		payload = payload.replace(schema_org_text, "", "g");
+		
+		return payload;
+	};
+	
+	/**
+	* _renderAggregateRating()
+	*/
+	var _renderAggregateRating = function() {
+		var payload = _renderSEO("getAggregateRating");
+		
+		payload = _replaceSection(payload, "<!--begin-reviews-->", "<!--end-reviews-->");
+		
+		payload = _replaceSection(payload, "<!--begin-pagination-->", "<!--end-pagination-->");
+		
+		return payload;
+	};
+	
+	/**
+	* _renderSEO
+	*/
+	var _renderSEO = function(method) {
+		var payload : String = "";
+		
+		if(!_isBot() && configMap["latency_timeout"] == 0) {
+			_setBuildMessage("EXECUTION_TIMEOUT is set to 0 ms; JavaScript-only Display.");
+		} else {
+			if(_isBot() && configMap["latency_timeout"] < 100) {
+				configMap["latency_timeout"] = 100;
+				_setBuildMessage("EXECUTION_TIMEOUT_BOT is less than the minimum value allowed. Minimum value of 100ms used.");
+			}
+			
+			try {
+				payload = _getFullSeoContents(method);
+			} catch(ex) {
+				_setBuildMessage(ex.message);
+			}
+		}
+		
+		payload += _buildComment(method);
+		return payload;
+	};
+	
+	
 	/******************
 	* PUBLIC METHODS  *
 	******************/
 	return {
-		/**
-		* Render SEO
-		*
-		* Method used to do all the work to fetch, parse, and then return
-		* the SEO payload.
-		*/
-		renderSEO : function() {
-			var payload : String = "";
+		getContent : function() {
+			var payload = _renderSEO("getContent"); 
+			return payload;
+		},
+		
+		getReviews : function() {
+			var payload = "";
 			
-			if(_isBot()) {
-				//get the page number of SEO content to load
-				var pageNumber : String = _getPageNumber();
-				
-				//build the URL to access the SEO content for
-            	//this product / page combination
-				var seoUrl : String = _buildSeoUrl(pageNumber);
-				
-				//make call to get SEO payload from cloud
-				var seoContent = _fetchSeoContent(seoUrl);
-				
-				//replace uri tokens with page url
-				seoContent = _replaceTokens(seoContent);
-				
-				//if we ar ein debug mode, add config to comments
-				if(request.httpParameters.containsKey("bvreveal") && request.httpParameters["bvreveal"][0] == "debug") {
-					seoContent += _buildComment(_toString());
-				}
-				
-				payload = seoContent;
+			if(configMap["bv_product"] == "questions") {
+				_setBuildMessage("Content Type '" + configMap["content_type"] + "' is not supported by getReviews().");
+				payload = _buildComment('getReviews');
+			} else if(configMap["bv_product"] == "reviews") {
+				payload = _renderReviews();
 			}
-			else {
-				payload = _buildComment("Bot not detected, Javascript only.");	
+			 
+			return payload;
+		},
+		
+		getAggregateRating : function() {
+			var payload = "";
+			
+			if(configMap["bv_product"] == "questions") {
+				_setBuildMessage("Content Type '" + configMap["content_type"] + "' is not supported by getAggregateRating().");
+				payload = _buildComment('getAggregateRating');
+			} else if(configMap["bv_product"] == "reviews") {
+				payload = _renderAggregateRating();
 			}
 			
-			Logger.debug("[libCloudSEO.ds] rendered SEO content: \n" + payload);
 			return payload;
 		}
 	};
 }
 
-function getBVSEO(config) {
+exports.getBVSEO = function(config) {
 	//test for required parameters before we begin
 	if(empty(config.product_id)) {
 		Logger.error("[libCloudSEO.ds] Error initializing cloud SEO object.  Missing product_id.");
@@ -383,4 +566,4 @@ function getBVSEO(config) {
 	var bvseo = new BVSEO();
 	bvseo.init(config);
 	return bvseo;
-}
+};

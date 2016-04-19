@@ -10,10 +10,9 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
      var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
      
     // Obtain SmartSEO content      
-    importScript("int_bazaarvoice:lib/libCloudSEO.ds");
     var CSEO = null;
     if(!empty(pdict.CSEO_QA_PID)) {
-    	CSEO = getBVSEO({"product_id" : pdict.CSEO_QA_PID});
+    	CSEO = require('int_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({"product_id" : pdict.CSEO_QA_PID});
     }
 </isscript>
 
@@ -21,7 +20,7 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
     <!-- Questions -->
     <div id="BVQAContainer">
     	<isif condition="${CSEO != null}">
-	    	<isprint value="${CSEO.renderQuestionContent()}" encoding="off" />
+	    	<isprint value="${CSEO.questions().getContent()}" encoding="off" />
 	    </isif>
     </div>
     
