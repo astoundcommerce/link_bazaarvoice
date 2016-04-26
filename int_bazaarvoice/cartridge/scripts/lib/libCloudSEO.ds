@@ -326,7 +326,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	*/
 	var _buildComment = function(method : String) {
 		var footer = '\n<ul id="BVSEOSDK_meta" style="display: none !important;">';
-		footer += '\n	<li data-bvseo="sdk">bvseo_sdk, dw_sdk, 15.1.0, (p_sdk, 3.2.0)</li>';
+		footer += '\n	<li data-bvseo="sdk">bvseo_sdk, '+ BV_Constants.XML_GENERATOR +', (p_sdk, 3.2.0)</li>';
 		footer += '\n	<li data-bvseo="sp_mt">CLOUD, '+method+', '+response_time+'ms</li>';
 		footer += '\n	<li data-bvseo="ct_st">'+configMap["bv_product"]+', '+configMap["subject_type"]+'</li>';
 		if(!empty(msg)) {
