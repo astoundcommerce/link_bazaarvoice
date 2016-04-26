@@ -215,7 +215,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			
 			//remove the bvpage parameter from the current URL so we don't keep appending it
 			var param = request.httpParameters["bvpage"][0].replace("/", "\/", "g");
-			var regex : RegExp = new RegExp("/[?&]bvpage=" + param + "/");
+			var regex : RegExp = new RegExp("[?&]bvpage=" + param);
 			configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 		}
 		//other implementations use the bvrrp, bvqap, or bvsyp parameter ?bvrrp=1234-en_us/reviews/product/2/ASF234.htm
@@ -223,17 +223,17 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			var param;
 			if(request.httpParameters.containsKey("bvrrp")) {
 				param = request.httpParameters["bvrrp"][0].replace("/", "\/", "g");
-				var regex : RegExp = new RegExp("/[?&]bvrrp=" + param + "/");
+				var regex : RegExp = new RegExp("[?&]bvrrp=" + param);
 				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 			}
 			else if(request.httpParameters.containsKey("bvqap")) {
 				param = request.httpParameters["bvqap"][0].replace("/", "\/", "g");
-				var regex : RegExp = new RegExp("/[?&]bvqap=" + param + "/");
+				var regex : RegExp = new RegExp("[?&]bvqap=" + param);
 				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 			}
 			else {
 				param = request.httpParameters["bvsyp"][0].replace("/", "\/", "g");
-				var regex : RegExp = new RegExp("/[?&]bvsyp=" + param + "/");
+				var regex : RegExp = new RegExp("[?&]bvsyp=" + param);
 				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 			}
 			
