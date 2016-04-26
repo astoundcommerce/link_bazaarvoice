@@ -15,7 +15,7 @@ Embeds the container that reviews are injected to and the javascript that access
 	<!-- Reviews -->
 	<div id="BVRRContainer">
 		<isif condition="${CSEO != null}">
-	    	<isprint value="${CSEO.reviews().getReviews()}" encoding="off" />
+	    	<isprint value="${CSEO.reviews().getContent()}" encoding="off" />
 	    </isif>
 	</div>
 	<!-- End Reviews -->
