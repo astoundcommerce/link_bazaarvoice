@@ -79,7 +79,7 @@ function writeOrder(order : Order, locale : String, orderList : XML) {
 	        var externalID : String = bvHelper.replaceIllegalCharacters(prod.variant ? prod.variationModel.master.ID : prod.ID);
 	        var name : String = prod.name;
 	        var price : Number = lineItem.getPriceValue();
-	        var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PURCHASE);
+	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);
 	        
 	        var pdct : XML = <product>
 	        	<ExternalId>{externalID}</ExternalId>
@@ -124,7 +124,7 @@ function shouldIncludeOrder(order : Order) : Boolean {
     var thresholdTimestamp : Date = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
     if (triggeringEvent === "shipping") {
     	//Is this order fully shipped?
-    	if (order.getShippingStatus() !== Order.SHIPPING_STATUS_SHIPPED) {
+    	if (order.getShippingStatus().value !== Order.SHIPPING_STATUS_SHIPPED) {
     		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Not completely shipped.");
     		return false;
     	}
@@ -190,7 +190,7 @@ function getDelayDaysThresholdTimestamp(delayDaysSinceEvent : Number) : Date {
 }
 
 function getLatestShipmentDate(order : Order) : Date {
-	var latestShipment : Number = 0; // initialize to epoch
+	var latestShipment : Number = new Date(0); // initialize to epoch
 	
 	var shipments : Collection = order.getShipments();
 	for each(var shipment : Shipment in shipments) {
