@@ -3,7 +3,7 @@
 *
 *	Library code to render the Cloud SEO content.
 *	Based on the PHP SDK found at 
-*	https://github.com/bazaarvoice/HostedUIResources/blob/master/SEOIntegration/examples/php/bvseosdk.php
+*	https://github.com/bazaarvoice/seo_sdk_php
 *
 */
 importPackage( dw.system );
@@ -35,10 +35,25 @@ importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
 *      	staging (boolean) (defaults to true, need to put false when go to production)
 *      	subject_type (string) (defaults to product, for questions you can pass in categories here if needed)
 *      	latency_timeout (int) (in millseconds) (defaults to 1000ms)
-*		bv_product (string) (defaults to reviews which is the only supported product right now)
+*		content_type (string) (defaults to reviews which is the only supported product right now)
 *   	bot_list (string) (defualts to msnbot|googlebot|teoma|bingbot|yandexbot|yahoo)
 *		bot_detection (boolean) (defaults to true, only rendering content if a bot is detected, or bvreveal is a uri parameter)
 */
+var supportedContentTypes = {
+	"r" : "reviews",
+	"q" : "questions",
+	"s" : "stories",
+	"u" : "universal",
+	"sp" : "spotlights"
+};
+var supportedSubjectTypes = {
+	"p" : "product",
+	"c" : "category",
+	"e" : "entry",
+	"d" : "detail",
+	"s" : "seller"
+};
+	
 function BVSEO() {
 	
 	//put this first so it can initialize the current_page_url paramter
@@ -55,6 +70,63 @@ function BVSEO() {
 			url += "?" + request.httpQueryString;
 		}
 		return url;
+	};
+	
+	var _getBVStateParams = function(bvstate : String) {
+		//break out bvstate into map
+		var bvsMap : HashMap = new HashMap();
+		var bvsArr : Array = bvstate.split("/");
+		for each(var param : String in bvsArr) {
+			var paramArr = param.split(":");
+			if(!empty(paramArr[0])) {
+				var key = paramArr[0];
+				var val = "";
+				if(!empty(paramArr[1])) {
+					val = paramArr[1];
+				}
+				bvsMap[key] = val;
+			}
+		}
+		
+		//sanitize the data
+		var params : HashMap = new HashMap();
+		if(bvsMap.size() > 0 && !empty(bvsMap["ct"])) {
+			if(!empty(bvsMap["id"])) {
+				params.put("subject_id", bvsMap["id"]);
+			}
+			if(!empty(bvsMap["pg"])) {
+				params.put("page", bvsMap["pg"]);
+			}
+			if(!empty(bvsMap["ct"])) {
+				if(empty(supportedContentTypes[bvsMap["ct"]])) {
+					Logger.error("[libCloudSEO.ds][_getBVStateParams()] Unsupported Content Type: " + bvsMap["ct"]);
+				} else {
+					params.put("content_type", supportedContentTypes[bvsMap["ct"]]);
+				}
+			}
+			if(!empty(bvsMap["st"])) {
+				if(empty(supportedSubjectTypes[bvsMap["st"]])) {
+					Logger.error("[libCloudSEO.ds][_getBVStateParams()] Unsupported Subject Type: " + bvsMap["st"]);
+				} else {
+					params.put("subject_type", supportedSubjectTypes[bvsMap["st"]]);
+				}
+			}
+			if(!empty(bvsMap["reveal"])) {
+				params.put("bvreveal", bvsMap["reveal"]);
+			}
+		}
+		
+		var bvsUsed = false;
+		if(params.size() > 0) {
+			bvsUsed = true;
+		}
+		params.put("base_url_bvstate", bvsUsed);
+		
+		if(empty(params["page"])) {
+			params.put("page", "1");
+		}
+		
+		return params;
 	};
 	
 	
@@ -76,15 +148,14 @@ function BVSEO() {
 	configMap["execution_timeout"] = 500;
 	configMap["execution_timeout_bot"] = 2000;
 	configMap["charset"] = "UTF-8";
-	configMap["bv_product"] = "reviews";
+	configMap["content_type"] = "reviews";
 	configMap["bot_list"] = "(msnbot|google|teoma|bingbot|yandexbot|yahoo)";
 	configMap["bot_detection"] = true;
 	configMap["seo_sdk_enabled"] = true;
-	configMap["page"] = 1;
-	configMap["page_params"] = [];
+	configMap["page"] = "1";
+	configMap["page_params"] = request.httpParameters.containsKey("bvstate") ? _getBVStateParams(request.httpParameters["bvstate"][0]) : new HashMap();
 	configMap["bvreveal"] = request.httpParameters.containsKey("bvreveal") ? request.httpParameters["bvreveal"][0] : "";
 	configMap["ssl_enabled"] = false;
-	
 	
 	/******************
 	* PUBLIC METHODS  *
@@ -135,8 +206,10 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	}
 	configMap = config.clone();
 	
+	
+	
 	if(!empty(seoProduct)) {
-		configMap["bv_product"] = seoProduct;
+		configMap["content_type"] = seoProduct;
 	}
 	
 	
@@ -163,11 +236,13 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	*
 	*/
 	var _getBVReveal = function() {
+		var bvreveal = false;
 		if(!empty(configMap["bvreveal"]) && configMap["bvreveal"] == "debug") {
-			return true;
+			bvreveal = true;
+		} else if(!empty(configMap["page_params"]["bvreveal"]) && configMap["page_params"]["bvreveal"] == "debug") {
+			bvreveal = true;
 		}
-		
-		return false;
+		return bvreveal;
 	};
 	
 	/**
@@ -204,11 +279,20 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	var _getPageNumber = function() {
 		//default to page 1 if a page is not specified in the URL
 		var pageNumber = "1";
+		var a = configMap;
 		
-		if(configMap.containsKey("page") && configMap["page"] != pageNumber) {
+		//bvstate page number should take precedent if the content type matches
+		if(configMap["page_params"]["base_url_bvstate"]) {
+			if(configMap["content_type"] == configMap["page_params"]["content_type"]) {
+				pageNumber = configMap["page_params"]["page"];
+			}
+			var param = request.httpParameters["bvstate"][0].replace("/", "\/", "g");
+			var regex : RegExp = new RegExp("[?&]bvstate=" + param);
+			configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
+		}
+		else if(configMap.containsKey("page") && configMap["page"] != pageNumber) {
 			pageNumber = configMap["page"];
 		}
-		
 		//some implementations wil use bvpage query parameter like ?bvpage=2
 		else if(request.httpParameters.containsKey("bvpage")) {
 			pageNumber = request.httpParameters["bvpage"][0];
@@ -261,7 +345,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		var url = scheme + host;
 		url += "/" + configMap["cloud_key"];
 		url += "/" + encodeURI(configMap["deployment_zone_id"].replace(" ", "_", "g"));
-		url += "/" + configMap["bv_product"];
+		url += "/" + configMap["content_type"];
 		url += "/" + configMap["subject_type"];
 		url += "/" + page;
 		url += "/" + encodeURI(configMap["product_id"]) + ".htm";
@@ -328,7 +412,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		var footer = '\n<ul id="BVSEOSDK_meta" style="display: none !important;">';
 		footer += '\n	<li data-bvseo="sdk">bvseo_sdk, '+ BV_Constants.CLOUD_SEO_VERSION +', p_sdk_3.2.0</li>';
 		footer += '\n	<li data-bvseo="sp_mt">CLOUD, '+method+', '+response_time+'ms</li>';
-		footer += '\n	<li data-bvseo="ct_st">'+configMap["bv_product"]+', '+configMap["subject_type"]+'</li>';
+		footer += '\n	<li data-bvseo="ct_st">'+configMap["content_type"]+', '+configMap["subject_type"]+'</li>';
 		if(!empty(msg)) {
 			footer += '\n	<li data-bvseo="ms">bvseo-msg: '+msg+'</li>';
 		}
@@ -351,7 +435,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			footer += '\n	<li data-bvseo="pn">'+configMap["page"]+'</li>';
 			footer += '\n	<li data-bvseo="userAgent">'+request.httpUserAgent.toLowerCase()+'</li>';
 			footer += '\n	<li data-bvseo="pageURI">'+configMap["current_page_url"]+'</li>';
-			footer += '\n	<li data-bvseo="contentType">'+configMap["bv_product"]+'</li>';
+			footer += '\n	<li data-bvseo="contentType">'+configMap["content_type"]+'</li>';
 			footer += '\n	<li data-bvseo="subjectType">'+configMap["subject_type"]+'</li>';
 			
 			if(!empty(seo_url)) {
@@ -493,23 +577,23 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		getReviews : function() {
 			var payload = "";
 			
-			if(configMap["bv_product"] == "questions") {
+			if(configMap["content_type"] == "questions") {
 				_setBuildMessage("Content Type '" + configMap["content_type"] + "' is not supported by getReviews().");
 				payload = _buildComment('getReviews');
-			} else if(configMap["bv_product"] == "reviews") {
+			} else if(configMap["content_type"] == "reviews") {
 				payload = _renderReviews();
 			}
-			 
+			
 			return payload;
 		},
 		
 		getAggregateRating : function() {
 			var payload = "";
 			
-			if(configMap["bv_product"] == "questions") {
+			if(configMap["content_type"] == "questions") {
 				_setBuildMessage("Content Type '" + configMap["content_type"] + "' is not supported by getAggregateRating().");
 				payload = _buildComment('getAggregateRating');
-			} else if(configMap["bv_product"] == "reviews") {
+			} else if(configMap["content_type"] == "reviews") {
 				payload = _renderAggregateRating();
 			}
 			
