@@ -14,6 +14,7 @@ importPackage(dw.crypto);
 importPackage(dw.io);
 importPackage(dw.net);
 importPackage(dw.catalog);
+importPackage(dw.svc);
 
 importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 
@@ -292,63 +293,35 @@ var BazaarVoiceHelper = {
     },
     
     uploadFile: function(destinationPath : String, destinationFilename : String, localFile : File, pdict : PipelineDictionary) : String {
-    	var ftpClient : SFTPClient = new SFTPClient();
-    	ftpClient.setTimeout(BazaarVoiceHelper.getFtpTimeout());
-    	
-    	var env : String = BazaarVoiceHelper.getEnvironment();
-    	if(empty(env)) {
-    		return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: bvEnvironment is null or empty!","", "", "", "", "");
+    	var service : FTPService = ServiceRegistry.get("bazaarvoice.sftp");
+    	var result : Result = service.setOperation("cd", destinationPath).call();
+    	if(!result.isOk()) {
+    		Logger.error("[libBazaarvoice.ds][uploadFile()] Problem testing sftp server. path: {0}, file: {1}, result: {2}", destinationPath, destinationFilename, result.msg);
+            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", result.msg, "", "", "", destinationPath, destinationFilename);
     	}
     	
-        var host : String = BV_Constants.FTPHostStaging;
-        if(env.toLowerCase() == "production") {
-        	host = BV_Constants.FTPHostProduction;
-        }
-        
-        if(empty(host)) {
-        	Logger.error("SFTP host is null or empty! Verify the configuration in libConstants.ds");
-			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: SFTP host is null or empty! Verify the configuration in libConstants.ds","", "", "", "", "");
-        }
-        
-        var user  : String = Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013");
-        if(empty(user)){
-			Logger.error("bvCustomerName is null or empty!");
-			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: bvCustomerName is null or empty!","", "", "", "", "");
-        }
-        
-        var pwd   : String = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword_C2013");
-        if(empty(pwd)){
-			Logger.error("bvFTPPassword is null or empty!");
-			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server: bvFTPPassword is null or empty!","", "", "", "", "");
-        }
-        
-        //The client name may be mixed case, so
-        //force it to be lowercase for the sftp username
-        user = user.toLowerCase();
-        
-        if(!ftpClient.connect(host, user, pwd)) {
-        	Logger.error("Could not connect to sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
-            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while trying to connect to BV SFTP server.",host, user, "XXXXX", destinationPath, destinationFilename);
-        }
-        
-        if( !ftpClient.cd(destinationPath)) {
-        	Logger.error("Could not change directory on sftp server! host: {0}, user: {1}, pwd: {2}, path: {3}, file: {4}", host, user, pwd, destinationPath, destinationFilename);
-            ftpClient.disconnect();        
-            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Error while accessing folder on BV SFTP Server.",host, user, "XXXXX", destinationPath, destinationFilename);            
+    	result = service.setOperation("list", destinationPath).call();
+		if(!result.isOk()) {
+			Logger.error("[libBazaarvoice.ds][uploadFile()] Problem during sftp list operation: " + result.msg);
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", result.msg, "", "", "", destinationPath, destinationFilename);
 		}
-		
-        //there might be an old one
-        var allRemoteFiles = ftpClient.list();
-        for each(var f : SFTPFileInfo in allRemoteFiles) {
+		var allRemoteFiles : Array = result.getObject();
+		for each(var f : SFTPFileInfo in allRemoteFiles) {
         	if(f.name == destinationFilename) {
-        		ftpClient.del(destinationFilename);
+        		result = service.setOperation("del", destinationFilename).call();
+        		if(!result.isOk()) {
+        			Logger.error("[libBazaarvoice.ds][uploadFile()] Problem deleting existing file: " + result.msg);
+        		}
         	}
         }
         
-        // send file to server
-        var success = ftpClient.putBinary(destinationFilename, localFile);
-        ftpClient.disconnect();
-        return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"SUCCESS", "Export Processed - Connecton Details" ,host, user, "XXXXX", destinationPath, destinationFilename);
+        result = service.setOperation("putBinary", destinationPath + "/" + destinationFilename, localFile).call();
+        if(!result.isOk()) {
+        	Logger.error("[libBazaarvoice.ds][uploadFile()] Problem uploading file: " + result.msg);
+        	return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Problem uploading file: " + result.msg, "", "", "", destinationPath, destinationFilename);
+        }
+        
+        return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"SUCCESS", "Export Processed - Connecton Details", "", "", "", destinationPath, destinationFilename);
     
     }
 

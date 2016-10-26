@@ -9,6 +9,7 @@
 importPackage( dw.system );
 importPackage( dw.util );
 importPackage( dw.net );
+importPackage( dw.svc );
 
 importScript( "int_bazaarvoice:/lib/libConstants.ds" );
 importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
@@ -145,8 +146,11 @@ function BVSEO() {
 	configMap["staging"] = true;
 	configMap["current_page_url"] = _getCurrentUrl();
 	configMap["subject_type"] = "product";
+	
+	//timeout values are pulled from service profiles below, but we are setting defaults here
 	configMap["execution_timeout"] = 500;
 	configMap["execution_timeout_bot"] = 2000;
+	
 	configMap["charset"] = "UTF-8";
 	configMap["content_type"] = "reviews";
 	configMap["bot_list"] = "(msnbot|google|teoma|bingbot|yandexbot|yahoo)";
@@ -266,7 +270,14 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		return regex.test(request.httpUserAgent.toLowerCase());
 	};
 	
-	//set the timeout
+	
+	//set the timeout based on the service profiles, so thjey can be set without code changes.
+	try {
+		configMap['execution_timeout_bot'] = ServiceRegistry.getDefinition("bazaarvoice.http.bot").getConfiguration().getProfile().getTimeoutMillis();
+		configMap['execution_timeout'] = ServiceRegistry.getDefinition("bazaarvoice.http").getConfiguration().getProfile().getTimeoutMillis();
+	} catch(te) {
+		Logger.error("[libCloudSEO.ds] Unable to pull the timeout values from the service profiles, using defaults instead.");
+	}
 	configMap["latency_timeout"] = _isBot() ? configMap['execution_timeout_bot'] : configMap['execution_timeout'];
 	
 	
@@ -361,6 +372,23 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	*/
 	var _fetchSeoContent = function(url : String) {
 		try {
+			var serviceId : String = _isBot() ? "bazaarvoice.http.bot" : "bazaarvoice.http";
+			var service : Service = ServiceRegistry.get(serviceId);
+			service.URL = url;
+			var timer : Calendar = new Calendar();
+			var result : Result = service.call();
+			var timer2 : Calendar = new Calendar();
+			var timespan : Number = timer2.getTime().getTime() - timer.getTime().getTime();
+			response_time = timespan;
+			
+			if(!result.isOk())
+			{
+				 throw new Error("Unsuccessful GET.  status = '{0}', msg = {1}", result.getStatus(), result.errorMessage);
+			}
+			
+			return result.object;
+			
+			/*
 			var client : HTTPClient = new HTTPClient();
 			client.setTimeout(configMap["latency_timeout"]);
 			client.open("GET", url);
@@ -380,6 +408,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			else {
 				throw new Error("Http repsonse status: " + client.statusCode + " - " + client.statusMessage);
 			}
+			*/
 		}
 		catch(ex) {
 			Logger.error("[libCloudSEO.ds] Exception while retrieving cloud content from " + url + ": " + ex.message);

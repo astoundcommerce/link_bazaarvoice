@@ -10,6 +10,7 @@ importPackage( dw.system );
 importPackage( dw.util );
 importPackage( dw.net );
 importPackage( dw.io );
+importPackage( dw.svc );
 
 importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
 importScript("int_bazaarvoice:/lib/libConstants.ds");
@@ -24,33 +25,10 @@ function execute(pdict: PipelineDictionary): Number {
     var fname : String = "";
     
     try {
-        var ftpClient: SFTPClient = new SFTPClient();
-        ftpClient.setTimeout(BazaarVoiceHelper.getFtpTimeout());
-        
-        var env : String = BazaarVoiceHelper.getEnvironment();
-    	if(empty(env)) {
-    		throw new Error("bvEnvironment is null or empty!");
-    	}
-        
-        host = BV_Constants.FTPHostStaging;
-        if(env.toLowerCase() == "production") {
-        	host = BV_Constants.FTPHostProduction;
-        }
-		if(empty(host)){
-			throw new Error("SFTP host is null or empty! Verify the configuration in libConstants.ds");
-		}
-		
-		user = Site.getCurrent().getCustomPreferenceValue("bvCustomerName_C2013");
-		if(empty(user)){
-			throw new Error("bvCustomerName site preference is null or empty!");
-		}
-		user = user.toLowerCase();
-		
-		pwd = Site.getCurrent().getCustomPreferenceValue("bvFTPPassword_C2013");
-		if(empty(pwd)){
-			throw new Error("bvFTPPassword site preference is null or empty!");
-		}
-		fpath = BV_Constants.RatingsFeedPath;
+    	var service : FTPService = ServiceRegistry.get("bazaarvoice.sftp");
+    	var result : Result;
+    	 
+        fpath = BV_Constants.RatingsFeedPath;
 		if(empty(fpath)){
 			throw new Error("BV_Constants.RatingsFeedPath is null or empty! Verify the configuration in libConstants.ds");
 		}
@@ -59,33 +37,28 @@ function execute(pdict: PipelineDictionary): Number {
 			throw new Error("BV_Constants.RatingsFeedFilename is null or empty! Verify the configuration in libConstants.ds");
 		}
 		
+		result = service.setOperation("cd", fpath).call();
+		if(!result.isOk()) {
+			throw new Error("Error while accessing folder on BV FTP Server.");
+		}
 		
-        if (!ftpClient.connect(host, user, pwd)) {
-            throw new Error("Error while trying to connect to BV FTP server.");
-        }
-        if (!ftpClient.cd(fpath)) {
-            ftpClient.disconnect();
-            throw new Error("Error while accessing folder on BV FTP Server.");
-        }
-
-        tempFile = new File(File.IMPEX + "/"+ "ratings.xml.gz");
-        var gotRatingsFile: Boolean = ftpClient.getBinary(fname, tempFile); 
-        
-        if(gotRatingsFile){
+		tempFile = new File(File.IMPEX + "/"+ "ratings.xml.gz");
+        result = service.setOperation("getBinary", fpath + "/" + fname, tempFile).call();
+        if(result.isOk()) {
         	tempFile.gunzip(new File(File.IMPEX));
         	tempFile = new File(File.IMPEX + "/"+ "ratings.xml");
         	if(!tempFile.exists()) {
         		throw new Error("GUNZIP of ratings.xml.gz was unsuccessful.  ratings.xml does not exist.");
         	}
 			pdict.TempFile = tempFile;
-        }else{
-        	pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "No File to Import!", host, user, pwd, fpath, fname);
+        } else {
+        	pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", result.msg, host, "", "", fpath, fname);
         	return PIPELET_ERROR;
         }
-    } 
+   } 
     catch (ex) {
     	Logger.error("Exception caught: {0}", ex.message);
-        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "ERROR", "Exception=" + ex.message, host, user, pwd, fpath, fname);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "ERROR", "Exception=" + ex.message, host, "", "", fpath, fname);
         return PIPELET_ERROR;
     }
 
