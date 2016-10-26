@@ -123,7 +123,7 @@ function shouldIncludeOrder(order : Order) : Boolean {
     var thresholdTimestamp : Date = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
     if (triggeringEvent === "shipping") {
     	//Is this order fully shipped?
-    	if (order.getShippingStatus() !== Order.SHIPPING_STATUS_SHIPPED) {
+    	if (order.getShippingStatus().value !== Order.SHIPPING_STATUS_SHIPPED) {
     		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Not completely shipped.");
     		return false;
     	}
@@ -193,7 +193,7 @@ function getLatestShipmentDate(order : Order) : Date {
 	
 	var shipments : Collection = order.getShipments();
 	for each(var shipment : Shipment in shipments) {
-        latestShipment = Math.max(latestShipment.getTime(), shipment.getCreationDate().getTime());
+        latestShipment = Math.max(latestShipment, shipment.getCreationDate().getTime());
     }
     
     return new Date(latestShipment);
