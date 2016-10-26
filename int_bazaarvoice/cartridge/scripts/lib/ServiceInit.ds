@@ -1,0 +1,60 @@
+/**
+ * Initialize HTTP and SFTP services for int_bazaarvoice
+ */
+importPackage( dw.svc );
+importPackage( dw.net );
+importPackage( dw.io );
+
+/**
+*
+* HTTP Services
+*
+*/
+ServiceRegistry.configure("bazaarvoice.http", {
+	createRequest: function(svc:HTTPService, req : Object){
+		svc.setRequestMethod("GET");
+	  	return req;
+	},
+	parseResponse: function(svc:HTTPService, client:HTTPClient) {
+		return client.getText();
+	},
+	mockCall: function(svc:HTTPService, client:HTTPClient){
+	    return {
+			statusCode: 200,
+			statusMessage: "Success",
+			text: "MOCK RESPONSE (" + svc.URL + ")"
+		};
+	},
+	getResponseLogMessage: function(response : Object) {
+		return !empty(response.getText()) ? response.getText().substr(0, 100) + "\n\n...[no need to log all the content]\n\n" : "Response is empty.";
+	}
+});
+
+ServiceRegistry.configure("bazaarvoice.http.bot", {
+	createRequest: function(svc:HTTPService, req : Object){
+		svc.setRequestMethod("GET");
+	  	return req;
+	},
+	parseResponse: function(svc:HTTPService, client:HTTPClient) {
+		return client.getText();
+	},
+	mockCall: function(svc:HTTPService, client:HTTPClient){
+	    return {
+			statusCode: 200,
+			statusMessage: "Success",
+			text: "MOCK RESPONSE (" + svc.URL + ")"
+		};
+	},
+	getResponseLogMessage: function(response : Object) {
+		return !empty(response.getText()) ? response.getText().substr(0, 100) + "\n\n...[no need to log all the content]\n\n" : "Response is empty.";
+	}
+});
+
+ServiceRegistry.configure("bazaarvoice.sftp", {
+	createRequest: function(svc:FTPService, args){
+		return svc;
+	},
+	parseResponse: function(svc:FTPService, result:Array) {
+		return result;
+	}
+});
