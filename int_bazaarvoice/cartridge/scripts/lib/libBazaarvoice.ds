@@ -308,7 +308,7 @@ var BazaarVoiceHelper = {
 		var allRemoteFiles : Array = result.getObject();
 		for each(var f : SFTPFileInfo in allRemoteFiles) {
         	if(f.name == destinationFilename) {
-        		result = service.setOperation("del", destinationFilename).call();
+        		result = service.setOperation("del", destinationPath + "/" + destinationFilename).call();
         		if(!result.isOk()) {
         			Logger.error("[libBazaarvoice.ds][uploadFile()] Problem deleting existing file: " + result.msg);
         		}
