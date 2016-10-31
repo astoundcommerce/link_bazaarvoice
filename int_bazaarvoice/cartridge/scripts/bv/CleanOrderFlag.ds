@@ -30,11 +30,13 @@ function execute( pdict : PipelineDictionary ) : Number
 		}
 		
 		pdict.MessageOut += " Orders Reset!";
-	}catch(e){
+	} catch(e){
 		Logger.error("[CleanOrderFlag.ds] Reset bv order export flag error! {0}", e.message);
 		pdict.MessageOut += "[CleanOrderFlag.ds] Reset bv order export flag error! " + e.message;
         return PIPELET_ERROR;
-    }
+    } finally {
+    	orders.close();
+	}
     
    return PIPELET_NEXT;
 }

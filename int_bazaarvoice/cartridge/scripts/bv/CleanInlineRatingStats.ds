@@ -28,8 +28,6 @@ function execute( pdict : PipelineDictionary ) : Number
 			product.custom.bvAverageRating = "";
 			product.custom.bvReviewCount = "";
 			product.custom.bvRatingRange = "";
-			
-			
 		}
 			
 		pdict.MessageOut += " Products InlineRating Stats has been cleaned out!";
@@ -37,7 +35,9 @@ function execute( pdict : PipelineDictionary ) : Number
 	
         pdict.MessageOut += "[CleanInlineRatingStats.ds]Clean product inline rating stats error!" + e.message;
         return PIPELET_ERROR;
-    }
+    } finally {
+    	products.close();
+	}
 
    return PIPELET_NEXT;
 }

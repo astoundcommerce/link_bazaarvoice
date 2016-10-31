@@ -48,6 +48,8 @@ function execute( pdict : PipelineDictionary ) : Number
 		}
 	}
 	
+	orderItr.close();
+	
 	pdict.OrderCount = orderCount;
 	pdict.OrderList = orderList;
 
