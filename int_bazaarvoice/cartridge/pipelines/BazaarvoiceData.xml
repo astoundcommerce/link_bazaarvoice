@@ -231,6 +231,48 @@ Starting point for the job to export catalog data to Bazaarvoice.  This export c
             </node>
             <simple-transition/>
             <node>
+              <decision-node condition-key="!empty(CurrentWorkflowComponentInstance)" condition-operator="expr"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in"/>
+                <segment>
+                  <node>
+                    <pipelet-node custom-name="Log export error" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="true"/>
+                      <key-binding alias="CurrentWorkflowComponentInstance.addMessage(Message,'ERROR')" key="From_0"/>
+                      <key-binding alias="DoIt" key="To_0"/>
+                      <key-binding alias="null" key="From_1"/>
+                      <key-binding alias="null" key="To_1"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="From_7"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1"/>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="2" y="0"/>
+                <bend-point relative-to="target" x="0" y="-1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
               <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
                 <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
                 <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
@@ -240,34 +282,70 @@ Starting point for the job to export catalog data to Bazaarvoice.  This export c
                 <key-binding alias="null" key="MailCC"/>
                 <key-binding alias="null" key="MailBCC"/>
               </pipelet-node>
-              <node-display x="0" y="1"/>
+              <node-display x="1" y="1"/>
             </node>
-            <simple-transition>
+            <transition target-connector="in1" target-path="./+1">
               <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
+                <bend-point relative-to="source" x="0" y="2"/>
               </transition-display>
-            </simple-transition>
+            </transition>
+          </segment>
+          <segment>
             <node>
-              <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
-                <config-property key="InvalidatePageCache" value="false"/>
-                <config-property key="InvalidateStaticCache" value="false"/>
-                <key-binding alias="null" key="SiteID"/>
-              </pipelet-node>
-              <node-display x="0" y="1"/>
+              <join-node/>
+              <node-display x="-1" y="1"/>
             </node>
-            <simple-transition>
-              <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
-              </transition-display>
-            </simple-transition>
+            <simple-transition/>
             <node>
-              <stop-node name="ERROR"/>
+              <end-node name="ERROR"/>
               <node-display x="0" y="1"/>
             </node>
           </segment>
         </branch>
       </node>
       <simple-transition/>
+      <node>
+        <decision-node condition-key="!empty(CurrentWorkflowComponentInstance)" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b3" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node custom-name="Log end of Product export" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="true"/>
+                <key-binding alias="CurrentWorkflowComponentInstance.addMessage(Message,'INFO')" key="From_0"/>
+                <key-binding alias="DoIt" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
+      <simple-transition>
+        <transition-display>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
+        </transition-display>
+      </simple-transition>
       <node>
         <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
           <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
@@ -278,24 +356,22 @@ Starting point for the job to export catalog data to Bazaarvoice.  This export c
           <key-binding alias="null" key="MailCC"/>
           <key-binding alias="null" key="MailBCC"/>
         </pipelet-node>
-        <node-display x="0" y="1"/>
+        <node-display x="1" y="1"/>
       </node>
-      <simple-transition>
+      <transition target-connector="in1" target-path="./+1">
         <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
+          <bend-point relative-to="source" x="0" y="2"/>
         </transition-display>
-      </simple-transition>
+      </transition>
+    </segment>
+    <segment>
       <node>
-        <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
-          <config-property key="InvalidatePageCache" value="false"/>
-          <config-property key="InvalidateStaticCache" value="false"/>
-          <key-binding alias="null" key="SiteID"/>
-        </pipelet-node>
-        <node-display x="0" y="1"/>
+        <join-node/>
+        <node-display x="-1" y="1"/>
       </node>
       <simple-transition/>
       <node>
-        <end-node/>
+        <end-node name="OK"/>
         <node-display x="0" y="1"/>
       </node>
     </segment>
@@ -479,9 +555,47 @@ Starting point to the job that exports and delivers purchase data to Bazaarvoice
               <join-node/>
               <node-display x="2" y="0"/>
             </node>
+            <simple-transition/>
+            <node>
+              <decision-node condition-key="!empty(CurrentWorkflowComponentInstance)" condition-operator="expr"/>
+              <node-display x="0" y="2"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in"/>
+                <segment>
+                  <node>
+                    <pipelet-node custom-name="Log export error" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="true"/>
+                      <key-binding alias="CurrentWorkflowComponentInstance.addMessage(Message,'ERROR')" key="From_0"/>
+                      <key-binding alias="DoIt" key="To_0"/>
+                      <key-binding alias="null" key="From_1"/>
+                      <key-binding alias="null" key="To_1"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="From_7"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1"/>
+                </segment>
+              </branch>
+            </node>
             <simple-transition>
               <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
+                <bend-point relative-to="source" x="2" y="0"/>
+                <bend-point relative-to="target" x="0" y="-1"/>
               </transition-display>
             </simple-transition>
             <node>
@@ -494,28 +608,22 @@ Starting point to the job that exports and delivers purchase data to Bazaarvoice
                 <key-binding alias="null" key="MailCC"/>
                 <key-binding alias="null" key="MailBCC"/>
               </pipelet-node>
-              <node-display x="0" y="1"/>
+              <node-display x="1" y="1"/>
             </node>
-            <simple-transition>
+            <transition target-connector="in1" target-path="./+1">
               <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
+                <bend-point relative-to="source" x="0" y="2"/>
               </transition-display>
-            </simple-transition>
+            </transition>
+          </segment>
+          <segment>
             <node>
-              <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
-                <config-property key="InvalidatePageCache" value="false"/>
-                <config-property key="InvalidateStaticCache" value="false"/>
-                <key-binding alias="null" key="SiteID"/>
-              </pipelet-node>
-              <node-display x="0" y="1"/>
+              <join-node/>
+              <node-display x="-1" y="1"/>
             </node>
-            <simple-transition>
-              <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
-              </transition-display>
-            </simple-transition>
+            <simple-transition/>
             <node>
-              <stop-node name="ERROR"/>
+              <end-node name="ERROR"/>
               <node-display x="0" y="1"/>
             </node>
           </segment>
@@ -528,9 +636,47 @@ Starting point to the job that exports and delivers purchase data to Bazaarvoice
         <join-node/>
         <node-display x="0" y="1"/>
       </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="!empty(CurrentWorkflowComponentInstance)" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node custom-name="Log end of Product export" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="true"/>
+                <key-binding alias="CurrentWorkflowComponentInstance.addMessage(Message,'INFO')" key="From_0"/>
+                <key-binding alias="DoIt" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
       <simple-transition>
         <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
         </transition-display>
       </simple-transition>
       <node>
@@ -543,24 +689,22 @@ Starting point to the job that exports and delivers purchase data to Bazaarvoice
           <key-binding alias="null" key="MailCC"/>
           <key-binding alias="null" key="MailBCC"/>
         </pipelet-node>
-        <node-display x="0" y="1"/>
+        <node-display x="1" y="1"/>
       </node>
-      <simple-transition>
+      <transition target-connector="in1" target-path="./+1">
         <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
+          <bend-point relative-to="source" x="0" y="2"/>
         </transition-display>
-      </simple-transition>
+      </transition>
+    </segment>
+    <segment>
       <node>
-        <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
-          <config-property key="InvalidatePageCache" value="false"/>
-          <config-property key="InvalidateStaticCache" value="false"/>
-          <key-binding alias="null" key="SiteID"/>
-        </pipelet-node>
-        <node-display x="0" y="1"/>
+        <join-node/>
+        <node-display x="-1" y="1"/>
       </node>
       <simple-transition/>
       <node>
-        <end-node/>
+        <end-node name="OK"/>
         <node-display x="0" y="1"/>
       </node>
     </segment>
@@ -765,7 +909,7 @@ Clears all inline rating data, resets order 'sent in PPE feed' flags, and remove
               </transition-display>
             </simple-transition>
             <node>
-              <stop-node name="ERROR"/>
+              <end-node name="ERROR"/>
               <node-display x="0" y="1"/>
             </node>
           </segment>
@@ -803,7 +947,7 @@ Clears all inline rating data, resets order 'sent in PPE feed' flags, and remove
       </node>
       <simple-transition/>
       <node>
-        <end-node/>
+        <end-node name="OK"/>
         <node-display x="0" y="1"/>
       </node>
     </segment>
@@ -912,7 +1056,7 @@ This job will reset the 'sent in PPE feed' attribute on all orders to false.  Th
               </transition-display>
             </simple-transition>
             <node>
-              <stop-node name="ERROR"/>
+              <end-node name="ERROR"/>
               <node-display x="0" y="1"/>
             </node>
           </segment>
@@ -954,7 +1098,7 @@ This job will reset the 'sent in PPE feed' attribute on all orders to false.  Th
         </transition-display>
       </simple-transition>
       <node>
-        <end-node/>
+        <end-node name="OK"/>
         <node-display x="0" y="1"/>
       </node>
     </segment>
@@ -963,11 +1107,31 @@ This job will reset the 'sent in PPE feed' attribute on all orders to false.  Th
     <segment>
       <node>
         <text-node>
+          <description>Support the integration framework and regular scheduled jobs.  If the framework is in use, let it send the notifications.</description>
+        </text-node>
+        <node-display height="2" x="0" y="14"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_10">
+    <segment>
+      <node>
+        <text-node>
+          <description>Support the integration framework and regular scheduled jobs.  If the framework is in use, let it send the notifications.</description>
+        </text-node>
+        <node-display height="2" x="5" y="12"/>
+      </node>
+    </segment>
+  </branch>
+  <branch basename="_ANONYMOUS_BRANCH_11">
+    <segment>
+      <node>
+        <text-node>
           <description>BazaarvoiceData-SetLocalizedObjectList
 ===========================
 Helper pipeline used by ExportProductCatalog whenever we have multiple locales mapped on the BV side.  Based on the locale mapping site preference, this gathers the locale specific data for each product and category.</description>
         </text-node>
-        <node-display width="3" x="1" y="17"/>
+        <node-display width="3" x="1" y="20"/>
       </node>
     </segment>
   </branch>
@@ -975,7 +1139,7 @@ Helper pipeline used by ExportProductCatalog whenever we have multiple locales m
     <segment>
       <node>
         <start-node call-mode="private" name="SetLocalizedObjectList" secure="false"/>
-        <node-display x="1" y="18"/>
+        <node-display x="1" y="21"/>
       </node>
       <simple-transition>
         <transition-display>
@@ -1178,7 +1342,7 @@ Helper pipeline used by ExportProductCatalog whenever we have multiple locales m
       </node>
     </segment>
   </branch>
-  <branch basename="_ANONYMOUS_BRANCH_11">
+  <branch basename="_ANONYMOUS_BRANCH_13">
     <segment>
       <node>
         <text-node>
@@ -1186,7 +1350,7 @@ Helper pipeline used by ExportProductCatalog whenever we have multiple locales m
 ===========================
 Helper pipeline used by ExportPurchaseData whenever we have multiple locales mapped on the BV side.  Using the locale mapping site preference, this gathers the locale specific order data based on the locale of the order.</description>
         </text-node>
-        <node-display width="3" x="6" y="17"/>
+        <node-display width="3" x="6" y="20"/>
       </node>
     </segment>
   </branch>
@@ -1194,7 +1358,7 @@ Helper pipeline used by ExportPurchaseData whenever we have multiple locales map
     <segment>
       <node>
         <start-node call-mode="private" name="GetLocalizedOrders" secure="false"/>
-        <node-display x="6" y="18"/>
+        <node-display x="6" y="21"/>
       </node>
       <simple-transition/>
       <node>

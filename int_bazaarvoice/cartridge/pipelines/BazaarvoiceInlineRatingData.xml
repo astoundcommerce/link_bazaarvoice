@@ -190,6 +190,48 @@ This is the legacy import process for consuming inline ratings feeds.  Most Conv
             </node>
             <simple-transition/>
             <node>
+              <decision-node condition-key="!empty(CurrentWorkflowComponentInstance)" condition-operator="expr"/>
+              <node-display x="0" y="1"/>
+              <branch basename="b2" source-connector="yes">
+                <transition target-connector="in"/>
+                <segment>
+                  <node>
+                    <pipelet-node custom-name="Log export error" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                      <config-property key="Transactional" value="true"/>
+                      <key-binding alias="CurrentWorkflowComponentInstance.addMessage(Message,'ERROR')" key="From_0"/>
+                      <key-binding alias="DoIt" key="To_0"/>
+                      <key-binding alias="null" key="From_1"/>
+                      <key-binding alias="null" key="To_1"/>
+                      <key-binding alias="null" key="From_2"/>
+                      <key-binding alias="null" key="To_2"/>
+                      <key-binding alias="null" key="From_3"/>
+                      <key-binding alias="null" key="To_3"/>
+                      <key-binding alias="null" key="From_4"/>
+                      <key-binding alias="null" key="To_4"/>
+                      <key-binding alias="null" key="From_5"/>
+                      <key-binding alias="null" key="To_5"/>
+                      <key-binding alias="null" key="From_6"/>
+                      <key-binding alias="null" key="To_6"/>
+                      <key-binding alias="null" key="From_7"/>
+                      <key-binding alias="null" key="To_7"/>
+                      <key-binding alias="null" key="From_8"/>
+                      <key-binding alias="null" key="To_8"/>
+                      <key-binding alias="null" key="From_9"/>
+                      <key-binding alias="null" key="To_9"/>
+                    </pipelet-node>
+                    <node-display x="0" y="1"/>
+                  </node>
+                  <transition target-connector="in1" target-path="../+1"/>
+                </segment>
+              </branch>
+            </node>
+            <simple-transition>
+              <transition-display>
+                <bend-point relative-to="source" x="2" y="0"/>
+                <bend-point relative-to="target" x="0" y="-1"/>
+              </transition-display>
+            </simple-transition>
+            <node>
               <pipelet-node pipelet-name="SendMail" pipelet-set-identifier="bc_api">
                 <key-binding alias="&quot;donotreply@demandware.com&quot;" key="MailFrom"/>
                 <key-binding alias="&quot;bv/mail/feedStatusNotification&quot;" key="MailTemplate"/>
@@ -199,13 +241,20 @@ This is the legacy import process for consuming inline ratings feeds.  Most Conv
                 <key-binding alias="null" key="MailCC"/>
                 <key-binding alias="null" key="MailBCC"/>
               </pipelet-node>
-              <node-display x="0" y="1"/>
+              <node-display x="1" y="1"/>
             </node>
-            <simple-transition>
+            <transition target-connector="in1" target-path="./+1">
               <transition-display>
-                <bend-point relative-to="source" x="0" y="1"/>
+                <bend-point relative-to="source" x="0" y="2"/>
               </transition-display>
-            </simple-transition>
+            </transition>
+          </segment>
+          <segment>
+            <node>
+              <join-node/>
+              <node-display x="-1" y="1"/>
+            </node>
+            <simple-transition/>
             <node>
               <pipelet-node pipelet-name="InvalidateWebCache" pipelet-set-identifier="bc_api">
                 <config-property key="InvalidatePageCache" value="true"/>
@@ -220,7 +269,7 @@ This is the legacy import process for consuming inline ratings feeds.  Most Conv
               </transition-display>
             </simple-transition>
             <node>
-              <stop-node name="ERROR"/>
+              <end-node name="ERROR"/>
               <node-display x="0" y="1"/>
             </node>
           </segment>
@@ -233,9 +282,47 @@ This is the legacy import process for consuming inline ratings feeds.  Most Conv
         <join-node/>
         <node-display x="0" y="2"/>
       </node>
+      <simple-transition/>
+      <node>
+        <decision-node condition-key="!empty(CurrentWorkflowComponentInstance)" condition-operator="expr"/>
+        <node-display x="0" y="1"/>
+        <branch basename="b2" source-connector="yes">
+          <transition target-connector="in"/>
+          <segment>
+            <node>
+              <pipelet-node custom-name="Log end of Product export" pipelet-name="Assign" pipelet-set-identifier="bc_api">
+                <config-property key="Transactional" value="true"/>
+                <key-binding alias="CurrentWorkflowComponentInstance.addMessage(Message,'INFO')" key="From_0"/>
+                <key-binding alias="DoIt" key="To_0"/>
+                <key-binding alias="null" key="From_1"/>
+                <key-binding alias="null" key="To_1"/>
+                <key-binding alias="null" key="From_2"/>
+                <key-binding alias="null" key="To_2"/>
+                <key-binding alias="null" key="From_3"/>
+                <key-binding alias="null" key="To_3"/>
+                <key-binding alias="null" key="From_4"/>
+                <key-binding alias="null" key="To_4"/>
+                <key-binding alias="null" key="From_5"/>
+                <key-binding alias="null" key="To_5"/>
+                <key-binding alias="null" key="From_6"/>
+                <key-binding alias="null" key="To_6"/>
+                <key-binding alias="null" key="From_7"/>
+                <key-binding alias="null" key="To_7"/>
+                <key-binding alias="null" key="From_8"/>
+                <key-binding alias="null" key="To_8"/>
+                <key-binding alias="null" key="From_9"/>
+                <key-binding alias="null" key="To_9"/>
+              </pipelet-node>
+              <node-display x="0" y="1"/>
+            </node>
+            <transition target-connector="in1" target-path="../+1"/>
+          </segment>
+        </branch>
+      </node>
       <simple-transition>
         <transition-display>
-          <bend-point relative-to="source" x="0" y="1"/>
+          <bend-point relative-to="source" x="2" y="0"/>
+          <bend-point relative-to="target" x="0" y="-1"/>
         </transition-display>
       </simple-transition>
       <node>
@@ -248,7 +335,18 @@ This is the legacy import process for consuming inline ratings feeds.  Most Conv
           <key-binding alias="null" key="MailCC"/>
           <key-binding alias="null" key="MailBCC"/>
         </pipelet-node>
-        <node-display x="0" y="1"/>
+        <node-display x="1" y="1"/>
+      </node>
+      <transition target-connector="in1" target-path="./+1">
+        <transition-display>
+          <bend-point relative-to="source" x="0" y="2"/>
+        </transition-display>
+      </transition>
+    </segment>
+    <segment>
+      <node>
+        <join-node/>
+        <node-display x="-1" y="1"/>
       </node>
       <simple-transition/>
       <node>
@@ -265,7 +363,7 @@ This is the legacy import process for consuming inline ratings feeds.  Most Conv
         </transition-display>
       </simple-transition>
       <node>
-        <end-node/>
+        <end-node name="OK"/>
         <node-display x="0" y="1"/>
       </node>
     </segment>
