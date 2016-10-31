@@ -154,6 +154,9 @@ function execute(pdict: PipelineDictionary): Number {
 					product.custom.bvRatingRange = "0";
 				}
 			}
+			products.close();
+			
+			xmlReader.close();
 		
 		    pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "SUCCESS", "Import Processed - Connecton Details", host, user, pwd, fpath, fname);
 		    pdict.Message += "Total Record Updated: " + + iProcessed.toString() + "\n";

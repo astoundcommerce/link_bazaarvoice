@@ -34,8 +34,8 @@ function execute(pdict: PipelineDictionary): Number {
 			product.custom.bvAverageRating = "0.0";
 			product.custom.bvReviewCount = "0";
 			product.custom.bvRatingRange = "0";
-			
 		}
+		products.close();
     	
         var tempFile: File = pdict.TempFile;
         
@@ -106,10 +106,10 @@ function execute(pdict: PipelineDictionary): Number {
 	    		}
 	    	}
 	    }
+	    xmlReader.close();
 	
 		//make sure all the product is updated
 		var products : SeekableIterator = ProductMgr.queryAllSiteProducts();
-		
 		while(products.hasNext()){
 			var product : Product = products.next();
 			if(productIds.indexOf(product.ID) == -1 && (!empty(product.custom.bvAverageRating) || !empty(product.custom.bvReviewCount) || !empty(product.custom.bvRatingRange))){
@@ -118,6 +118,7 @@ function execute(pdict: PipelineDictionary): Number {
 				product.custom.bvRatingRange = "0";
 			}
 		}
+		products.close();
 		
 	    pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE_LOCALE, "SUCCESS", "Import Processed - Connecton Details", "", "", "", "", "", localeID)
 	    pdict.Message += "Total Record Updated: " + + iProcessed.toString() + "\n";
