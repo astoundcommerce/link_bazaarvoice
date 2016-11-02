@@ -267,8 +267,7 @@ function shouldIncludeOrder(order : Order) : String {
 }
 
 function initFeed(file : File) : XMLStreamWriter {
-    var fw : FileWriter = new FileWriter(file, "UTF-8");
-    var xsw : XMLIndentingStreamWriter = new XMLIndentingStreamWriter(fw);
+    var xsw : XMLIndentingStreamWriter = new XMLIndentingStreamWriter(new FileWriter(file, "UTF-8"));
     
     xsw.writeStartDocument("UTF-8", "1.0");
     xsw.writeStartElement("Feed");
