@@ -167,9 +167,9 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
-            <attribute-definition attribute-id="bvEnableROIBeacon_C2013">
-                <display-name xml:lang="x-default">Enable ROI Beacon</display-name>
-                <description xml:lang="x-default">Turn on the BV ROI beacon tag on the DW purchase transaction (checkout) page.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+            <attribute-definition attribute-id="bvEnableBVPixel_C2013">
+                <display-name xml:lang="x-default">Enable BV Pixel</display-name>
+                <description xml:lang="x-default">Turn on the BV Pixel tag on the DW purchase transaction (checkout) page.  See documentation for additional steps that must be completed for this feature to take effect.</description>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
@@ -273,7 +273,7 @@
                 <attribute attribute-id="bvEnableInlineRatings_C2013"/>
                 <attribute attribute-id="bvEnableAA_C2013"/>
                 <attribute attribute-id="bvAAShowReviewsTabJavascriptPDP_C2013"/>
-                <attribute attribute-id="bvEnableROIBeacon_C2013"/>
+                <attribute attribute-id="bvEnableBVPixel_C2013"/>
                 <attribute attribute-id="bvEnableCloudSEO_C2013"/>
                 <attribute attribute-id="bvCloudSEOKey_C2013"/>
                 <attribute attribute-id="bvEnableProductFeed_C2013"/>
