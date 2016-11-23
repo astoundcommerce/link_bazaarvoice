@@ -5,7 +5,7 @@
 * **Categories:** Social, Ratings and Reviews
 * **Version:** 16.1.0
 * **Last Certification Date:** 2-NOV-2016
-* [Installation Documentation](https://bitbucket.org/demandware/link_cybersource/src/5cbd17fc049cd8ec0041a91c4c170abd0b5289a3/configuration/?at=master)
+* [Installation Documentation](https://bitbucket.org/demandware/link_bazaarvoice/src/db0712bd071a956aa837bd0b6a0c65544dfdc5be/documentation/?at=master)
 
 ### Contribution guidelines ###
 There are two ways you can contribute to this project:
