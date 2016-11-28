@@ -5,6 +5,7 @@
 * **Categories:** Social, Ratings and Reviews
 * **Version:** 16.1.0
 * **Last Certification Date:** 2-NOV-2016
+* **Controller Friendly:** **YES**
 * [Installation Documentation](https://bitbucket.org/demandware/link_bazaarvoice/src/db0712bd071a956aa837bd0b6a0c65544dfdc5be/documentation/?at=master)
 
 ### Contribution guidelines ###
