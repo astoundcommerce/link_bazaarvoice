@@ -19,18 +19,14 @@ importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
 *
 *	Usage:
 *		var bvSeo = getBVSEO({
-*			"deployment_zone_id" : "12345",
 *			"product_id" : "123456789",
-*			"cloud_key" : "123123123asdasdasd"
 *		});
-*		bvSeo.renderReviewContent();
-*		bvSeo.renderQuestionContent();
+*		bvSeo.reviews().getContent();
+*		bvSeo.questions().getContent();
 *
 *   Required fields:
-*      deployment_zone_id (string)
 *      product_id (string)
-*      cloud_key (string)
-*
+*      
 *	Optional fields
 *      	current_page_url (string) (defaults to detecting the current_page automtically)
 *      	staging (boolean) (defaults to true, need to put false when go to production)
@@ -70,6 +66,7 @@ function BVSEO() {
 		if(!empty(request.httpQueryString)) {
 			url += "?" + request.httpQueryString;
 		}
+		Logger.debug("[libCloudSEO.ds] CurrentUrl:\n " + url);
 		return url;
 	};
 	
