@@ -3,7 +3,7 @@
 
 * **Description:** Bazaarvoice helps all types of businesses capture, display, share, and analyze customer conversations online. Our combination of technology and personalized services help brands build online communities that drive measureable business goals.  We make it easy for you to let your customers share opinions, knowledge, and experiences.
 * **Categories:** Social, Ratings and Reviews
-* **Version:** 16.1.0
+* **Version:** 16.1.1
 * **Last Certification Date:** 2-NOV-2016
 * **Controller Friendly:** **YES**
 * [Installation Documentation](https://bitbucket.org/demandware/link_bazaarvoice/src/db0712bd071a956aa837bd0b6a0c65544dfdc5be/documentation/?at=master)
