@@ -215,7 +215,7 @@ var BazaarVoiceHelper = {
                 if (!empty(pdict.CurrentRequest.getHttpQueryString())) {
                 	for each(var param : String in pdict.CurrentHttpParameterMap.getParameterNames()){
                 		if (param != CONST_SMARTSEO_BVRRP && param != CONST_SMARTSEO_BVQAP && param != CONST_SMARTSEO_BVSYP) {
-                			currentPage += param + "=" + pdict.CurrentHttpParameterMap.get(param) + "&";
+                			currentPage += param + "=" + encodeURI(pdict.CurrentHttpParameterMap.get(param)) + "&";
                 		}
                 	}
                 }
