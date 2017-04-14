@@ -27,6 +27,7 @@ function execute(pdict: PipelineDictionary): Number {
 		}
 		
 		var ftpClient: SFTPClient = new SFTPClient();
+		ftpClient.setTimeout(3000);
     	
     	host = Site.getCurrent().getCustomPreferenceValue("bvFTPHost");
 		if(empty(host)){
