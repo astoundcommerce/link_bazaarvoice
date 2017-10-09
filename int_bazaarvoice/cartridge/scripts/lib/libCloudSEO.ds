@@ -50,7 +50,7 @@ var supportedSubjectTypes = {
 	"d" : "detail",
 	"s" : "seller"
 };
-	
+
 function BVSEO() {
 	
 	//put this first so it can initialize the current_page_url paramter
@@ -58,16 +58,20 @@ function BVSEO() {
 	* PRIVATE METHODS *
 	******************/
 	var _getCurrentUrl = function() {
-		var url = "http://";
+		var url;
 		if(request.isHttpSecure()) {
-			url = "https://";
+			url = URLUtils.https('Product-Show');
+		} else {
+			url = URLUtils.http('Product-Show');
 		}
-		url += request.httpHost + request.httpPath.replace("Product-Detail", "Product-Show");
 		if(!empty(request.httpQueryString)) {
-			url += "?" + request.httpQueryString;
+			for each(var pname in request.httpParameterMap.parameterNames) {
+				var pval = request.httpParameterMap.get(pname);
+				url.append(pname, pval);
+			}
 		}
 		Logger.debug("[libCloudSEO.ds] CurrentUrl:\n " + url);
-		return url;
+		return url.toString();
 	};
 	
 	var _getBVStateParams = function(bvstate : String) {
@@ -286,16 +290,16 @@ function SEOContent(config : HashMap, seoProduct : String) {
 	*/
 	var _getPageNumber = function() {
 		//default to page 1 if a page is not specified in the URL
-		var pageNumber = "1";
-		var a = configMap;
+		var pageNumber = "1";	
 		
 		//bvstate page number should take precedent if the content type matches
 		if(configMap["page_params"]["base_url_bvstate"]) {
 			if(configMap["content_type"] == configMap["page_params"]["content_type"]) {
 				pageNumber = configMap["page_params"]["page"];
 			}
-			var param = request.httpParameters["bvstate"][0].replace("/", "\/", "g");
-			var regex : RegExp = new RegExp("[?&]bvstate=" + param);
+			var param = request.httpParameters["bvstate"][0].replace('/', '\/', 'g');
+			param = encodeURIComponent(param);
+			var regex : RegExp = new RegExp("bvstate=" + param + "[&]?");
 			configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 		}
 		else if(configMap.containsKey("page") && configMap["page"] != pageNumber) {
@@ -307,7 +311,7 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			
 			//remove the bvpage parameter from the current URL so we don't keep appending it
 			var param = request.httpParameters["bvpage"][0].replace("/", "\/", "g");
-			var regex : RegExp = new RegExp("[?&]bvpage=" + param);
+			var regex : RegExp = new RegExp("bvpage=" + param + "[&]?");
 			configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 		}
 		//other implementations use the bvrrp, bvqap, or bvsyp parameter ?bvrrp=1234-en_us/reviews/product/2/ASF234.htm
@@ -315,17 +319,20 @@ function SEOContent(config : HashMap, seoProduct : String) {
 			var param;
 			if(request.httpParameters.containsKey("bvrrp")) {
 				param = request.httpParameters["bvrrp"][0].replace("/", "\/", "g");
-				var regex : RegExp = new RegExp("[?&]bvrrp=" + param);
+				param = encodeURIComponent(param);
+				var regex : RegExp = new RegExp("bvrrp=" + param + "[&]?");
 				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 			}
 			else if(request.httpParameters.containsKey("bvqap")) {
 				param = request.httpParameters["bvqap"][0].replace("/", "\/", "g");
-				var regex : RegExp = new RegExp("[?&]bvqap=" + param);
+				param = encodeURIComponent(param);
+				var regex : RegExp = new RegExp("bvqap=" + param + "[&]?");
 				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 			}
 			else {
 				param = request.httpParameters["bvsyp"][0].replace("/", "\/", "g");
-				var regex : RegExp = new RegExp("[?&]bvsyp=" + param);
+				param = encodeURIComponent(param);
+				var regex : RegExp = new RegExp("bvsyp=" + param + "[&]?");
 				configMap["current_page_url"] = configMap["current_page_url"].replace(regex, "");
 			}
 			
@@ -424,7 +431,11 @@ function SEOContent(config : HashMap, seoProduct : String) {
 		//determine if query string exists in current page url
 		var prefix : String = "?";
 		if(configMap["current_page_url"].indexOf("?") != -1) {
-			prefix = "&";
+			if(configMap["current_page_url"].lastIndexOf("&") == configMap["current_page_url"].length - 1) {
+				prefix = "";
+			} else {
+				prefix = "&";
+			}
 		}
 		return content.replace("{INSERT_PAGE_URI}", configMap["current_page_url"] + prefix, "g");
 	};
