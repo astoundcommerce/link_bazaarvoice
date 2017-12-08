@@ -5,9 +5,10 @@
  *
  * @module controllers/Bazaarvoice
  */
+var Cartridge = require('dw/system/Site').getCurrent().getCustomPreferenceValue('bvControllerCartridge').toString();
 
-var app = require('~/cartridge/scripts/app');
-var guard = require('~/cartridge/scripts/guard');
+var app = require(Cartridge + '/cartridge/scripts/app');
+var guard = require(Cartridge + '/cartridge/scripts/guard');
 
 function container() {
 	app.getView().render('bv/container/container');
