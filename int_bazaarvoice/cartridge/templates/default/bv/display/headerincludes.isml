@@ -1,18 +1,8 @@
 <!--- TEMPLATENAME: headerincludes.isml --->
-<isscript>
-     importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-     var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl();
-     
-     // Determine if we are rendering on a product or category page.
-     var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
-</isscript>
-<script type="text/javascript" src="${bvApiUrl}"></script>
-<script type="text/javascript" language="javascript">
-	var configData = {};
-	
-    <isif condition="${bvSubject.bvSubjectType == 'product'}">
-    	configData.productId = "${bvSubject.bvExternalSubjectID}";
-    </isif>
-	
-    $BV.configure("global", configData);
-</script>
+<isset name="BVHelper" value="${require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
+
+<isif condition="${!empty(BVHelper) && !empty(BVHelper.getBvLoaderUrl())}">
+	<script async type="text/javascript" src="${BVHelper.getBvLoaderUrl()}"></script>
+<iselse/>
+	<!-- Cannot load BV Loader -->
+</isif>

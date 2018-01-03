@@ -27,7 +27,7 @@
 </isscript>
 
 <isif condition="${starsFile && inlineRatingEnabled && bvReviewCount}">
-    <div id="BVInlineRatings">
+    <div class="BVInlineRatings">
         <img alt="" src="${URLUtils.absStatic('/images/stars/' + starsFile)}"/> ${bvAvgRatingNum.toFixed(1).toString()}/${bvRatingRange.toString()} (${bvReviewCount})
     </div>
 </isif>

@@ -2,38 +2,22 @@
 Embeds the container that Q&A are injected to and the javascript that accesses the Q&A content.
  ---> 
 <isscript>
-     importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-     
-     var qaEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableAA_C2013");
-     
-     // Determine if we are rendering on a product or category page.
-     var bvSubject : Object = getBazaarVoiceHelper().getExternalSubjectForPage(pdict);
-     
-    // Obtain SmartSEO content      
-    var CSEO = null;
-    if(!empty(pdict.CSEO_QA_PID)) {
-    	CSEO = require('int_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({"product_id" : pdict.CSEO_QA_PID});
-    }
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var bvPid = BVHelper.getProductId();
+
+// Obtain Cloud SEO content
+var CSEO = null;
+if(!empty(bvPid)) {
+	CSEO = require('int_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({"product_id" : bvPid});
+}
 </isscript>
 
-<isif condition="${qaEnabled}">
+<isif condition="${BVHelper.isQAEnabled()}">
     <!-- Questions -->
-    <div id="BVQAContainer">
+    <div data-bv-show="questions" data-bv-productId="${bvPid}">
     	<isif condition="${CSEO != null}">
 	    	<isprint value="${CSEO.questions().getContent()}" encoding="off" />
 	    </isif>
     </div>
-    
-    <isif condition="${bvSubject.bvSubjectType == 'category'}">
-	    <script type="text/javascript" language="javascript">
-	    	var qaConfigData = {};
-	    	qaConfigData.productId = "${bvSubject.bvExternalSubjectID}";
-		    qaConfigData.categoryId = "${bvSubject.bvExternalSubjectID}";
-	        
-	        jQuery(document).ready(function(){
-		    	$BV.ui("qa", "show_questions", qaConfigData);
-		    });
-	    </script>
-    </isif>       
     <!-- End Questions -->
 </isif>

@@ -2,18 +2,19 @@
 Embeds the container that reviews are injected to and the javascript that accesses the review content.
  --->
 <isscript>
-	var rrEnabled : boolean = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableRR_C2013");
-    
-	// Obtain SmartSEO content
-    var CSEO = null;
-    if(!empty(pdict.CSEO_RR_PID)) {
-    	CSEO = require('int_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({"product_id" : pdict.CSEO_RR_PID});
-    }
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var bvPid = BVHelper.getProductId();
+
+// Obtain Cloud SEO content
+var CSEO = null;
+if(!empty(bvPid)) {
+	CSEO = require('int_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({"product_id" : bvPid});
+}
 </isscript>
 
-<isif condition="${rrEnabled}">
+<isif condition="${BVHelper.isRREnabled()}">
 	<!-- Reviews -->
-	<div id="BVRRContainer">
+	<div data-bv-show="reviews" data-bv-productId="${bvPid}">
 		<isif condition="${CSEO != null}">
 	    	<isprint value="${CSEO.reviews().getContent()}" encoding="off" />
 	    </isif>

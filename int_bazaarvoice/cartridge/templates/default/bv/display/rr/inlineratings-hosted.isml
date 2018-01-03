@@ -1,16 +1,12 @@
 <!--- TEMPLATENAME: inlineratings-hosted.isml --->
 <isif condition="${Product != null && dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableInlineRatings_C2013')}">
 	<isscript>
-	importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-	importScript( "int_bazaarvoice:/lib/libConstants.ds" );
-	var bvHelper = getBazaarVoiceHelper();
+	var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+	var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+
 	var bvPID = "";
 	if(BV_Constants.EnableProductFamilies) {
-		//showswatches means this is a master product tile
-		if(pdict.CurrentHttpParameterMap.showswatches.submitted && pdict.CurrentHttpParameterMap.showswatches.booleanValue == true) {
-			bvPID = Product.ID.toLowerCase();
-		}
-		else if(pdict.FirstProduct) {
+		if(pdict.FirstProduct) {
 			bvPID = pdict.FirstProduct.ID.toLowerCase();
 		}
 		else {
@@ -20,18 +16,10 @@
 	else {
 		bvPID = (Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase();
 	}
-	bvPID = bvHelper.replaceIllegalCharacters(bvPID);
-	//out.print(pdict.CurrentHttpParameterMap.showswatches.submitted && pdict.CurrentHttpParameterMap.showswatches.value == true);
+	bvPID = BVHelper.replaceIllegalCharacters(bvPID);
 	</isscript>
 		
 	<isif condition="${!empty(bvPID)}">	
-		<div id="BVRRInlineRating-${bvPID}"></div>
-		
-		<script type="text/javascript" language="javascript">
-		if(typeof bvProdIds == "undefined") {
-			bvProdIds = new Array();
-		}
-		bvProdIds.push("${bvPID}");
-		</script>
+		<div data-bv-show="inline_rating" data-bv-productId="${bvPID}" data-bv-redirect-url="${productUrl}"></div>
 	</isif>
 </isif>
