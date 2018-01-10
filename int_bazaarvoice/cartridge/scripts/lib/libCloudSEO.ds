@@ -311,6 +311,7 @@ function SEOContent(config, seoProduct) {
 			
 			//remove the bvpage parameter from the current URL so we don't keep appending it
 			var param = request.httpParameters['bvpage'][0].replace('/', '\/', 'g');
+			param = encodeURIComponent(param);
 			var regex = new RegExp('bvpage=' + param + '[&]?');
 			configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
 		}
