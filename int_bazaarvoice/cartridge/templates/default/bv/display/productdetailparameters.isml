@@ -1,23 +1,23 @@
 <!--- TEMPLATENAME: productdetailparameters.isml --->
 <isscript>
 if(!empty(productDetailUrl)) {
-	if(request.httpParameters.containsKey("bvstate")) {
-		productDetailUrl.append('bvstate', request.httpParameters["bvstate"][0]);
+	if(request.httpParameters.containsKey('bvstate')) {
+		productDetailUrl.append('bvstate', request.httpParameters['bvstate'][0]);
 	}
-	if(request.httpParameters.containsKey("bvreveal")) {
-		productDetailUrl.append('bvreveal', request.httpParameters["bvreveal"][0]);
+	if(request.httpParameters.containsKey('bvreveal')) {
+		productDetailUrl.append('bvreveal', request.httpParameters['bvreveal'][0]);
 	}
-	if(request.httpParameters.containsKey("bvrrp")) {
-		productDetailUrl.append('bvrrp', request.httpParameters["bvrrp"][0]);
+	if(request.httpParameters.containsKey('bvrrp')) {
+		productDetailUrl.append('bvrrp', request.httpParameters['bvrrp'][0]);
 	}
-	if(request.httpParameters.containsKey("bvqap")) {
-		productDetailUrl.append('bvqap', request.httpParameters["bvqap"][0]);
+	if(request.httpParameters.containsKey('bvqap')) {
+		productDetailUrl.append('bvqap', request.httpParameters['bvqap'][0]);
 	}
-	if(request.httpParameters.containsKey("bvpage")) {
-		productDetailUrl.append('bvpage', request.httpParameters["bvpage"][0]);
+	if(request.httpParameters.containsKey('bvpage')) {
+		productDetailUrl.append('bvpage', request.httpParameters['bvpage'][0]);
 	}
-	if(request.httpParameters.containsKey("bvsyp")) {
-		productDetailUrl.append('bvsyp', request.httpParameters["bvsyp"][0]);
+	if(request.httpParameters.containsKey('bvsyp')) {
+		productDetailUrl.append('bvsyp', request.httpParameters['bvsyp'][0]);
 	}
 }
 </isscript>
