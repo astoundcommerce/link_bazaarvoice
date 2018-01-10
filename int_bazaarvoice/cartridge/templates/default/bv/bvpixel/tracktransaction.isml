@@ -29,7 +29,7 @@
 						{
 							"sku"		:	"${BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
 							"name"		:	"${item.product.name}",
-							"price"		:	"${item.adjustedNetPrice.value}",
+							"price"		:	"${item.basePrice.value}",
 							<isif condition="${!empty(BVHelper.getImageURL(item.product, BV_Constants.PURCHASE))}">
 							"imageURL"	:	"${BVHelper.getImageURL(item.product, BV_Constants.PURCHASE)}",
 							</isif>
@@ -39,11 +39,10 @@
 					</isif>
 				</isloop>
 				],
-				"userId"	:	"${pdict.Order.customerNo}",
+				
 				"email"		:	"${pdict.Order.customerEmail}",
 				"nickname"	:	"${pdict.Order.customerName}",
-				"locale"	:	"${BVHelper.getDisplayData().locale}",
-				"partnerSource"	:	"${BV_Constants.XML_GENERATOR}"
+				"locale"	:	"${BVHelper.getDisplayData().locale}"
 			});
 		};
 		</script>
