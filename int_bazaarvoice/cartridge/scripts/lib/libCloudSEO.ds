@@ -73,7 +73,7 @@ function BVSEO() {
 				url.append(pname, pval);
 			}
 		}
-		Logger.debug('CurrentUrl:\n ' + url);
+		Logger.debug('_getCurrentUrl() CurrentUrl:\n ' + url);
 		return url.toString();
 	};
 	
@@ -176,7 +176,7 @@ function BVSEO() {
 					configMap[param] = config[param];
 				}
 				else {
-					Logger.debug('Incorrect parameter passed to BVSEO: ' + param);
+					Logger.debug('init() Incorrect parameter passed to BVSEO: ' + param);
 				}
 			}
 			
@@ -267,7 +267,6 @@ function SEOContent(config, seoProduct) {
 		
 		// search the user agent string for an indictation if this is a search bot or not
 		var regex = new RegExp(configMap['bot_list']);
-		Logger.debug('isBot() regex: ' + configMap['bot_list']);
 		Logger.debug('isBot() result: ' + regex.test(request.httpUserAgent.toLowerCase()));
 		return regex.test(request.httpUserAgent.toLowerCase());
 	};
@@ -278,7 +277,7 @@ function SEOContent(config, seoProduct) {
 		configMap['execution_timeout_bot'] = ServiceRegistry.getDefinition('bazaarvoice.http.bot').getConfiguration().getProfile().getTimeoutMillis();
 		configMap['execution_timeout'] = ServiceRegistry.getDefinition('bazaarvoice.http').getConfiguration().getProfile().getTimeoutMillis();
 	} catch(te) {
-		Logger.error('Unable to pull the timeout values from the service profiles, using defaults instead.');
+		Logger.error('_isBot() Unable to pull the timeout values from the service profiles, using defaults instead.');
 	}
 	configMap['latency_timeout'] = _isBot() ? configMap['execution_timeout_bot'] : configMap['execution_timeout'];
 	
@@ -337,9 +336,16 @@ function SEOContent(config, seoProduct) {
 				configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
 			}
 			
-			var regex = /\/(\d+?)\/[^\/]+$/;
-			var matches = request.httpQueryString.match(regex);
-			pageNumber = matches[1];
+			try {
+				var regex = /\/(\d+?)\/[^\/]+$/;
+				var matches = request.httpQueryString.match(regex);
+				pageNumber = matches[1];
+			} catch(e) {
+				Logger.error('_getPageNumber() Exception caught: ' + e.message);
+			}
+			
+			Logger.debug('_getPageNumber() URL after param check: ' + configMap['current_page_url']);
+			Logger.debug('_getPageNumber() Page Number: ' + pageNumber);
 		}
 		
 		return pageNumber;
@@ -366,7 +372,7 @@ function SEOContent(config, seoProduct) {
 		url += '/' + page;
 		url += '/' + encodeURI(configMap['product_id']) + '.htm';
 		
-		Logger.debug('seoUrl: ' + url);
+		Logger.debug('_buildSeoUrl() seoUrl: ' + url);
 		return url;
 	};
 	
@@ -394,7 +400,7 @@ function SEOContent(config, seoProduct) {
 			return result.object;
 		}
 		catch(ex) {
-			Logger.error('Exception while retrieving cloud content from ' + url + ': ' + ex.message);
+			Logger.error('_fetchSeoContent() Exception while retrieving cloud content from ' + url + ': ' + ex.message);
 			_setBuildMessage(ex.message);
 			return '';
 		}

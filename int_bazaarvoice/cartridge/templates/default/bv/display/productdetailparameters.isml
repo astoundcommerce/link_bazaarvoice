@@ -2,22 +2,22 @@
 <isscript>
 if(!empty(productDetailUrl)) {
 	if(request.httpParameters.containsKey("bvstate")) {
-		productDetailUrl += '&bvstate=' + request.httpParameters["bvstate"][0];
+		productDetailUrl.append('bvstate', request.httpParameters["bvstate"][0]);
 	}
 	if(request.httpParameters.containsKey("bvreveal")) {
-		productDetailUrl += '&bvreveal=' + request.httpParameters["bvreveal"][0];
+		productDetailUrl.append('bvreveal', request.httpParameters["bvreveal"][0]);
 	}
 	if(request.httpParameters.containsKey("bvrrp")) {
-		productDetailUrl += '&bvrrp=' + request.httpParameters["bvrrp"][0];
+		productDetailUrl.append('bvrrp', request.httpParameters["bvrrp"][0]);
 	}
 	if(request.httpParameters.containsKey("bvqap")) {
-		productDetailUrl += '&bvqap=' + request.httpParameters["bvqap"][0];
+		productDetailUrl.append('bvqap', request.httpParameters["bvqap"][0]);
 	}
 	if(request.httpParameters.containsKey("bvpage")) {
-		productDetailUrl += '&bvpage=' + request.httpParameters["bvpage"][0];
+		productDetailUrl.append('bvpage', request.httpParameters["bvpage"][0]);
 	}
 	if(request.httpParameters.containsKey("bvsyp")) {
-		productDetailUrl += '&bvsyp=' + request.httpParameters["bvsyp"][0];
+		productDetailUrl.append('bvsyp', request.httpParameters["bvsyp"][0]);
 	}
 }
 </isscript>
