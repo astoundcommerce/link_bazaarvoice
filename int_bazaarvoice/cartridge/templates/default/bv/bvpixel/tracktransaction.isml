@@ -6,6 +6,7 @@
 
 	var pixelEnabled = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableBVPixel_C2013");
 	var cust = pdict.Order.customer;
+	var bvdata = BVHelper.getDisplayData();
 	</isscript>
 
 	<isif condition="${pixelEnabled}">
@@ -39,10 +40,14 @@
 					</isif>
 				</isloop>
 				],
-				
-				"email"		:	"${pdict.Order.customerEmail}",
-				"nickname"	:	"${pdict.Order.customerName}",
-				"locale"	:	"${BVHelper.getDisplayData().locale}"
+				<isif condition="${!empty(pdict.Order.customerNo)}">
+					"userId"	:	"${pdict.Order.customerNo}", 
+				</isif>
+				"email"			:	"${pdict.Order.customerEmail}",
+				"nickname"		:	"${pdict.Order.customerName}",
+				"partnerSource"	:	"${BV_Constants.XML_GENERATOR}",
+				"locale"		:	"${bvdata.locale}",
+				"deploymentZone" :	"${bvdata.zone.toLowerCase().replace(' ', '_', 'g')}"
 			});
 		};
 		</script>
