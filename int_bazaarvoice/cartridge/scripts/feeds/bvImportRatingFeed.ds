@@ -66,58 +66,63 @@
 * @output Message : String
 */
  
-importPackage( dw.system );
-importPackage( dw.order );
-importPackage( dw.util );
-importPackage( dw.web );
-importPackage( dw.net );
-importPackage( dw.catalog );
-importPackage( dw.object );
-importPackage( dw.io );
+var FileReader = require('dw/io/FileReader');
+var ProductMgr = require('dw/catalog/ProductMgr');
+var StringUtils = require('dw/util/StringUtils');
+var XMLStreamConstants = require('dw/io/XMLStreamConstants');
+var XMLStreamReader = require('dw/io/XMLStreamReader');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvImportRatingFeed.ds');
 
-importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
-importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
-function execute(pdict: PipelineDictionary): Number {
-    var BazaarVoiceHelper = getBazaarVoiceHelper();
-    var host : String = "";
-    var user : String = "";
-    var pwd : String = "";
-    var fpath : String = "";
-    var fname : String = "";
+function execute(pdict) {
+    var host = '';
+    var user = '';
+    var pwd = '';
+    var fpath = '';
+    var fname = '';
     
     try {
-    	var tempFile: File = pdict.TempFile;
+    	var tempFile = pdict.TempFile;
         
-        var productIds : Array = new Array();
+        var productIds = [];
         if(tempFile != null && tempFile.exists()){       
-		    var xmlReader : XMLStreamReader = new XMLStreamReader(new FileReader(tempFile, "UTF-8"));
+		    var xmlReader = new XMLStreamReader(new FileReader(tempFile, 'UTF-8'));
 		    
-		    var productXML : XML = null;
-		    var iProcessed: Number = new Number(0);
-		    var iFailed: Number = new Number(0);
-		    var id: String = "";
-		    var bvAverageRating: String = "";
-		    var bvReviewCount: String = "";
-		    var bvRatingRange: String = "";
+		    //need to zero out any existing ratings
+		    var products = ProductMgr.queryAllSiteProducts();
+			while(products.hasNext()){
+				var product = products.next();
+				if(!empty(product.custom.bvAverageRating) || !empty(product.custom.bvReviewCount) || !empty(product.custom.bvRatingRange)){
+					product.custom.bvAverageRating = '0.0';
+					product.custom.bvReviewCount = '0';
+					product.custom.bvRatingRange = '0';
+				}
+			}
+			products.close();
 		    
-		    while(xmlReader.hasNext()){	  
-				xmlReader.next();	
-				if (xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT && xmlReader.getLocalName() == "Product")
-				{
+		    var productXML = null;
+		    var iProcessed = 0;
+		    var iFailed = 0;
+		    var id = '';
+		    var bvAverageRating = '';
+		    var bvReviewCount = '';
+		    var bvRatingRange = '';
+		    
+		    while(xmlReader.hasNext()) {
+				xmlReader.next();
+				if (xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT && xmlReader.getLocalName() == 'Product') {
 					productXML = xmlReader.getXMLObject();
-					id = "";
-					bvAverageRating = "";
-					bvReviewCount = "";
-					bvRatingRange = "";
-					
-					
+					id = '';
+					bvAverageRating = '';
+					bvReviewCount = '';
+					bvRatingRange = '';
 					
 					var ns = productXML.namespace();
-					if(!empty(productXML.ns::ExternalId.toString())){
+					if(!empty(productXML.ns::ExternalId.toString())) {
 						id = productXML.ns::ExternalId.toString();
 						
-		
 						if (!empty(productXML.ns::ReviewStatistics.ns::AverageOverallRating.toString())) {
 						    bvAverageRating = productXML.ns::ReviewStatistics.ns::AverageOverallRating.toString();
 						}
@@ -128,8 +133,7 @@ function execute(pdict: PipelineDictionary): Number {
 						    bvRatingRange = productXML.ns::ReviewStatistics.ns::OverallRatingRange.toString();
 						}
 						
-						
-						var product: Product = ProductMgr.getProduct(BazaarVoiceHelper.decodeId(id));
+						var product = ProductMgr.getProduct(BVHelper.decodeId(id));
 						if (product != null) {
 						    product.custom.bvAverageRating = bvAverageRating;
 						    product.custom.bvReviewCount = bvReviewCount;
@@ -144,29 +148,17 @@ function execute(pdict: PipelineDictionary): Number {
 				}
 		    }
 		
-			var products : SeekableIterator = ProductMgr.queryAllSiteProducts();
-			
-			while(products.hasNext()){
-				var product : Product = products.next();
-				if(productIds.indexOf(product.ID) == -1 && (!empty(product.custom.bvAverageRating) || !empty(product.custom.bvReviewCount) || !empty(product.custom.bvRatingRange))){
-					product.custom.bvAverageRating = "0.0";
-					product.custom.bvReviewCount = "0";
-					product.custom.bvRatingRange = "0";
-				}
-			}
-			products.close();
-			
 			xmlReader.close();
 		
-		    pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "SUCCESS", "Import Processed - Connecton Details", host, user, pwd, fpath, fname);
-		    pdict.Message += "Total Record Updated: " + + iProcessed.toString() + "\n";
-		    pdict.Message += "Total Record Failed: " + iFailed.toString() + "\n";
+		    pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, 'SUCCESS', 'Import Processed - Connecton Details', host, user, pwd, fpath, fname);
+		    pdict.Message += 'Total Record Updated: ' + + iProcessed.toString() + '\n';
+		    pdict.Message += 'Total Record Failed: ' + iFailed.toString() + '\n';
         }else{
-        	pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "INFO", "No File to Import!", host, user, pwd, fpath, fname);
+        	pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, 'INFO', 'No File to Import!', host, user, pwd, fpath, fname);
         }
     } catch (ex) {
-		Logger.error("Exception caught: {0}", ex.message);
-        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, "ERROR", "Exception=" + ex.message, host, user, pwd, fpath, fname);
+		Logger.error('Exception caught: {0}', ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE, 'ERROR', 'Exception=' + ex.message, host, user, pwd, fpath, fname);
         return PIPELET_ERROR;
     }
 

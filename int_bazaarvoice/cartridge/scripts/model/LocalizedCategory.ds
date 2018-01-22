@@ -4,33 +4,35 @@
 *	Base object for the LocalizedCategory.
 *
 */
-importPackage( dw.system );
-importPackage( dw.util );
+var LinkedHashMap = require('dw/util/LinkedHashMap');
 
-function Category_Object()
-{
-	var _categoryId : String;
-	var _localeMap : LinkedHashMap;
+var Category_Object = function() {
+	var _categoryId;
+	var _localeMap;
 
-	this.create = function(cgid : String){
-		_localeMap = new LinkedHashMap();
-  		_categoryId = cgid;
-	};
-	
-	this.getCategoryId = function()
-	{
-		return _categoryId ;
-	};	
-	
-	this.getLocaleMap = function()
-	{
-		return _localeMap;
-	};
-	
-	this.setLocaleMap = function(localeMap : LinkedHashMap)
-	{
-		_localeMap = localeMap;
-	};
-	
-	return PIPELET_NEXT;
-}
+	return {
+		create : function(cgid){
+			_localeMap = new LinkedHashMap();
+	  		_categoryId = cgid;
+		},
+		
+		getCategoryId : function()
+		{
+			return _categoryId;
+		},
+		
+		getLocaleMap : function()
+		{
+			return _localeMap;
+		},
+		
+		setLocaleMap : function(localeMap)
+		{
+			_localeMap = localeMap;
+		}
+	}
+};
+
+exports.getCategoryObject = function() {
+	return new Category_Object();
+};

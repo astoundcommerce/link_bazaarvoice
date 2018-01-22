@@ -7,86 +7,87 @@
 * @output Message : String
 * 
 */
-importPackage( dw.system );
-importPackage( dw.util );
+var Site = require('dw/system/Site');
+var StringUtils = require('dw/util/StringUtils');
+var URLUtils = require('dw/web/URLUtils');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'ValidateDisplayCodes');
 
-importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
-importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
-function execute( pdict : PipelineDictionary ) : Number
+function execute(pdict)
 {
-   	var bvHelper = getBazaarVoiceHelper();
-
-   	var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
-   	var defaultLocale : String = Site.getCurrent().getDefaultLocale();
-   	var DCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvLocaleMapping_C2013");
+   	var allowedLocales = Site.getCurrent().allowedLocales;
+   	var defaultLocale = Site.getCurrent().getDefaultLocale();
+   	var DCArray = Site.getCurrent().getCustomPreferenceValue('bvLocaleMapping_C2013');
    
-   	var validCodes : Array = new Array();
-   	var codeCount : Number = 0;
+   	var validCodes = [];
+   	var codeCount = 0;
 
 	//Get displaycode for current locale
    	if(DCArray.length > 1){
 		var index = 0;
-		var dupArray : Array = new Array();
+		var dupArray = [];
 		
-		for each(var item : String in DCArray){
-			item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
+		//for each(var item : String in DCArray){
+		for(var i = 0; i < DCArray.length; i++) {
+			var item = DCArray[i];
+			item = item.replace(/^[\s]+|[\"]|[\s]+$/g,'');
 							
-			if(BV_Constants.regFull.test(item) && dupArray.indexOf(defaultLocale) == -1){
+			if(BV_Constants.regFull.test(item) && dupArray.indexOf(defaultLocale) === -1){
 				validCodes.push(item);
 				dupArray.push(defaultLocale);
 				codeCount++;
 			}else if(BV_Constants.regPair.test(item)){				
-				var a = item.split(":");
-				a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
-				a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
+				var a = item.split(':');
+				a[0] = a[0].replace(/^[\s]+|[\s]+$/g, '');
+				a[1] = a[1].replace(/^[\s]+|[\s]+$/g, '');
 				
-				if(allowedLocales.indexOf(a[0]) != -1 && dupArray.indexOf(a[0]) == -1){
+				if(allowedLocales.indexOf(a[0]) !== -1 && dupArray.indexOf(a[0]) === -1){
 					validCodes.push(item);
 					dupArray.push(a[0]);
 					codeCount++;
 				}else{
-					Logger.error("[ExportProductFeed][ValidateDisplayCodes]Site Preferences bvLocaleMapping has inactive locale " + a[0]);
+					Logger.error("Site Preferences bvLocaleMapping has inactive locale " + a[0]);
 				}
 			}
 			
-			if(index == DCArray.length - 1 && validCodes.length == 0){
-				Logger.error("[ExportProductFeed][ValidateDisplayCodes]Site Preferences bvLocaleMapping has no match setting for allowedlocales");
+			if(index === DCArray.length - 1 && validCodes.length === 0){
+				Logger.error("Site Preferences bvLocaleMapping has no match setting for allowedlocales");
 				pdict.Message = "Site Preferences bvLocaleMapping has no match setting for allowedlocales";
 			}
 			
 			index++;
 		}
 
-	}else if(DCArray.length == 1){
-		var item : String = DCArray[0];
+	} else if(DCArray.length === 1){
+		var item = DCArray[0];
 		
-		item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
+		item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
 				
 		if(BV_Constants.regFull.test(item)){
 			validCodes.push(item);
 			codeCount++;
 		}else if(BV_Constants.regPair.test(item)){
+			var a = item.split(':');
+			a[0] = a[0].replace(/^[\s]+|[\s]+$/g, '');
+			a[1] = a[1].replace(/^[\s]+|[\s]+$/g, '');
 			
-			var a = item.split(":");
-			a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
-			a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
-			
-			if(allowedLocales.indexOf(a[0]) != -1 && a[0].equals(defaultLocale)){
-				var bvlocale : String = a[1];
-				if(bvlocale.indexOf("/") != -1) {
-					bvlocale = bvlocale.split("/")[1];
+			if(allowedLocales.indexOf(a[0]) !== -1 && a[0].equals(defaultLocale)){
+				var bvlocale = a[1];
+				if(bvlocale.indexOf('/') !== -1) {
+					bvlocale = bvlocale.split('/')[1];
 				}
 				validCodes.push(bvlocale);
 				codeCount++;
 			}
 			//there is only one mapping, and it does not match the (radio button) default DW locale
 			//In this case, the job needs to explicitly set the locale to the mapped DW locale
-			else if(allowedLocales.indexOf(a[0]) != -1 && !(a[0].equals(defaultLocale))){
+			else if(allowedLocales.indexOf(a[0]) !== -1 && !(a[0].equals(defaultLocale))){
 				pdict.SingleLocale = a[0];
-				var bvlocale : String = a[1];
-				if(bvlocale.indexOf("/") != -1) {
-					bvlocale = bvlocale.split("/")[1];
+				var bvlocale = a[1];
+				if(bvlocale.indexOf('/') !== -1) {
+					bvlocale = bvlocale.split('/')[1];
 				}
 				validCodes.push(bvlocale);
 				codeCount++;

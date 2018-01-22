@@ -87,49 +87,48 @@
 * @output RemoteFileName : String
 * @output Enabled : Boolean
 */
+
+var CatalogMgr = require('dw/catalog/CatalogMgr');
+var ProductMgr = require('dw/catalog/ProductMgr');
+var Site = require('dw/system/Site');
+var StringUtils = require('dw/util/StringUtils');
+var File = require('dw/io/File');
+var FileWriter = require('dw/io/FileWriter');
+var URLUtils = require('dw/web/URLUtils');
+var XMLStreamWriter = require('dw/io/XMLStreamWriter');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvExportProductFeed.ds');
  
- importPackage( dw.system );
- importPackage( dw.order );
- importPackage( dw.util );
- importPackage( dw.web );
- importPackage( dw.net );
- importPackage( dw.catalog );
- importPackage( dw.object );
- importPackage( dw.io );
- importPackage( dw.content );
- 
- importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
- importScript( "int_bazaarvoice:/lib/libConstants.ds" );
-  
- var bvHelper = getBazaarVoiceHelper();
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
  
 /**
  * Function: execute
  *
  * Main function of the script. 
  */
-function execute( pdict : PipelineDictionary ) : Number {
-	pdict.Message = "";
+function execute(pdict) {
+	pdict.Message = '';
 	
-	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed_C2013");
+	var productFeedEnabled = Site.getCurrent().getCustomPreferenceValue('bvEnableProductFeed_C2013');
 	pdict.Enabled = productFeedEnabled;
 	if (!productFeedEnabled) {
 	   //If the feed isn't enabled, just return.
+	   Logger.info('Product Feed Site Preference is not enabled, returning...');
 	   return PIPELET_NEXT;
 	}
     
-    var date : Date = new Date();
-    var filename : String = "ProductFeed-" + date.getFullYear() + insertLeadingZero(date.getMonth()+1) + insertLeadingZero(date.getDate()+1) + insertLeadingZero(date.getHours()+1) + insertLeadingZero(date.getMinutes()+1) + insertLeadingZero(date.getMilliseconds()) + ".xml"; 
-    var file : File = new File(File.TEMP + "/" + filename);
+    var date = new Date();
+    var filename = 'ProductFeed-' + date.getFullYear() + insertLeadingZero(date.getMonth()+1) + insertLeadingZero(date.getDate()+1) + insertLeadingZero(date.getHours()+1) + insertLeadingZero(date.getMinutes()+1) + insertLeadingZero(date.getMilliseconds()) + '.xml'; 
+    var file = new File(File.TEMP + '/' + filename);
 	pdict.File = file;
     
     try {
-    	if(empty(bvHelper.getCustomerName())) {
-    		throw new Error("Cannot retrieve customer name!");
+    	if(empty(BVHelper.getCustomerName())) {
+    		throw new Error('Cannot retrieve customer name!');
     	}
         
         /* Create an output stream */
-        var xsw : XMLStreamWriter = initFeed(file);
+        var xsw = initFeed(file);
         
         /* Process Brands */
         if(pdict.Brands != null && pdict.Brands.length > 0) {
@@ -145,26 +144,21 @@ function execute( pdict : PipelineDictionary ) : Number {
         // Write the closing Feed element, then flush & close the stream
         finalizeFeed(xsw);
             
-        var destinationPath : String = BV_Constants.ProductFeedPath;
+        var destinationPath = BV_Constants.ProductFeedPath;
         if(empty(destinationPath)){
-        	Logger.error("BV_Constants.ProductFeedPath is null or empty!");
-        	throw new Error("BV_Constants.ProductFeedPath is null or empty!");
+        	throw new Error('BV_Constants.ProductFeedPath is null or empty!');
         }
         pdict.RemotePath = destinationPath;
         
-        var destinationFilename : String = BV_Constants.ProductFeedFilename;
+        var destinationFilename = BV_Constants.ProductFeedFilename;
         if(empty(destinationPath)){
-        	Logger.error("BV_Constants.ProductFeedFilename is null or empty!");
-        	throw new Error("BV_Constants.ProductFeedFilename is null or empty!");
+        	throw new Error('BV_Constants.ProductFeedFilename is null or empty!');
         }
         pdict.RemoteFileName = destinationFilename;
-        
-        //var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
-        //pdict.Message = ret;
-            
+                    
     } catch(ex) {
-        Logger.error("Exception caught during catalog export: {0}", ex.message);
-        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during catalog export: " + ex.message, "", "", "", "", "");         
+        Logger.error('Exception caught during catalog export: {0}', ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', 'Exception caught during catalog export: ' + ex.message, '', '', '', '', '');         
         return PIPELET_ERROR;    
     }     
     
@@ -179,41 +173,44 @@ function execute( pdict : PipelineDictionary ) : Number {
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-function writeCategories(xsw : XMLStreamWriter) {
-    xsw.writeStartElement("Categories");
-    var siteCatalog : Catalog = CatalogMgr.getSiteCatalog();
-    var rootCategory : Category = siteCatalog.getRoot();
-    var subRoots : Collection = rootCategory.getSubCategories();
-    for each(var subRoot : Category in subRoots) {
+function writeCategories(xsw) {
+    xsw.writeStartElement('Categories');
+    var siteCatalog = CatalogMgr.getSiteCatalog();
+    var rootCategory = siteCatalog.getRoot();
+    var subRoots = rootCategory.getSubCategories();
+    for(var i = 0; i < subRoots.length; i++) {
+    	var subRoot = subRoots[i];
         getCategory(xsw, subRoot);    
     }
     xsw.writeEndElement(); //</Categories>
 }
-function getCategory(xsw : XMLStreamWriter, category : Category) {
+
+function getCategory(xsw, category) {
     writeCategory(xsw, category);
-    var subCats : Collection = category.getSubCategories();
-    if(subCats != null && subCats.size()>0)    {
-        for each(var subCat : Category in subCats) {
+    var subCats = category.getSubCategories();
+    if(subCats != null && subCats.length > 0)    {
+        for(var i = 0; i < subCats.length; i++) {
+        	var subCat = subCats[i];
             getCategory(xsw,subCat);
         }
     }
 }
-function writeCategory(xsw : XMLStreamWriter, category : Category){
-    xsw.writeStartElement("Category");
+function writeCategory(xsw, category){
+    xsw.writeStartElement('Category');
     
-    writeElement(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(category.ID));
+    writeElement(xsw, 'ExternalId', BVHelper.replaceIllegalCharacters(category.ID));
     
-    var parent : Category = category.getParent();
+    var parent = category.getParent();
     if(parent != null) {
-        //We don't want to set our ParentExternalId to "root", so make sure the parent of this parent is non-null
+        //We don't want to set our ParentExternalId to 'root', so make sure the parent of this parent is non-null
         var parentOfParent = parent.getParent();    
-        if(parentOfParent!=null) {
-            writeElement(xsw, "ParentExternalId", bvHelper.replaceIllegalCharacters(parent.ID));
+        if(parentOfParent != null) {
+            writeElement(xsw, 'ParentExternalId', BVHelper.replaceIllegalCharacters(parent.ID));
         }
     }
     
-    writeElementCDATA(xsw, "Name", category.displayName);
-    writeElement(xsw, "CategoryPageUrl", URLUtils.http('Search-Show','cgid',category.ID));
+    writeElementCDATA(xsw, 'Name', category.displayName);
+    writeElement(xsw, 'CategoryPageUrl', URLUtils.http('Search-Show','cgid',category.ID));
     
     xsw.writeEndElement();
 }
@@ -226,13 +223,15 @@ function writeCategory(xsw : XMLStreamWriter, category : Category){
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-function writeBrands(xsw : XMLStreamWriter, brands : ArrayList) {
-	 xsw.writeStartElement("Brands");
-	 for each(var brand in brands) {
-	 	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("Brand");
-        writeElementCDATA(xsw, "Name", brand.value);
-        writeElementCDATA(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(brand.value));
+function writeBrands(xsw, brands) {
+	 xsw.writeStartElement('Brands');
+	 var brandsIter = brands.iterator();
+	 while(brandsIter.hasNext()) {
+	 	var brand = brandsIter.next();
+	 	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('Brand');
+        writeElementCDATA(xsw, 'Name', brand.value);
+        writeElementCDATA(xsw, 'ExternalId', BVHelper.replaceIllegalCharacters(brand.value));
         xsw.writeEndElement();
 	 }
 	 xsw.writeEndElement();
@@ -246,11 +245,11 @@ function writeBrands(xsw : XMLStreamWriter, brands : ArrayList) {
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-function writeProducts(xsw : XMLStreamWriter) {
-    xsw.writeStartElement("Products");
-    var productIterator : SeekableIterator = ProductMgr.queryAllSiteProducts();
+function writeProducts(xsw) {
+    xsw.writeStartElement('Products');
+    var productIterator = ProductMgr.queryAllSiteProducts();
     while(productIterator.hasNext()) {
-        var product : Product = productIterator.next();
+        var product = productIterator.next();
         if(product.online && product.searchable && (BV_Constants.EnableProductFamilies || !product.variant)) {
             writeProduct(xsw, product);
         }
@@ -259,83 +258,80 @@ function writeProducts(xsw : XMLStreamWriter) {
     xsw.writeEndElement();
 }
 
-function writeProduct(xsw : XMLStreamWriter, product : Product) {
-    xsw.writeStartElement("Product");
+function writeProduct(xsw, product) {
+    xsw.writeStartElement('Product');
     
-    writeElement(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(product.ID));
-    writeElementCDATA(xsw, "Name", product.name);
-    writeElementCDATA(xsw, "Description", (product.shortDescription == null ? product.name : product.shortDescription));
+    writeElement(xsw, 'ExternalId', BVHelper.replaceIllegalCharacters(product.ID));
+    writeElementCDATA(xsw, 'Name', product.name);
+    writeElementCDATA(xsw, 'Description', (product.shortDescription == null ? product.name : product.shortDescription));
     
     if (product.getBrand() != null && !empty(product.brand) ) {
-    	xsw.writeCharacters("\n");
-    	//xsw.writeStartElement("Brand");
-        //writeElementCDATA(xsw, "Name", product.brand);
-        writeElementCDATA(xsw, "BrandExternalId", bvHelper.replaceIllegalCharacters(product.brand));
-        //xsw.writeEndElement();
+    	xsw.writeCharacters('\n');
+    	writeElementCDATA(xsw, 'BrandExternalId', BVHelper.replaceIllegalCharacters(product.brand));
     }
     
-    var categoryExternalId : String = BV_Constants.CATEGORY_NONE;
+    var categoryExternalId = BV_Constants.CATEGORY_NONE;
     if(product.primaryCategory != null) {
         categoryExternalId = product.primaryCategory.ID;
     } else {
-        var allCategories : Collection = product.allCategories;
-        if(allCategories.size()>0) { 
+        var allCategories = product.allCategories;
+        if(allCategories.size() > 0) { 
             categoryExternalId = allCategories.iterator().next().ID;
         } 
     }
-    writeElement(xsw, "CategoryExternalId", bvHelper.replaceIllegalCharacters(categoryExternalId));
+    writeElement(xsw, 'CategoryExternalId', BVHelper.replaceIllegalCharacters(categoryExternalId));
     
-    writeElement(xsw, "ProductPageUrl", URLUtils.http('Product-Show','pid',product.ID));
+    writeElement(xsw, 'ProductPageUrl', URLUtils.http('Product-Show','pid',product.ID));
     
-    var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PRODUCT);
+    var prodImage = BVHelper.getImageURL(product, BV_Constants.PRODUCT);
     if (!empty(prodImage)) {
-    	writeElement(xsw, "ImageUrl", prodImage); 
+    	writeElement(xsw, 'ImageUrl', prodImage); 
     }
     
     //Manufacturer Part Number
     if(product.manufacturerSKU != null){
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("ManufacturerPartNumbers");
-        writeElement(xsw, "ManufacturerPartNumber", product.manufacturerSKU);
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('ManufacturerPartNumbers');
+        writeElement(xsw, 'ManufacturerPartNumber', product.manufacturerSKU);
         xsw.writeEndElement();
     }
     
     //European Article Number
     if(product.EAN != null && !empty(product.EAN)){
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("EANs");
-        writeElement(xsw, "EAN", product.EAN);
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('EANs');
+        writeElement(xsw, 'EAN', product.EAN);
         xsw.writeEndElement();
     }
     
     //Universal Product Code
     if(product.UPC != null && !empty(product.UPC)){
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("UPCs");
-        writeElement(xsw, "UPC", product.UPC);
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('UPCs');
+        writeElement(xsw, 'UPC', product.UPC);
         xsw.writeEndElement();
     }
     
     //add product family attributes here for variants and masters,
     //only if Product Families are enabled in libConstants.ds
     if(BV_Constants.EnableProductFamilies && (product.master || product.variant)) {
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("Attributes");
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('Attributes');
     	
-    	//use the master ID plus "-family" as the family ID
+    	//use the master ID plus '-family' as the family ID
     	var familyId = product.master ? product.ID : product.variationModel.master.ID;
-    	familyId = bvHelper.replaceIllegalCharacters(familyId + "-family");
+    	familyId = BVHelper.replaceIllegalCharacters(familyId + '-family');
     	
     	//write family attribute
-    	xsw.writeStartElement("Attribute");
-    	xsw.writeAttribute("id", "BV_FE_FAMILY");
-    	writeElement(xsw, "Value", familyId);
+    	xsw.writeStartElement('Attribute');
+    	xsw.writeAttribute('id', 'BV_FE_FAMILY');
+    	writeElement(xsw, 'Value', familyId);
     	xsw.writeEndElement();
     	
     	//write expand attribute
-    	xsw.writeStartElement("Attribute");
-    	xsw.writeAttribute("id", "BV_FE_EXPAND");
-    	writeElement(xsw, "Value", "BV_FE_FAMILY:" + familyId);
+    	xsw.writeStartElement('Attribute');
+    	xsw.writeAttribute('id', 'BV_FE_EXPAND');
+    	writeElement(xsw, 'Value', 'BV_FE_FAMILY:' + familyId);
     	xsw.writeEndElement();
     	
     	xsw.writeEndElement();
@@ -352,37 +348,35 @@ function writeProduct(xsw : XMLStreamWriter, product : Product) {
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-function insertLeadingZero(nb : Number) : String {
+function insertLeadingZero(nb) {
     if(nb < 10) {
-        return "0"+nb;
+        return '0'+nb;
     } else {
-        return ""+nb;
+        return ''+nb;
     }
 }
 
-function initFeed(file : File) : XMLStreamWriter {
-    var fw : FileWriter = new FileWriter(file, "UTF-8", false);
-    var xsw : XMLStreamWriter = new XMLStreamWriter(fw);
+function initFeed(file) {
+    var fw = new FileWriter(file, 'UTF-8', false);
+    var xsw = new XMLStreamWriter(fw);
     
     //Create a string to represent the extraction date
-    var date : Date = new Date();
-    var extractDate : String = date.getFullYear()+"-"+insertLeadingZero(date.getMonth()+1)+"-"+insertLeadingZero(date.getDate())+"T00:00:00.000000"; 
-    
+    var date = new Date();
+    var extractDate = date.getFullYear()+'-'+insertLeadingZero(date.getMonth()+1)+'-'+insertLeadingZero(date.getDate())+'T00:00:00.000000'; 
 
-	   xsw.writeStartDocument("UTF-8", "1.0");
-	   xsw.writeCharacters("\n");
-	   xsw.writeStartElement("Feed");
-	   xsw.writeAttribute("xmlns", BV_Constants.XML_NAMESPACE_PRODUCT);
-	   xsw.writeAttribute("name", bvHelper.getCustomerName());
-	   xsw.writeAttribute("incremental", BV_Constants.XML_INCREMENTAL);
-	   xsw.writeAttribute("extractDate", extractDate);
-	   xsw.writeAttribute("generator", BV_Constants.XML_GENERATOR);
-
-    
-    return xsw;
+	xsw.writeStartDocument('UTF-8', '1.0');
+	xsw.writeCharacters('\n');
+	xsw.writeStartElement('Feed');
+	xsw.writeAttribute('xmlns', BV_Constants.XML_NAMESPACE_PRODUCT);
+	xsw.writeAttribute('name', BVHelper.getCustomerName());
+	xsw.writeAttribute('incremental', BV_Constants.XML_INCREMENTAL);
+	xsw.writeAttribute('extractDate', extractDate);
+	xsw.writeAttribute('generator', BV_Constants.XML_GENERATOR);
+	
+	return xsw;
 }
 
-function finalizeFeed(xsw : XMLStreamWriter) {
+function finalizeFeed(xsw) {
     xsw.writeEndElement();  //</Feed>
     xsw.writeEndDocument();
    
@@ -390,16 +384,14 @@ function finalizeFeed(xsw : XMLStreamWriter) {
     xsw.close();
 }
 
-function writeElement(xsw : XMLStreamWriter, elementName : String, chars : String) {
+function writeElement(xsw, elementName, chars) {
     xsw.writeStartElement(elementName);
     xsw.writeCharacters(chars);
     xsw.writeEndElement();
 }
 
-function writeElementCDATA(xsw : XMLStreamWriter, elementName : String, chars : String) {
+function writeElementCDATA(xsw, elementName, chars) {
     xsw.writeStartElement(elementName);
-    xsw.writeCData(chars != null ? chars : "");
+    xsw.writeCData(chars != null ? chars : '');
     xsw.writeEndElement();
 }
-
-

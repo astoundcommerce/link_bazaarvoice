@@ -10,87 +10,83 @@
 * @output Message : String
 *
 */
-importPackage( dw.system );
-importPackage( dw.io );
-importPackage( dw.util );
 
-importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
-importScript("int_bazaarvoice:/lib/libConstants.ds");
+var File = require('dw/io/File');
+var FileWriter = require('dw/io/FileWriter');
+var Site = require('dw/system/Site');
+var StringUtils = require('dw/util/StringUtils');
+var XMLStreamWriter = require('dw/io/XMLStreamWriter');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvExportLocalizedPurchaseFeed.ds');
 
-var bvHelper = getBazaarVoiceHelper();
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
-function execute( pdict : PipelineDictionary ) : Number
-{
-
-    var orderList : XML = pdict.OrderList;
-    var orderCount : Number = pdict.OrderCount;
+function execute(pdict) {
+    var orderList = pdict.OrderList;
+    var orderCount = pdict.OrderCount;
     
-    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed_C2013");
+    var purchaseFeedEnabled = Site.getCurrent().getCustomPreferenceValue('bvEnablePurchaseFeed_C2013');
     if (!purchaseFeedEnabled) {
        //If the feed isn't enabled, just return.
-       pdict.Message = "Purchase Feed is not enabled!";
+       pdict.Message = 'Purchase Feed is not enabled!';
+       Logger.info('Purchase Feed is not enabled!');
        return PIPELET_NEXT;
     }
     
 	// Don't create feed if no orders are in the feed
 	if (orderCount == 0) {
-		pdict.Message = "No order to export!";
+		pdict.Message = 'No order to export!';
+		Logger.info('No order to export!');
 		return PIPELET_NEXT;
 	}
     
     //Establish whom to notify if this export fails
-    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail_C2013");
+    //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue('bvAdminEmail_C2013');
     
-    var date : Date = new Date();
-    var filename : String = "PurchaseFeed-" 
-                                + date.getFullYear() 
-                                + bvHelper.insertLeadingZero(date.getMonth() + 1) 
-                                + bvHelper.insertLeadingZero(date.getDate() + 1) 
-                                + bvHelper.insertLeadingZero(date.getHours() + 1) 
-                                + bvHelper.insertLeadingZero(date.getMinutes() + 1) 
-                                + bvHelper.insertLeadingZero(date.getMilliseconds()) + ".xml"; 
-    var file : File = new File(File.TEMP + "/" + filename);
+    var date = new Date();
+    var filename = 'PurchaseFeed-' 
+		+ date.getFullYear() 
+		+ BVHelper.insertLeadingZero(date.getMonth() + 1) 
+		+ BVHelper.insertLeadingZero(date.getDate() + 1) 
+		+ BVHelper.insertLeadingZero(date.getHours() + 1) 
+		+ BVHelper.insertLeadingZero(date.getMinutes() + 1) 
+		+ BVHelper.insertLeadingZero(date.getMilliseconds()) + '.xml'; 
+		
+    var file = new File(File.TEMP + '/' + filename);
     
     try {
-    	
-        
         /* Create an output stream */
-        var xsw : XMLStreamWriter = writeFeed(file, orderList);
+        var xsw = writeFeed(file, orderList);
             
-        var destinationPath : String = BV_Constants.PurchaseFeedPath;
-        var uploadFilename : String = BV_Constants.PurchaseFeedFilename;
-        var destinationFilename : String = uploadFilename.substr(0, uploadFilename.length - 4) + "-" + StringUtils.formatCalendar(Site.getCalendar(), "yyyy-MM-dd") + ".xml";
+        var destinationPath = BV_Constants.PurchaseFeedPath;
+        var uploadFilename = BV_Constants.PurchaseFeedFilename;
+        var destinationFilename = uploadFilename.substr(0, uploadFilename.length - 4) + '-' + StringUtils.formatCalendar(Site.getCalendar(), 'yyyy-MM-dd') + '.xml';
         
         
 
-        var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+        var ret = BVHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
         pdict.Message = ret;
 
     } catch(ex) {
-        Logger.error("[exception caught]" + ex.message);
+        Logger.error('Exception caught: ' + ex.message);
         return PIPELET_ERROR;    
     } finally {
         if (file.exists()) {
-            file.remove();
+            //file.remove();
         }
     }        
 
     return PIPELET_NEXT;
 }
 
-function writeFeed(file : File, orderlist : XML) : XMLStreamWriter {
-    var fw : FileWriter = new FileWriter(file, "UTF-8");
-    var xsw : XMLStreamWriter = new XMLStreamWriter(fw);
+function writeFeed(file, orderlist) {
+    var fw = new FileWriter(file, 'UTF-8');
+    var xsw = new XMLStreamWriter(fw);
+    var xmlns = BV_Constants.XML_NAMESPACE_PURCHASE;
     
-    xsw.writeStartDocument("UTF-8", "1.0");
-
-    var xmlns : String = BV_Constants.XML_NAMESPACE_PURCHASE;
-    var feed : XML = <Feed xmlns={xmlns}>
-    {orderlist.children()}
-    </Feed>;
-    
+    xsw.writeStartDocument('UTF-8', '1.0');
+    var feed = <Feed xmlns={xmlns}>{orderlist.children()}</Feed>;
     xsw.writeRaw(feed);
-    
 	xsw.writeEndDocument();
    
     xsw.flush();

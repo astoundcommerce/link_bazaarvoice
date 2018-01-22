@@ -10,69 +10,69 @@
 * @output Message : String
 */
 
-importPackage( dw.system );
-importPackage( dw.object );
-importPackage( dw.catalog );
-importPackage( dw.io );
-importPackage( dw.util );
+var FileReader = require('dw/io/FileReader');
+var ProductMgr = require('dw/catalog/ProductMgr');
+var StringUtils = require('dw/util/StringUtils');
+var XMLStreamConstants = require('dw/io/XMLStreamConstants');
+var XMLStreamReader = require('dw/io/XMLStreamReader');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvImportLocalizedRatingFeed.ds');
 
-importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
-importScript( "int_bazaarvoice:/lib/libConstants.ds" );
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
-function execute(pdict: PipelineDictionary): Number {
-    var BazaarVoiceHelper = getBazaarVoiceHelper();
-    var localeID : String = pdict.LocaleID;
-    var bvLocales : HashMap = pdict.BVLocales;
+function execute(pdict) {
+    var localeID = pdict.LocaleID;
+    var bvLocales = pdict.BVLocales;
     
     try {
     	
     	//clean all the product first
-    	var products : SeekableIterator = ProductMgr.queryAllSiteProducts();
-		
+    	var products = ProductMgr.queryAllSiteProducts();
 		while(products.hasNext()){
-			var product : Product = products.next();			
-			product.custom.bvAverageRating = "0.0";
-			product.custom.bvReviewCount = "0";
-			product.custom.bvRatingRange = "0";
+			var product = products.next();			
+			if(!empty(product.custom.bvAverageRating) || !empty(product.custom.bvReviewCount) || !empty(product.custom.bvRatingRange)){
+				product.custom.bvAverageRating = '0.0';
+				product.custom.bvReviewCount = '0';
+				product.custom.bvRatingRange = '0';
+			}
 		}
 		products.close();
     	
-        var tempFile: File = pdict.TempFile;
+        var tempFile = pdict.TempFile;
         
-        var productIds : Array = new Array();     
-	    var xmlReader : XMLStreamReader = new XMLStreamReader(new FileReader(tempFile, "UTF-8"));
+        var productIds = [];     
+	    var xmlReader = new XMLStreamReader(new FileReader(tempFile, 'UTF-8'));
 	    
-	    var productXML : XML = null;
-	    var iProcessed: Number = new Number(0);
-	    var iFailed: Number = new Number(0);
-	    var id: String = "";
-	    var bvAverageRating: String = "";
-	    var bvReviewCount: String = "";
-	    var bvRatingRange: String = "";
+	    var productXML = null;
+	    var iProcessed = 0;
+	    var iFailed = 0;
+	    var id = '';
+	    var bvAverageRating = '';
+	    var bvReviewCount = '';
+	    var bvRatingRange = '';
 	    
-	    var reg : RegExp = /^\d{4}-[a-z]{2}_[a-zA-Z]{2}$/;
+	    var reg = /^\d{4}-[a-z]{2}_[a-zA-Z]{2}$/;
 	    
-	    while(xmlReader.hasNext()){	  
+	    while(xmlReader.hasNext()) {	  
 			xmlReader.next();	
-			if (xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT && xmlReader.getLocalName() == "Product")
+			if (xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT && xmlReader.getLocalName() == 'Product')
 			{
 				productXML = xmlReader.getXMLObject();
-				id = "";
-				bvAverageRating = "0";
-				bvReviewCount = "0.0";
-				bvRatingRange = "0";
+				id = '';
+				bvAverageRating = '0';
+				bvReviewCount = '0.0';
+				bvRatingRange = '0';
 				
 				var ns = productXML.namespace();
 				if(!empty(productXML.ns::ExternalId.toString())){
 					id = productXML.ns::ExternalId.toString();
 										
-					var localeItemList : XMLList = productXML.ns::ReviewStatistics.ns::LocaleDistribution.ns::LocaleDistributionItem;
-					
+					var localeItemList = productXML.ns::ReviewStatistics.ns::LocaleDistribution.ns::LocaleDistributionItem;
 					if (localeItemList.length() > 0) {	
-						for each(var localeItem : XML in localeItemList){
-																			
-							var bvLocale : String = bvLocales.get(localeID);
-							
+						//for each(var localeItem : XML in localeItemList) {
+						for(var i = 0; i < localeItemList.length(); i++) {
+							var localeItem = localeItemList[i];
+							var bvLocale = bvLocales.get(localeID);
 							if(bvLocale != null){					    	
 						    	if(!empty(localeItem.ns::DisplayLocale.toString()) && localeItem.ns::DisplayLocale.toString().equals(bvLocale)){
 													
@@ -91,13 +91,12 @@ function execute(pdict: PipelineDictionary): Number {
 							}
 						}
 					
-						var product: Product = ProductMgr.getProduct(BazaarVoiceHelper.decodeId(id));
+						var product = ProductMgr.getProduct(BVHelper.decodeId(id));
 						if (product != null) {
 						    product.custom.bvAverageRating = bvAverageRating;
 						    product.custom.bvReviewCount = bvReviewCount;
 						    product.custom.bvRatingRange = bvRatingRange;
 						    
-						    productIds.push(product.ID);
 						    iProcessed++;
 						} else {
 						    iFailed++;
@@ -108,25 +107,13 @@ function execute(pdict: PipelineDictionary): Number {
 	    }
 	    xmlReader.close();
 	
-		//make sure all the product is updated
-		var products : SeekableIterator = ProductMgr.queryAllSiteProducts();
-		while(products.hasNext()){
-			var product : Product = products.next();
-			if(productIds.indexOf(product.ID) == -1 && (!empty(product.custom.bvAverageRating) || !empty(product.custom.bvReviewCount) || !empty(product.custom.bvRatingRange))){
-				product.custom.bvAverageRating = "0.0";
-				product.custom.bvReviewCount = "0";
-				product.custom.bvRatingRange = "0";
-			}
-		}
-		products.close();
-		
-	    pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE_LOCALE, "SUCCESS", "Import Processed - Connecton Details", "", "", "", "", "", localeID)
-	    pdict.Message += "Total Record Updated: " + + iProcessed.toString() + "\n";
-	    pdict.Message += "Total Record Failed: " + iFailed.toString() + "\n";
+		pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE_LOCALE, 'SUCCESS', 'Import Processed - Connecton Details', '', '', '', '', '', localeID)
+	    pdict.Message += 'Total Record Updated: ' + + iProcessed.toString() + '\n';
+	    pdict.Message += 'Total Record Failed: ' + iFailed.toString() + '\n';
 
     } catch (ex) {
-		Logger.error("Exception caught: {0}", ex.message);
-        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE_LOCALE, "ERROR", "Exception=" + ex.message, "", "", "", "", "", localeID);
+		Logger.error('Exception caught: {0}', ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE_LOCALE, 'ERROR', 'Exception=' + ex.message, '', '', '', '', '', localeID);
         return PIPELET_ERROR;
     }
 

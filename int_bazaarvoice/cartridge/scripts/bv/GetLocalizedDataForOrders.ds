@@ -10,37 +10,34 @@
 * @output OrderList : XML
 * @output OrderCount : Number
 */
-importPackage( dw.system );
-importPackage( dw.order );
-importPackage( dw.util );
-importPackage( dw.catalog );
-importPackage( dw.content );
-importPackage( dw.object );
 
-importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
-importScript("int_bazaarvoice:/lib/libConstants.ds");
+var Calendar = require('dw/util/Calendar');
+var Order = require('dw/order/Order');
+var OrderMgr = require('dw/order/OrderMgr');
+var Site = require('dw/system/Site');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'GetLocalizedDataForOrders.ds');
 
-var bvHelper = getBazaarVoiceHelper();
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
-function execute( pdict : PipelineDictionary ) : Number
-{
-	var orderList : XML = pdict.OrderList;
-	var localeID : String = pdict.LocaleID;
-	var bvLocales : HashMap = pdict.BVLocales;
-	var bvLocale : String = bvLocales.get(localeID);
-	var orderCount : Number = pdict.OrderCount;
+function execute(pdict) {
+	var orderList = pdict.OrderList;
+	var localeID = pdict.LocaleID;
+	var bvLocales = pdict.BVLocales;
+	var bvLocale = bvLocales.get(localeID);
+	var orderCount = pdict.OrderCount;
 	
-	var numDaysLookback : Number = BV_Constants.PurchaseFeedNumDays;	
-	var numDaysLookbackStartDate : Date = null;
+	var numDaysLookback = BV_Constants.PurchaseFeedNumDays;	
+	var numDaysLookbackStartDate = null;
     var helperCalendar = new Calendar();
     helperCalendar.add(Calendar.DATE, (-1 * numDaysLookback));  //Subtract numDaysLookback days from the current date.
     numDaysLookbackStartDate = helperCalendar.getTime();
 	
-	var queryString : String = "status = {0} AND paymentStatus = {1} AND creationDate >= {2}";
-    var orderItr : SeekableIterator = OrderMgr.queryOrders(queryString, "orderNo ASC", Order.ORDER_STATUS_COMPLETED, Order.PAYMENT_STATUS_PAID, numDaysLookbackStartDate);
+	var queryString = 'status = {0} AND paymentStatus = {1} AND creationDate >= {2}';
+    var orderItr = OrderMgr.queryOrders(queryString, 'orderNo ASC', Order.ORDER_STATUS_COMPLETED, Order.PAYMENT_STATUS_PAID, numDaysLookbackStartDate);
 	
 	while(orderItr.hasNext()){
-		var order : Order = orderItr.next();
+		var order = orderItr.next();
 		if(order.customerLocaleID.equals(localeID) && shouldIncludeOrder(order)){
 			writeOrder(order, bvLocale, orderList);
 			order.custom[BV_Constants.CUSTOM_FLAG] = true;
@@ -56,92 +53,88 @@ function execute( pdict : PipelineDictionary ) : Number
     return PIPELET_NEXT;
 }
 
-function writeOrder(order : Order, locale : String, orderList : XML) { 
+function writeOrder(order, locale, orderList) { 
     
-    var emailAddress : String = order.getCustomerEmail();
-    var locale : String = locale;
-    var userName : String = order.getCustomerName();
-    var userID : String = order.getCustomerNo();
-    var txnDate : Date = getTransactionDate(order);
+    var emailAddress = order.getCustomerEmail();
+    var locale = locale;
+    var userName = order.getCustomerName();
+    var userID = order.getCustomerNo();
+    var txnDate = getTransactionDate(order);
     
-   
-    
-
-	    var lineItems : Collection = order.getAllProductLineItems();
-		var productList : XML = <Products></Products>;
-	    for each(var lineItem : ProductLineItem in lineItems) {
-	        var prod : Product = lineItem.getProduct();
-	        
-	        if (!prod) {
-	        	// Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
-	        	continue;
-	        }
-	        
-	        var externalID : String = bvHelper.replaceIllegalCharacters((prod.variant && !BV_Constants.UseVariantID) ? prod.variationModel.master.ID : prod.ID);
-	        var name : String = prod.name;
-	        var price : Number = lineItem.getPriceValue();
-	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);
-	        
-	        var pdct : XML = <Product>
-	        	<ExternalId>{externalID}</ExternalId>
-	        	<Name>{name}</Name>
-        		<Price>{price}</Price>
-        		</Product>;
-				
-			if(!empty(prodImage)) {
-				pdct.appendChild(<ImageUrl>{prodImage}</ImageUrl>);
-			}
+	var lineItems = order.getAllProductLineItems();
+	var productList = <Products></Products>;
+    for(var i = 0; i < lineItems.length; i++) {
+    	var lineItem = lineItems[i];
+        var prod = lineItem.getProduct();
+        
+        if (!prod) {
+        	// Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
+        	continue;
+        }
+        
+        var externalID = BVHelper.replaceIllegalCharacters((prod.variant && !BV_Constants.UseVariantID) ? prod.variationModel.master.ID : prod.ID);
+        var name = prod.name;
+        var price = lineItem.getPriceValue();
+        var prodImage = BVHelper.getImageURL(prod, BV_Constants.PURCHASE);
+        
+        var pdct = <Product>
+        	<ExternalId>{externalID}</ExternalId>
+        	<Name>{name}</Name>
+    		<Price>{price}</Price>
+    		</Product>;
 			
-			
-  			productList.appendChild(pdct);
-	    }
-	    
-	     var orderXML : XML = <Interaction>
-		    <EmailAddress>{emailAddress}</EmailAddress>
-		    <Locale>{locale}</Locale>
-		    <UserName>{userName}</UserName>
-		    <UserID>{userID}</UserID>
-		    <TransactionDate>{txnDate.toISOString()}</TransactionDate>
-		    <Products>{productList.children()}</Products>
-		  </Interaction>;
-	    
-	    //orderXML.products = productList.children();	    
-	    orderList.appendChild(orderXML);
+		if(!empty(prodImage)) {
+			pdct.appendChild(<ImageUrl>{prodImage}</ImageUrl>);
+		}
+		
+		productList.appendChild(pdct);
+    }
+	
+	var orderXML = <Interaction>
+	    <EmailAddress>{emailAddress}</EmailAddress>
+	    <Locale>{locale}</Locale>
+	    <UserName>{userName}</UserName>
+	    <UserID>{userID}</UserID>
+	    <TransactionDate>{txnDate.toISOString()}</TransactionDate>
+	    <Products>{productList.children()}</Products>
+	  </Interaction>;
+    
+    orderList.appendChild(orderXML);
 
 }
 
-function shouldIncludeOrder(order : Order) : Boolean {
-	var triggeringEvent : String = getTriggeringEvent();
-    var delayDaysSinceEvent : Number = BV_Constants.PurchaseFeedWaitDays;
+function shouldIncludeOrder(order) {
+	var triggeringEvent = getTriggeringEvent();
+    var delayDaysSinceEvent = BV_Constants.PurchaseFeedWaitDays;
     
     // Have we already included this order in a previous feed?  If so, don't re-export it.
-    var custAttribs : CustomAttributes = order.getCustom();
+    var custAttribs = order.getCustom();
     if ((BV_Constants.CUSTOM_FLAG in custAttribs) && (custAttribs[BV_Constants.CUSTOM_FLAG] === true)) {
-    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order already exported.");
+    	Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Order already exported.');
     	return false;
     }
     
     //Depending on the Triggering Event, we have a different set of criteria that must be met.
-    var thresholdTimestamp : Date = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
-    if (triggeringEvent === "shipping") {
+    var thresholdTimestamp = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
+    if (triggeringEvent === 'shipping') {
     	//Is this order fully shipped?
     	if (order.getShippingStatus().value !== Order.SHIPPING_STATUS_SHIPPED) {
-    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Not completely shipped.");
+    		Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Not completely shipped.');
     		return false;
     	}
     	
     	//Are we outside of the delay period?
-    	var latestItemShipDate : Date = getLatestShipmentDate(order);
+    	var latestItemShipDate = getLatestShipmentDate(order);
     	if (latestItemShipDate.getTime() > thresholdTimestamp.getTime()) {
-    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
+    		Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Order date not outside the threshold of ' + thresholdTimestamp.toISOString());
     		return false;
     	}
     	
-    } else if (triggeringEvent === "purchase") {
+    } else if (triggeringEvent === 'purchase') {
     	//We need to see if the order placement timestamp of this order is outside of the delay period
-    	var orderPlacementDate : Date = order.getCreationDate();
+    	var orderPlacementDate = order.getCreationDate();
     	if (orderPlacementDate.getTime() > thresholdTimestamp.getTime()) {
-    	   Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
+    	   Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Order date not outside the threshold of ' + thresholdTimestamp.toISOString());
     	   return false;
     	}
     }
@@ -150,51 +143,52 @@ function shouldIncludeOrder(order : Order) : Boolean {
     
     // Nothing fancy, but do we have what basically looks like a legit email address?
     if (empty(order.getCustomerEmail()) || !order.getCustomerEmail().match(/@/)) {
-    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". No valid email address.");
+    	Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. No valid email address.');
     	return false;
     }
     
     // Does the order have any line items ?
     if (order.getAllProductLineItems().getLength() < 1) {
-    	Logger.debug("BV - Skipping order:" + order.getOrderNo() + ". No items in this order.");
+    	Logger.debug('BV - Skipping order:' + order.getOrderNo() + '. No items in this order.');
     	return false;
     }
         
 	return true;
 }
 
-function getTransactionDate(order : Order) : Date {
-    var txnDate : Date = order.getCreationDate();
+function getTransactionDate(order) {
+    var txnDate = order.getCreationDate();
     
-    var triggeringEvent : String = getTriggeringEvent();
-    if (triggeringEvent === "shipping") {
+    var triggeringEvent = getTriggeringEvent();
+    if (triggeringEvent === 'shipping') {
         txnDate = getLatestShipmentDate(order);
     }
     
     return txnDate;
 }
 
-function getTriggeringEvent() : String {
-    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent_C2013");
+function getTriggeringEvent() {
+    var triggeringEvent = Site.getCurrent().getCustomPreferenceValue('bvPurchaseFeedTriggeringEvent_C2013');
     if (!triggeringEvent) {
-        triggeringEvent = "shipping";
+        triggeringEvent = 'shipping';
     } else {
         triggeringEvent = triggeringEvent.toString().toLowerCase();
     }
     return triggeringEvent;
 }
 
-function getDelayDaysThresholdTimestamp(delayDaysSinceEvent : Number) : Date {
+function getDelayDaysThresholdTimestamp(delayDaysSinceEvent) {
     var helperCalendar = new Calendar();
     helperCalendar.add(Calendar.DATE, (-1 * delayDaysSinceEvent));  //Subtract delayDaysSinceEvent days from the current date.
     return helperCalendar.getTime();
 }
 
-function getLatestShipmentDate(order : Order) : Date {
-	var latestShipment : Number = 0; // initialize to epoch
+function getLatestShipmentDate(order) {
+	var latestShipment = 0; // initialize to epoch
 	
-	var shipments : Collection = order.getShipments();
-	for each(var shipment : Shipment in shipments) {
+	var shipments = order.getShipments();
+	for(var i = 0; i < shipments.length; i++) {
+		var shipment = shipments[i]; 
         latestShipment = Math.max(latestShipment, shipment.getCreationDate().getTime());
     }
     

@@ -9,38 +9,41 @@
 *
 * @output CategoryObjects : dw.util.Iterator
 */
-importPackage( dw.system );
-importPackage( dw.catalog );
-importPackage( dw.util );
-importPackage( dw.web );
-importPackage( dw.content );
+var ArrayList = require('dw/util/ArrayList');
+var CatalogMgr = require('dw/catalog/CatalogMgr');
+var HashMap = require('dw/util/HashMap');
+var Site = require('dw/system/Site');
+var URLUtils = require('dw/web/URLUtils');
+var URLAction = require('dw/web/URLAction');
+var URLParameter = require('dw/web/URLParameter');
 
- importScript( "int_bazaarvoice:/model/LocalizedCategory.ds" );
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
-function execute( pdict : PipelineDictionary ) : Number
-{
+function execute(pdict) {
 
-	var categoryObjects : Collection = pdict.CategoryObjects.asList();
-	var catObjList : Collection = new ArrayList();
-	var localeID : String = pdict.LocaleID;
+	var categoryObjects = pdict.CategoryObjects;
+	var catObjList = new ArrayList();
+	var localeID = pdict.LocaleID;
 	
-	for each( var catObject in categoryObjects){
-		var category : Category = CatalogMgr.getCategory(catObject.getCategoryId());
+	while(categoryObjects.hasNext()) {
+		var catObject = categoryObjects.next();
+		var category = CatalogMgr.getCategory(catObject.getCategoryId());
 		
 		var localeMap = catObject.getLocaleMap();
 		
-		var key : String = localeID;
-		var map : HashMap = localeMap.containsKey(key)? localeMap.get(key) : new HashMap();
+		var key = localeID;
+		var map = localeMap.containsKey(key)? localeMap.get(key) : new HashMap();
 				
-	    var urlAction : URLAction = new URLAction('Search-Show', Site.getCurrent().getID(), localeID);
-		map.put("CategoryPageURL", URLUtils.http(urlAction, URLParameter('cgid', category.ID)));
+	    var urlAction = new URLAction('Search-Show', Site.getCurrent().getID(), localeID);
+		map.put('CategoryPageURL', URLUtils.http(urlAction, new URLParameter('cgid', category.ID)));
 		
-		var catImage : MediaFile = category.getImage();    
+		var catImage = category.getImage();    
 	    if(catImage){
-	    	map.put("ImageURL", catImage.getAbsURL());
+	    	map.put('ImageURL', catImage.getAbsURL());
 	    }
 				
-		map.put("Name", category.displayName);
+		map.put('Name', category.displayName);
 		
 		if(!map.empty){
 			localeMap.put(key, map);

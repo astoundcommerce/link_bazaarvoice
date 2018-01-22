@@ -1,100 +1,112 @@
 /**
 *
-*
 * @output Message : String
 */
-importPackage( dw.system );
-importPackage( dw.order );
-importPackage( dw.util );
-importPackage( dw.web );
-importPackage( dw.net );
-importPackage( dw.catalog );
-importPackage( dw.object );
-importPackage( dw.io );
-importPackage( dw.content );
 
-importScript("int_bazaarvoice:/lib/libBazaarvoice.ds");
-importScript("int_bazaarvoice:/lib/libConstants.ds");
+var Calendar = require('dw/util/Calendar');
+var File = require('dw/io/File');
+var FileWriter = require('dw/io/FileWriter');
+var HashMap = require('dw/util/HashMap');
+var Order = require('dw/order/Order');
+var OrderMgr = require('dw/order/OrderMgr');
+var Site = require('dw/system/Site');
+var StringUtils = require('dw/util/StringUtils');
+var XMLIndentingStreamWriter = require('dw/io/XMLStreamWriter');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvExportPurchaseFeed.ds');
 
-var bvHelper = getBazaarVoiceHelper();
- 
-function execute( pdict : PipelineDictionary ) : Number {
-    
-    var purchaseFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnablePurchaseFeed_C2013");
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+
+var localeMap;
+var currentLocale = request.locale;
+var bvLocale = null; 
+
+function execute(pdict) {
+	localeMap = buildLocaleMap();
+	if(!localeMap.empty && localeMap.containsKey(currentLocale)) {
+		bvLocale = localeMap.get(currentLocale);
+	} else {
+		Logger.error('bvLocaleMapping has no matching locale mapping for current locale: ' + currentLocale);
+		return PIPELET_ERROR;
+	}
+	
+    var purchaseFeedEnabled = Site.getCurrent().getCustomPreferenceValue('bvEnablePurchaseFeed_C2013');
     if (!purchaseFeedEnabled) {
        //If the feed isn't enabled, just return.
-       pdict.Message = "Purchase Feed is not enabled!";
+       pdict.Message = 'Purchase Feed is not enabled!';
+       Logger.info('Purchase Feed is not enabled!');
        return PIPELET_NEXT;
     }
     
     //Establish whom to notify if this export fails
     //pdict.NotifyToEmailId = Site.getCurrent().getCustomPreferenceValue("bvAdminEmail_C2013");
     
-    var date : Date = new Date();
-    var filename : String = "PurchaseFeed-" 
-                                + date.getFullYear() 
-                                + bvHelper.insertLeadingZero(date.getMonth() + 1) 
-                                + bvHelper.insertLeadingZero(date.getDate() + 1) 
-                                + bvHelper.insertLeadingZero(date.getHours() + 1) 
-                                + bvHelper.insertLeadingZero(date.getMinutes() + 1) 
-                                + bvHelper.insertLeadingZero(date.getMilliseconds()) + ".xml"; 
-    var file : File = new File(File.TEMP + "/" + filename);
+    var date = new Date();
+    var filename = 'PurchaseFeed-' 
+		+ date.getFullYear() 
+		+ BVHelper.insertLeadingZero(date.getMonth() + 1) 
+		+ BVHelper.insertLeadingZero(date.getDate() + 1) 
+		+ BVHelper.insertLeadingZero(date.getHours() + 1) 
+		+ BVHelper.insertLeadingZero(date.getMinutes() + 1) 
+		+ BVHelper.insertLeadingZero(date.getMilliseconds()) + '.xml'; 
+    var file = new File(File.TEMP + '/' + filename);
     
     try {
         
         /* Create an output stream */
-        var xsw : XMLStreamWriter = initFeed(file);
+        var xsw = initFeed(file);
         
         /* Process Orders */
         var numOrdersExported = writeOrders(xsw);
         
         // Write the closing Feed element, then flush & close the stream
-        bvHelper.finalizeFeed(xsw);
+        BVHelper.finalizeFeed(xsw);
             
-        var destinationPath : String = BV_Constants.PurchaseFeedPath;
-        var uploadFilename : String = BV_Constants.PurchaseFeedFilename;
-        var destinationFilename : String = uploadFilename.substr(0, uploadFilename.length - 4) + "-" + StringUtils.formatCalendar(Site.getCalendar(), "yyyy-MM-dd") + ".xml";
+        var destinationPath = BV_Constants.PurchaseFeedPath;
+        var uploadFilename = BV_Constants.PurchaseFeedFilename;
+        var destinationFilename = uploadFilename.substr(0, uploadFilename.length - 4) + '-' + StringUtils.formatCalendar(Site.getCalendar(), 'yyyy-MM-dd') + '.xml';
         
         
         // Don't bother uploading if no orders are in the feed
         if (numOrdersExported > 0) {
-            var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+            var ret = BVHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
             pdict.Message = ret;
         }else {
-        	pdict.Message = "No order to export!";
+        	pdict.Message = 'No order to export!';
+        	Logger.info('No order to export!');
         }
             
     } catch(ex) {
-        Logger.error("[bvExportPurchaseFeed.ds exception caught]" + ex.message);
+        Logger.error('Exception caught: ' + ex.message);
         return PIPELET_ERROR;    
     } finally {
         if (file.exists()) {
-            file.remove();
+            //file.remove();
         }
     }        
     
     return PIPELET_NEXT;
 }
 
-function writeOrders(xsw : XMLStreamWriter) : Number { 
+function writeOrders(xsw) { 
     
-    var numDaysLookback : Number = BV_Constants.PurchaseFeedNumDays;
+    var numDaysLookback = BV_Constants.PurchaseFeedNumDays;
     
-    var numDaysLookbackStartDate : Date = null;
+    var numDaysLookbackStartDate = null;
     var helperCalendar = new Calendar();
     helperCalendar.add(Calendar.DATE, (-1 * numDaysLookback));  //Subtract numDaysLookback days from the current date.
     numDaysLookbackStartDate = helperCalendar.getTime();
     
-    var queryString : String = "status = {0} AND paymentStatus = {1} AND creationDate >= {2}";
-    var orderItr : SeekableIterator = OrderMgr.queryOrders(queryString, "orderNo ASC", Order.ORDER_STATUS_COMPLETED, Order.PAYMENT_STATUS_PAID, numDaysLookbackStartDate);
+    //var queryString = 'status = {0} AND paymentStatus = {1} AND creationDate >= {2}';
+    var queryString = 'status = {0} AND paymentStatus = {1} AND creationDate >= {2}';
+    var orderItr = OrderMgr.queryOrders(queryString, 'orderNo ASC', Order.ORDER_STATUS_COMPLETED, Order.PAYMENT_STATUS_PAID, numDaysLookbackStartDate);
 
     var orderCtr = 0;
     while(orderItr.hasNext()) {
-    	var order : Order = orderItr.next();
-    	var locale : String = shouldIncludeOrder(order);
-    	if (!locale.equals("-")) {
+    	var order = orderItr.next();
+    	if(shouldIncludeOrder(order)) {
             orderCtr++;            
-            writeOrder(xsw, order, locale);
+            writeOrder(xsw, order, bvLocale);
             order.custom[BV_Constants.CUSTOM_FLAG] = true;
     	}
     }
@@ -105,83 +117,82 @@ function writeOrders(xsw : XMLStreamWriter) : Number {
 
 
 
-function writeOrder(xsw : XMLStreamWriter, order : Order, locale : String) { 
+function writeOrder(xsw, order, locale) { 
     
-    var emailAddress : String = order.getCustomerEmail();
-    var locale : String = locale;
-    var userName : String = order.getCustomerName();
-    var userID : String = order.getCustomerNo();
-    var txnDate : Date = getTransactionDate(order);
+    var emailAddress = order.getCustomerEmail();
+    var locale = locale;
+    var userName = order.getCustomerName();
+    var userID = order.getCustomerNo();
+    var txnDate = getTransactionDate(order);
     
-    var lineItems : Collection = order.getAllProductLineItems();
+    var lineItems = order.getAllProductLineItems();
     
-    xsw.writeStartElement("Interaction");
+    xsw.writeStartElement('Interaction');
 	    
-	    bvHelper.writeElement(xsw, "EmailAddress", emailAddress);
-	    if (locale !== "default" && locale != 'i') { bvHelper.writeElement(xsw, "Locale", locale); }
-	    if (userName) { bvHelper.writeElement(xsw, "UserName", userName); }
-	    if (userID) { bvHelper.writeElement(xsw, "UserID" , userID); }
-	    if (txnDate) { bvHelper.writeElement(xsw, "TransactionDate", txnDate.toISOString()); }
-	    
-	    xsw.writeStartElement("Products");
-	    for each(var lineItem : ProductLineItem in lineItems) {
-	        var prod : Product = lineItem.getProduct();
-	        
-	        if (!prod) {
-	        	// Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
-	        	continue;
-	        }
-	        
-	        var externalID : String = bvHelper.replaceIllegalCharacters((prod.variant && !BV_Constants.UseVariantID) ? prod.variationModel.master.ID : prod.ID);
-	        var name : String = prod.name;
-	        var price : Number = lineItem.getPriceValue();
-	        var prodImage : String = bvHelper.getImageURL(prod, BV_Constants.PURCHASE);
-	        
-	        xsw.writeStartElement("Product");
-	           bvHelper.writeElement(xsw, "ExternalId", externalID);
-	           if (name) { bvHelper.writeElement(xsw, "Name", name); }
-	           if (price) { bvHelper.writeElement(xsw, "Price", price); }
-	           if (!empty(prodImage)) { bvHelper.writeElement(xsw, "ImageUrl" , prodImage); }
-	        xsw.writeEndElement();    
-	    }
-	    xsw.writeEndElement();
+    BVHelper.writeElement(xsw, 'EmailAddress', emailAddress);
+    if (locale !== 'default' && locale !== null) { BVHelper.writeElement(xsw, 'Locale', locale); }
+    if (userName) { BVHelper.writeElement(xsw, 'UserName', userName); }
+    if (userID) { BVHelper.writeElement(xsw, 'UserID' , userID); }
+    if (txnDate) { BVHelper.writeElement(xsw, 'TransactionDate', txnDate.toISOString()); }
+    
+    xsw.writeStartElement('Products');
+    for(var i = 0; i < lineItems.length; i++) {
+    	var lineItem = lineItems[i];
+        var prod = lineItem.getProduct();
+        if (!prod) {
+        	// Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
+        	continue;
+        }
+        
+        var externalID = BVHelper.replaceIllegalCharacters((prod.variant && !BV_Constants.UseVariantID) ? prod.variationModel.master.ID : prod.ID);
+        var name = prod.name;
+        var price = lineItem.getPriceValue();
+        var prodImage = BVHelper.getImageURL(prod, BV_Constants.PURCHASE);
+        
+        xsw.writeStartElement('Product');
+		BVHelper.writeElement(xsw, 'ExternalId', externalID);
+		if (name) { BVHelper.writeElement(xsw, 'Name', name); }
+		if (price) { BVHelper.writeElement(xsw, 'Price', price); }
+		if (!empty(prodImage)) { BVHelper.writeElement(xsw, 'ImageUrl' , prodImage); }
+		xsw.writeEndElement();    
+    }
+    xsw.writeEndElement();
     xsw.writeEndElement();
 }
 
-function shouldIncludeOrder(order : Order) : String {
-	var locale : String = "-";
-	var triggeringEvent : String = getTriggeringEvent();
-    var delayDaysSinceEvent : Number = BV_Constants.PurchaseFeedWaitDays;
+function shouldIncludeOrder(order) {
+	var triggeringEvent = getTriggeringEvent();
+    var delayDaysSinceEvent = BV_Constants.PurchaseFeedWaitDays;
     
     // Have we already included this order in a previous feed?  If so, don't re-export it.
-    var custAttribs : CustomAttributes = order.getCustom();
+    var custAttribs = order.getCustom();
     if ((BV_Constants.CUSTOM_FLAG in custAttribs) && (custAttribs[BV_Constants.CUSTOM_FLAG] === true)) {
-    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order already exported.");
-    	return "-";
+    	Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Order already exported.');
+    	return false;
     }
     
     //Depending on the Triggering Event, we have a different set of criteria that must be met.
-    var thresholdTimestamp : Date = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
-    if (triggeringEvent === "shipping") {
+    var thresholdTimestamp = getDelayDaysThresholdTimestamp(delayDaysSinceEvent);
+    if (triggeringEvent === 'shipping') {
     	//Is this order fully shipped?
     	if (order.getShippingStatus().value !== Order.SHIPPING_STATUS_SHIPPED) {
-    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Not completely shipped.");
-    		return "-";
+    		Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Not completely shipped.');
+    		return false;
     	}
     	
     	//Are we outside of the delay period?
-    	var latestItemShipDate : Date = getLatestShipmentDate(order);
+    	var latestItemShipDate = getLatestShipmentDate(order);
     	if (latestItemShipDate.getTime() > thresholdTimestamp.getTime()) {
-    		Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
-    		return "-";
+    		Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Order date not outside the threshold of ' + thresholdTimestamp.toISOString());
+    		return false;
     	}
     	
-    } else if (triggeringEvent === "purchase") {
+    } else if (triggeringEvent === 'purchase') {
     	//We need to see if the order placement timestamp of this order is outside of the delay period
-    	var orderPlacementDate : Date = order.getCreationDate();
+    	var orderPlacementDate = order.getCreationDate();
     	if (orderPlacementDate.getTime() > thresholdTimestamp.getTime()) {
-    	   Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". Order date not outside the threshold of " + thresholdTimestamp.toISOString());
-    	   return "-";
+    	   Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. Order date not outside the threshold of ' + thresholdTimestamp.toISOString());
+    	   return false;
     	}
     }
     
@@ -189,127 +200,126 @@ function shouldIncludeOrder(order : Order) : String {
     
     // Nothing fancy, but do we have what basically looks like a legit email address?
     if (empty(order.getCustomerEmail()) || !order.getCustomerEmail().match(/@/)) {
-    	Logger.debug("BV - Skipping Order:" + order.getOrderNo() + ". No valid email address.");
-    	return "-";
+    	Logger.debug('BV - Skipping Order:' + order.getOrderNo() + '. No valid email address.');
+    	return false;
     }
     
     // Does the order have any line items ?
     if (order.getAllProductLineItems().getLength() < 1) {
-    	Logger.debug("BV - Skipping order:" + order.getOrderNo() + ". No items in this order.");
-    	return "-";
+    	Logger.debug('BV - Skipping order:' + order.getOrderNo() + '. No items in this order.');
+    	return false;
     }
     
-    //We need to find out if the order is placed with the bv locale
-    var allowedLocales : ArrayList = Site.getCurrent().allowedLocales;
-    var defaultLocale : String = Site.getCurrent().defaultLocale;
-    var DCArray : Array = Site.getCurrent().getCustomPreferenceValue("bvLocaleMapping_C2013");
-    
-    if(DCArray.length > 1){
-    	var index = 0;
-    	for each(var item : String in DCArray){
-    		item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
-
-            if(BV_Constants.regFull.test(item) && order.getCustomerLocaleID().equals(defaultLocale)){
-				locale = item;
-	    		break;
-			}
-			else if(BV_Constants.regPair.test(item)){				
-				var a = item.split(":");
-				a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
-				a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
-				
-				if(allowedLocales.indexOf(a[0]) != -1 && order.getCustomerLocaleID().equals(a[0])){
-					locale = a[1];
-					if(locale.indexOf("/") != -1) {
-						locale = locale.split("/")[1];
-					}
-		    		break;
-				}
-			}
-			
-			if(index == DCArray.length - 1 && locale.equals("-")){
-				Logger.error("[ExportPurchaseFeed][bvExportPurchaseFeed]Site Preferences bvLocaleMapping has no match setting for allowedlocales");
-				locale = "-";
-				break;
-			}   		
-    		index++;
-    	}
-    }
-    else if(DCArray.length == 1){
-    	var item : String = DCArray[0];
-		item = item.replace(/^[\s]+|[\"]|[\s]+$/g,"");
-		
-		if (BV_Constants.regFull.test(item)){
-			locale = item;
-		}
-		else if(BV_Constants.regPair.test(item)){
-			var a = item.split(":");
-			a[0] = a[0].replace(/^[\s]+|[\s]+$/g,"");
-			a[1] = a[1].replace(/^[\s]+|[\s]+$/g,"");
-			
-			if(allowedLocales.indexOf(a[0]) != -1 && order.getCustomerLocaleID().equals(a[0])){
-	    		locale = a[1];
-	    		if(locale.indexOf("/") != -1) {
-					locale = locale.split("/")[1];
-				}
-			}
-			else{
-				locale = "-";
-			}
-		}
-		else{
-			Logger.error("[ExportPurchaseFeed][bvExportPurchaseFeed]Site Preferences bvLocaleMapping has no match setting for allowedlocales");
-			locale = "-";
-		}
+    //We need to find out if the order is placed with the current locale
+    //we have already verified that we have a matching bv locale in the mappings
+    if(!order.getCustomerLocaleID().equals(currentLocale)) {
+    	Logger.debug('BV - Skipping order: current locale {0} does not match order locale {1}.', currentLocale, order.getCustomerLocaleID());
+    	return false;
     }
         
-	return locale;
+	return true;
 }
 
-function initFeed(file : File) : XMLStreamWriter {
-    var xsw : XMLIndentingStreamWriter = new XMLIndentingStreamWriter(new FileWriter(file, "UTF-8"));
-    
-    xsw.writeStartDocument("UTF-8", "1.0");
-    xsw.writeStartElement("Feed");
-    xsw.writeAttribute("xmlns", BV_Constants.XML_NAMESPACE_PURCHASE);
-       
+function initFeed(file) {
+    var xsw = new XMLIndentingStreamWriter(new FileWriter(file, 'UTF-8'));
+    xsw.writeStartDocument('UTF-8', '1.0');
+    xsw.writeStartElement('Feed');
+    xsw.writeAttribute('xmlns', BV_Constants.XML_NAMESPACE_PURCHASE);
     return xsw;
 }
 
-function getTransactionDate(order : Order) : Date {
-    var txnDate : Date = order.getCreationDate();
+function getTransactionDate(order) {
+    var txnDate = order.getCreationDate();
     
-    var triggeringEvent : String = getTriggeringEvent();
-    if (triggeringEvent === "shipping") {
+    var triggeringEvent = getTriggeringEvent();
+    if (triggeringEvent === 'shipping') {
         txnDate = getLatestShipmentDate(order);
     }
     
     return txnDate;
 }
 
-function getTriggeringEvent() : String {
-    var triggeringEvent : String = Site.getCurrent().getCustomPreferenceValue("bvPurchaseFeedTriggeringEvent_C2013");
+function getTriggeringEvent() {
+    var triggeringEvent = Site.getCurrent().getCustomPreferenceValue('bvPurchaseFeedTriggeringEvent_C2013');
     if (!triggeringEvent) {
-        triggeringEvent = "shipping";
+        triggeringEvent = 'shipping';
     } else {
         triggeringEvent = triggeringEvent.toString().toLowerCase();
     }
     return triggeringEvent;
 }
 
-function getDelayDaysThresholdTimestamp(delayDaysSinceEvent : Number) : Date {
+function getDelayDaysThresholdTimestamp(delayDaysSinceEvent) {
     var helperCalendar = new Calendar();
     helperCalendar.add(Calendar.DATE, (-1 * delayDaysSinceEvent));  //Subtract delayDaysSinceEvent days from the current date.
     return helperCalendar.getTime();
 }
 
-function getLatestShipmentDate(order : Order) : Date {
-	var latestShipment : Number = 0; // initialize to epoch
+function getLatestShipmentDate(order) {
+	var latestShipment = 0; // initialize to epoch
 	
-	var shipments : Collection = order.getShipments();
-	for each(var shipment : Shipment in shipments) {
+	var shipments = order.getShipments();
+	for(var i = 0; i < shipments.length; i++) {
+		var shipment = shipments[i];
         latestShipment = Math.max(latestShipment, shipment.getCreationDate().getTime());
     }
     
     return new Date(latestShipment);
+}
+
+function buildLocaleMap() {
+	var map = new HashMap();
+	
+	var allowedLocales = Site.getCurrent().allowedLocales;
+    var defaultLocale = Site.getCurrent().defaultLocale;
+    var DCArray = Site.getCurrent().getCustomPreferenceValue('bvLocaleMapping_C2013');
+    
+    if(DCArray.length > 1){
+    	for(var i = 0; i < DCArray.length; i++) {
+    		var item = DCArray[i];
+    		item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
+
+            if(BV_Constants.regFull.test(item)){
+				map.put(item, item);
+			}
+			else if(BV_Constants.regPair.test(item)){				
+				var a = item.split(':');
+				a[0] = a[0].replace(/^[\s]+|[\s]+$/g,'');
+				a[1] = a[1].replace(/^[\s]+|[\s]+$/g,'');
+				
+				var bvlocale = a[1];
+				if(bvlocale.indexOf('/') != -1) {
+					bvlocale = bvlocale.split('/')[1];
+				}
+				
+				map.put(a[0], a[1]);
+			}
+		}
+    }
+    else if(DCArray.length == 1){
+    	var item = DCArray[0];
+		item = item.replace(/^[\s]+|[\"]|[\s]+$/g,'');
+		
+		if (BV_Constants.regFull.test(item)){
+			map.put(item, item);
+		}
+		else if(BV_Constants.regPair.test(item)){
+			var a = item.split(':');
+			a[0] = a[0].replace(/^[\s]+|[\s]+$/g,'');
+			a[1] = a[1].replace(/^[\s]+|[\s]+$/g,'');
+			
+			var bvlocale = a[1];
+			if(bvlocale.indexOf('/') != -1) {
+				bvlocale = bvlocale.split('/')[1];
+			}
+			
+			map.put(a[0], a[1]);
+		}
+    }
+    
+    if(map.empty) {
+    	Logger.error('No locale mappings found during purchase export!');
+    }
+    
+    return map;
 }

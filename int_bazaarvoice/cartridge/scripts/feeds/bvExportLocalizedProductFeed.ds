@@ -91,67 +91,65 @@
 * @output RemoteFileName : String
 * @output Enabled : Boolean
 */
- 
- importPackage( dw.system );
+var ArrayList = require('dw/util/ArrayList');
+var CatalogMgr = require('dw/catalog/CatalogMgr');
+var ProductMgr = require('dw/catalog/ProductMgr');
+var Site = require('dw/system/Site');
+var StringUtils = require('dw/util/StringUtils');
+var File = require('dw/io/File');
+var FileWriter = require('dw/io/FileWriter');
+var URLUtils = require('dw/web/URLUtils');
+var XMLStreamWriter = require('dw/io/XMLStreamWriter');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvExportLocalizedProductFeed.ds');
 
- importPackage( dw.util );
- importPackage( dw.web );
- importPackage( dw.net );
- importPackage( dw.catalog );
- importPackage( dw.object );
- importPackage( dw.io );
- importPackage( dw.content );
- 
- importScript( "int_bazaarvoice:/lib/libBazaarvoice.ds" );
- importScript( "int_bazaarvoice:/lib/libConstants.ds" );
- importScript( "int_bazaarvoice:/model/LocalizedCategory.ds" );
- importScript( "int_bazaarvoice:/model/LocalizedProduct.ds" );
-  
- var bvHelper = getBazaarVoiceHelper();
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var Category_Object = require('int_bazaarvoice/cartridge/scripts/model/LocalizedCategory');
+var Product_Object = require('int_bazaarvoice/cartridge/scripts/model/LocalizedProduct');
  
 /**
  * Function: execute
  *
  * Main function of the script. 
  */
-function execute( pdict : PipelineDictionary ) : Number {
-	pdict.Message = "";
+function execute(pdict) {
+	pdict.Message = '';
 	
-	var productFeedEnabled : Boolean = Site.getCurrent().getCustomPreferenceValue("bvEnableProductFeed_C2013");
+	var productFeedEnabled = Site.getCurrent().getCustomPreferenceValue('bvEnableProductFeed_C2013');
 	pdict.Enabled = productFeedEnabled;
 	if (!productFeedEnabled) {
 	   //If the feed isn't enabled, just return.
 	   return PIPELET_NEXT;
 	}
     
-    var date : Date = new Date();
-    var filename : String = "ProductFeed-" + date.getFullYear() + insertLeadingZero(date.getMonth()+1) + insertLeadingZero(date.getDate()+1) + insertLeadingZero(date.getHours()+1) + insertLeadingZero(date.getMinutes()+1) + insertLeadingZero(date.getMilliseconds()) + ".xml"; 
-    var file : File = new File(File.TEMP + "/" + filename);
+    var date = new Date();
+    var filename = 'ProductFeed-' + date.getFullYear() + insertLeadingZero(date.getMonth()+1) + insertLeadingZero(date.getDate()+1) + insertLeadingZero(date.getHours()+1) + insertLeadingZero(date.getMinutes()+1) + insertLeadingZero(date.getMilliseconds()) + '.xml'; 
+    var file = new File(File.TEMP + '/' + filename);
     pdict.File = file;
     
-	var bvLocaleMap : HashMap = pdict.BVLocales;
-	var allowedLocales : Collection = Site.getCurrent().allowedLocales;
+	var bvLocaleMap = pdict.BVLocales;
+	var allowedLocales = Site.getCurrent().allowedLocales;
 	
-	var productObjectList : Collection = pdict.ProductObjects? pdict.ProductObjects.asList() : new ArrayList();
-	var categoryObjectList : Collection = pdict.CategoryObjects? pdict.CategoryObjects.asList() : new ArrayList();
+	var productObjectList = pdict.ProductObjects? new ArrayList(pdict.ProductObjects) : new ArrayList();
+	var categoryObjectList = pdict.CategoryObjects? new ArrayList(pdict.CategoryObjects) : new ArrayList();
      
     /* Create an output stream */
-    var xsw : XMLStreamWriter;
+    var xsw;
     
     try {
-    	if(empty(bvHelper.getCustomerName())) {
-    		throw new Error("Cannot retrieve customer name!");
+    	if(empty(BVHelper.getCustomerName())) {
+    		throw new Error('Cannot retrieve customer name!');
     	}
     	
-    	var destinationPath : String = BV_Constants.ProductFeedPath;
+    	var destinationPath = BV_Constants.ProductFeedPath;
 		if(empty(destinationPath)) {
-			throw new Error("BV_Constants.ProductFeedPath is null or empty!");
+			throw new Error('BV_Constants.ProductFeedPath is null or empty!');
 		}
 		pdict.RemotePath = destinationPath;
 		
-		var destinationFilename : String = BV_Constants.ProductFeedFilename;
+		var destinationFilename = BV_Constants.ProductFeedFilename;
     	if(empty(destinationFilename)) {
-			throw new Error("BV_Constants.ProductFeedFilename is null or empty!");
+			throw new Error('BV_Constants.ProductFeedFilename is null or empty!');
 		}
 		pdict.RemoteFileName = destinationFilename;
        	
@@ -172,14 +170,14 @@ function execute( pdict : PipelineDictionary ) : Number {
         // Write the closing Feed element, then flush & close the stream
         finalizeFeed(xsw);
             	        
-        //var ret : String = bvHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
+        //var ret : String = BVHelper.uploadFile(destinationPath, destinationFilename, file, pdict);
         //pdict.Message = ret;
             
     } catch(ex) {
-        Logger.error("Exception caught during localized catalog export: {0}", ex.message);
-        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,"ERROR", "Exception caught during localized catalog export: " + ex.message, "", "", "", "", "");         
+        Logger.error('Exception caught during localized catalog export: {0}', ex.message);
+        pdict.Message = StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', 'Exception caught during localized catalog export: ' + ex.message, '', '', '', '', '');         
         
-        xsw.writeCharacters("\n\n*********************************\n" + ex.message + "\n*********************************\n");
+        xsw.writeCharacters('\n\n*********************************\n' + ex.message + '\n*********************************\n');
 		xsw.flush();
 		xsw.close();	            
         return PIPELET_ERROR;    
@@ -195,13 +193,15 @@ function execute( pdict : PipelineDictionary ) : Number {
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-function writeBrands(xsw : XMLStreamWriter, brands : ArrayList) {
-	 xsw.writeStartElement("Brands");
-	 for each(var brand in brands) {
-	 	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("Brand");
-        writeElementCDATA(xsw, "Name", brand.value);
-        writeElementCDATA(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(brand.value));
+function writeBrands(xsw, brands) {
+	 xsw.writeStartElement('Brands');
+	 var brandsIter = brands.iterator();
+	 while(brandsIter.hasNext()) {
+	 	var brand = brandsIter.next();
+	 	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('Brand');
+        writeElementCDATA(xsw, 'Name', brand.value);
+        writeElementCDATA(xsw, 'ExternalId', BVHelper.replaceIllegalCharacters(brand.value));
         xsw.writeEndElement();
 	 }
 	 xsw.writeEndElement();
@@ -215,152 +215,153 @@ function writeBrands(xsw : XMLStreamWriter, brands : ArrayList) {
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-function writeCategories(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLocales : Collection, categoryObjectList : Collection) {
-    xsw.writeCharacters("\n");
-    xsw.writeStartElement("Categories");
-    var siteCatalog : Catalog = CatalogMgr.getSiteCatalog();
-    var rootCategory : Category = siteCatalog.getRoot();
-    var subRoots : Collection = rootCategory.getSubCategories();
-    for each(var subRoot : Category in subRoots) {
+function writeCategories(xsw, bvLocaleMap, allowedLocales, categoryObjectList) {
+    xsw.writeCharacters('\n');
+    xsw.writeStartElement('Categories');
+    var siteCatalog = CatalogMgr.getSiteCatalog();
+    var rootCategory = siteCatalog.getRoot();
+    var subRoots = rootCategory.getSubCategories();
+    for(var i = 0; i < subRoots.length; i++) {
+    	var subRoot = subRoots[i];
         getCategory(xsw, subRoot, bvLocaleMap, allowedLocales, categoryObjectList);    
     }
-    xsw.writeCharacters("\n");
+    xsw.writeCharacters('\n');
     xsw.writeEndElement(); //</Categories>
 }
 
-function getCategory(xsw : XMLStreamWriter, category : Category, bvLocaleMap : HashMap, allowedLocales : Collection, categoryObjectList : Collection) {
-	
-
+function getCategory(xsw, category, bvLocaleMap, allowedLocales, categoryObjectList) {
 	//Get the localized object for the category
-	var categoryObject = new Category_Object();
-	
-	for each(var catObj in categoryObjectList){
-		if(catObj.getCategoryId().equals(category.ID)){
+	var categoryObject = Category_Object.getCategoryObject();
+	var categoryObjIter = categoryObjectList.iterator();
+	while(categoryObjIter.hasNext()) {
+		var catObj = categoryObjIter.next();
+		if(catObj.getCategoryId().equals(category.ID)) {
 			categoryObject = catObj;
 			break;
 		}
 	}
-	
 
    	writeCategory(xsw, category, bvLocaleMap, allowedLocales, categoryObject);
 
-   	
-
-    var subCats : Collection = category.getSubCategories();
-    if(subCats != null && subCats.size()>0)    {
-        for each(var subCat : Category in subCats) {
-            getCategory(xsw, subCat, bvLocaleMap, allowedLocales, 
-            categoryObjectList);
+    var subCats = category.getSubCategories();
+    if(subCats != null && subCats.size() > 0) {
+        for(var i = 0; i < subCats.length; i++) {
+        	var subCat = subCats[i];
+            getCategory(xsw, subCat, bvLocaleMap, allowedLocales, categoryObjectList);
         }
     }
-
 }
 
-function writeCategory(xsw : XMLStreamWriter, category : Category, bvLocaleMap : HashMap, allowedLocales : Collection, categoryObject : Object){
-    xsw.writeCharacters("\n");
-    xsw.writeStartElement("Category");
+function writeCategory(xsw, category, bvLocaleMap, allowedLocales, categoryObject) {
+    xsw.writeCharacters('\n');
+    xsw.writeStartElement('Category');
     
-    xsw.writeCharacters("\n");
-    writeElement(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(category.ID));
+    xsw.writeCharacters('\n');
+    writeElement(xsw, 'ExternalId', BVHelper.replaceIllegalCharacters(category.ID));
     
-    var parent : Category = category.getParent();
+    var parent = category.getParent();
     if(parent != null) {
-        //We don't want to set our ParentExternalId to "root", so make sure the parent of this parent is non-null
+        //We don't want to set our ParentExternalId to 'root', so make sure the parent of this parent is non-null
         var parentOfParent = parent.getParent();    
         if(parentOfParent!=null) {
-        	xsw.writeCharacters("\n");
-            writeElement(xsw, "ParentExternalId", bvHelper.replaceIllegalCharacters(parent.ID));
+        	xsw.writeCharacters('\n');
+            writeElement(xsw, 'ParentExternalId', BVHelper.replaceIllegalCharacters(parent.ID));
         }
     }
     
-    xsw.writeCharacters("\n");
-    writeElementCDATA(xsw, "Name", category.displayName);
+    xsw.writeCharacters('\n');
+    writeElementCDATA(xsw, 'Name', category.displayName);
     
-    xsw.writeCharacters("\n");
-    writeElement(xsw, "CategoryPageUrl", URLUtils.http('Search-Show','cgid',category.ID));
+    xsw.writeCharacters('\n');
+    writeElement(xsw, 'CategoryPageUrl', URLUtils.http('Search-Show','cgid',category.ID));
 
-    var catImage : MediaFile = category.getImage();
+    var catImage = category.getImage();
     
     if (catImage) {
-    	xsw.writeCharacters("\n");
-    	writeElement(xsw, "ImageUrl", catImage.getAbsURL()); 
+    	xsw.writeCharacters('\n');
+    	writeElement(xsw, 'ImageUrl', catImage.getAbsURL()); 
     }
 
-    var catLocaleMap : LinkedHashMap = categoryObject.getLocaleMap();
+    var catLocaleMap = categoryObject.getLocaleMap();
         
     if(allowedLocales.length > 1 && bvLocaleMap.size() > 0 && !catLocaleMap.empty){
     	//CategoryPageUrls
-    	var openTag : Boolean = false;
-    	var usedBVLocales : ArrayList = new ArrayList();
-		for each(var dwLocale in bvLocaleMap.keySet()){
+    	var openTag = false;
+    	var usedBVLocales = new ArrayList();
+    	var localeKeys = bvLocaleMap.keySet();
+		
+		for(var i = 0; i < localeKeys.length; i++) {
+			var dwLocale = localeKeys[i];
 			if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
 				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
 				
 				if(!openTag){
-					xsw.writeCharacters("\n");
-					xsw.writeStartElement("CategoryPageUrls");
+					xsw.writeCharacters('\n');
+					xsw.writeStartElement('CategoryPageUrls');
 					openTag = true;
 				}
 				
-				var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
-				writeLocalizedElement(xsw, "CategoryPageUrl", bvLocaleMap.get(dwLocale), dataMap.get("CategoryPageURL"));
+				var dataMap = catLocaleMap.get(dwLocale);
+				writeLocalizedElement(xsw, 'CategoryPageUrl', bvLocaleMap.get(dwLocale), dataMap.get('CategoryPageURL'));
 			}    		
     	}
     	if(openTag) {
-    		xsw.writeCharacters("\n");
+    		xsw.writeCharacters('\n');
     		xsw.writeEndElement();
     	}
 	    
 	    //ImageUrls
     	openTag = false;
     	usedBVLocales = new ArrayList();
-    	for each(var dwLocale in bvLocaleMap.keySet()){
+    	for(var i = 0; i < localeKeys.length; i++) {
+			var dwLocale = localeKeys[i];
     		if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
 				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
 				
-				var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
-				if(dataMap.get("ImageURL")){
+				var dataMap = catLocaleMap.get(dwLocale);
+				if(dataMap.get('ImageURL')){
 		    		if(!openTag){
-	    				xsw.writeCharacters("\n");
-	    				xsw.writeStartElement("ImageUrls");
+	    				xsw.writeCharacters('\n');
+	    				xsw.writeStartElement('ImageUrls');
 	    				openTag = true;
 	    			}
 	    			
-	    			writeLocalizedElement(xsw, "ImageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ImageURL"));
+	    			writeLocalizedElement(xsw, 'ImageUrl', bvLocaleMap.get(dwLocale), dataMap.get('ImageURL'));
 				}
     		}
     	}
     	if(openTag) {
-    		xsw.writeCharacters("\n");
+    		xsw.writeCharacters('\n');
     		xsw.writeEndElement();
     	}
     	
     	//Names
     	openTag = false;
     	usedBVLocales = new ArrayList();
-    	for each(var dwLocale in bvLocaleMap.keySet()){
+    	for(var i = 0; i < localeKeys.length; i++) {
+			var dwLocale = localeKeys[i];
     		if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
 				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
 				
-				var dataMap : LinkedHashMap = catLocaleMap.get(dwLocale);
-				if(dataMap.get("Name")){
+				var dataMap = catLocaleMap.get(dwLocale);
+				if(dataMap.get('Name')){
 		    		if(!openTag){
-	    				xsw.writeCharacters("\n");
-	    				xsw.writeStartElement("Names");
+	    				xsw.writeCharacters('\n');
+	    				xsw.writeStartElement('Names');
 	    				openTag = true;
 	    			}
 	    			
-	    			writeLocalizedElementCDATA(xsw, "Name", bvLocaleMap.get(dwLocale), dataMap.get("Name"));
+	    			writeLocalizedElementCDATA(xsw, 'Name', bvLocaleMap.get(dwLocale), dataMap.get('Name'));
 				}
     		}
     	}
     	if(openTag) {
-    		xsw.writeCharacters("\n");
+    		xsw.writeCharacters('\n');
     		xsw.writeEndElement();
     	}
     }
     
-    xsw.writeCharacters("\n");
+    xsw.writeCharacters('\n');
     xsw.writeEndElement();
 }
 
@@ -372,16 +373,18 @@ function writeCategory(xsw : XMLStreamWriter, category : Category, bvLocaleMap :
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-function writeProducts(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLocales : Collection, productObjectList : Collection) {
-    xsw.writeCharacters("\n");
-    xsw.writeStartElement("Products");
-    var productIterator : SeekableIterator = ProductMgr.queryAllSiteProducts();
+function writeProducts(xsw, bvLocaleMap, allowedLocales, productObjectList) {
+    xsw.writeCharacters('\n');
+    xsw.writeStartElement('Products');
+    var productIterator = ProductMgr.queryAllSiteProducts();
     while(productIterator.hasNext()) {
-        var product : Product = productIterator.next();
+        var product = productIterator.next();
         
         //Get the localized object for the product
-        var productObject = new Product_Object();
-        for each(var prodObj in productObjectList){
+        var productObject = Product_Object.getProductObject();
+        var productObjectIter = productObjectList.iterator();
+        while(productObjectIter.hasNext()) {
+        	var prodObj = productObjectIter.next(); 
         	if(prodObj.getProductId().equals(product.ID)){
         		productObject = prodObj;
         		break;
@@ -396,92 +399,88 @@ function writeProducts(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLoca
     xsw.writeEndElement();
 }
 
-function writeProduct(xsw : XMLStreamWriter, product : Product, bvLocaleMap : HashMap, allowedLocales : Collection, productObject : Object) {
-    xsw.writeCharacters("\n");
-    xsw.writeStartElement("Product");
+function writeProduct(xsw, product, bvLocaleMap, allowedLocales, productObject) {
+    xsw.writeCharacters('\n');
+    xsw.writeStartElement('Product');
     
-    xsw.writeCharacters("\n");
-    writeElement(xsw, "ExternalId", bvHelper.replaceIllegalCharacters(product.ID));
+    xsw.writeCharacters('\n');
+    writeElement(xsw, 'ExternalId', BVHelper.replaceIllegalCharacters(product.ID));
     
-    xsw.writeCharacters("\n");
-    writeElementCDATA(xsw, "Name", product.name);
+    xsw.writeCharacters('\n');
+    writeElementCDATA(xsw, 'Name', product.name);
     
-    xsw.writeCharacters("\n");
-    writeElementCDATA(xsw, "Description", (product.shortDescription == null ? product.name : product.shortDescription));
+    xsw.writeCharacters('\n');
+    writeElementCDATA(xsw, 'Description', (product.shortDescription == null ? product.name : product.shortDescription));
     
     if (product.getBrand() != null && !empty(product.brand) ) {
-    	//xsw.writeCharacters("\n");
-    	//xsw.writeStartElement("Brand");
-        //writeElementCDATA(xsw, "Name", product.brand);
-        writeElementCDATA(xsw, "BrandExternalId", bvHelper.replaceIllegalCharacters(product.brand));
-        //xsw.writeEndElement();
+    	writeElementCDATA(xsw, 'BrandExternalId', BVHelper.replaceIllegalCharacters(product.brand));
     }
     
-    var categoryExternalId : String = BV_Constants.CATEGORY_NONE;
+    var categoryExternalId = BV_Constants.CATEGORY_NONE;
     if(product.primaryCategory != null) {
         categoryExternalId = product.primaryCategory.ID;
     } else {
-        var allCategories : Collection = product.allCategories;
-        if(allCategories.size()>0) { 
+        var allCategories = product.allCategories;
+        if(allCategories.size() > 0) { 
             categoryExternalId = allCategories.iterator().next().ID;
-        } 
+        }
     }
-    xsw.writeCharacters("\n");
-    writeElement(xsw, "CategoryExternalId", bvHelper.replaceIllegalCharacters(categoryExternalId));
+    xsw.writeCharacters('\n');
+    writeElement(xsw, 'CategoryExternalId', BVHelper.replaceIllegalCharacters(categoryExternalId));
     
-    xsw.writeCharacters("\n");
-    writeElement(xsw, "ProductPageUrl", URLUtils.http('Product-Show','pid',product.ID));
+    xsw.writeCharacters('\n');
+    writeElement(xsw, 'ProductPageUrl', URLUtils.http('Product-Show', 'pid', product.ID));
     
-    var prodImage : String = bvHelper.getImageURL(product, BV_Constants.PRODUCT);
+    var prodImage = BVHelper.getImageURL(product, BV_Constants.PRODUCT);
     if (prodImage) {
-    	xsw.writeCharacters("\n");
-    	writeElement(xsw, "ImageUrl", prodImage); 
+    	xsw.writeCharacters('\n');
+    	writeElement(xsw, 'ImageUrl', prodImage); 
     }
     
     //Manufacturer Part Number
     if(product.manufacturerSKU != null){
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("ManufacturerPartNumbers");
-        writeElement(xsw, "ManufacturerPartNumber", product.manufacturerSKU);
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('ManufacturerPartNumbers');
+        writeElement(xsw, 'ManufacturerPartNumber', product.manufacturerSKU);
         xsw.writeEndElement();
     }
     
     //European Article Number
     if(product.EAN != null && !empty(product.EAN)){
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("EANs");
-        writeElement(xsw, "EAN", product.EAN);
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('EANs');
+        writeElement(xsw, 'EAN', product.EAN);
         xsw.writeEndElement();
     }
     
     //Universal Product Code
     if(product.UPC != null && !empty(product.UPC)){
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("UPCs");
-        writeElement(xsw, "UPC", product.UPC);
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('UPCs');
+        writeElement(xsw, 'UPC', product.UPC);
         xsw.writeEndElement();
     }
     
     //add product family attributes here for variants and masters,
     //only if Product Families are enabled in libConstants.ds
     if(BV_Constants.EnableProductFamilies && (product.master || product.variant)) {
-    	xsw.writeCharacters("\n");
-    	xsw.writeStartElement("Attributes");
+    	xsw.writeCharacters('\n');
+    	xsw.writeStartElement('Attributes');
     	
-    	//use the master ID plus "-family" as the family ID
+    	//use the master ID plus '-family' as the family ID
     	var familyId = product.master ? product.ID : product.variationModel.master.ID;
-    	familyId = bvHelper.replaceIllegalCharacters(familyId + "-family");
+    	familyId = BVHelper.replaceIllegalCharacters(familyId + '-family');
     	
     	//write family attribute
-    	xsw.writeStartElement("Attribute");
-    	xsw.writeAttribute("id", "BV_FE_FAMILY");
-    	writeElement(xsw, "Value", familyId);
+    	xsw.writeStartElement('Attribute');
+    	xsw.writeAttribute('id', 'BV_FE_FAMILY');
+    	writeElement(xsw, 'Value', familyId);
     	xsw.writeEndElement();
     	
     	//write expand attribute
-    	xsw.writeStartElement("Attribute");
-    	xsw.writeAttribute("id", "BV_FE_EXPAND");
-    	writeElement(xsw, "Value", "BV_FE_FAMILY:" + familyId);
+    	xsw.writeStartElement('Attribute');
+    	xsw.writeAttribute('id', 'BV_FE_EXPAND');
+    	writeElement(xsw, 'Value', 'BV_FE_FAMILY:' + familyId);
     	xsw.writeEndElement();
     	
     	xsw.writeEndElement();
@@ -494,101 +493,107 @@ function writeProduct(xsw : XMLStreamWriter, product : Product, bvLocaleMap : Ha
     xsw.writeEndElement();
 }
 
-function writeProductLocalizedElements(xsw : XMLStreamWriter, bvLocaleMap : HashMap, allowedLocales : Collection, productObject : Object) {
-	var prodLocaleMap : LinkedHashMap = productObject.getLocaleMap();
+function writeProductLocalizedElements(xsw, bvLocaleMap, allowedLocales, productObject) {
+	var prodLocaleMap = productObject.getLocaleMap();
 
 	if(prodLocaleMap != null) {
 		//Names	
-		var openTag : Boolean = false;
-		var usedBVLocales : ArrayList = new ArrayList();
-		for each(var dwLocale in bvLocaleMap.keySet()){
+		var openTag = false;
+		var usedBVLocales = new ArrayList();
+		var localeKeys = bvLocaleMap.keySet();
+		
+		for(var i = 0; i < localeKeys.length; i++) {
+			var dwLocale = localeKeys[i];
 			if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
 				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
 				
-				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
-				if(dataMap && dataMap.get("Name")){
+				var dataMap = prodLocaleMap.get(dwLocale);
+				if(dataMap && dataMap.get('Name')){
 					if(!openTag){
-						xsw.writeCharacters("\n");
-						xsw.writeStartElement("Names");
+						xsw.writeCharacters('\n');
+						xsw.writeStartElement('Names');
 						openTag = true;
 					}
 					
-					writeLocalizedElementCDATA(xsw, "Name", bvLocaleMap.get(dwLocale), dataMap.get("Name"));
+					writeLocalizedElementCDATA(xsw, 'Name', bvLocaleMap.get(dwLocale), dataMap.get('Name'));
 				}
 			}
 		}
 		if(openTag){
-			xsw.writeCharacters("\n");
+			xsw.writeCharacters('\n');
 			xsw.writeEndElement();
 		}
 	
 		//Descriptions
 	    openTag = false;
 	    usedBVLocales = new ArrayList();
-		for each(var dwLocale in bvLocaleMap.keySet()){
+		for(var i = 0; i < localeKeys.length; i++) {
+			var dwLocale = localeKeys[i];
 			if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
 				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
 				
-				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
-				if(dataMap && dataMap.get("Description")){
+				var dataMap = prodLocaleMap.get(dwLocale);
+				if(dataMap && dataMap.get('Description')){
 					if(!openTag){
-						xsw.writeCharacters("\n");
-						xsw.writeStartElement("Descriptions");
+						xsw.writeCharacters('\n');
+						xsw.writeStartElement('Descriptions');
 						openTag = true;
 					}
 					
-					writeLocalizedElementCDATA(xsw, "Description", bvLocaleMap.get(dwLocale), dataMap.get("Description"));
+					writeLocalizedElementCDATA(xsw, 'Description', bvLocaleMap.get(dwLocale), dataMap.get('Description'));
 				}
 			}
 		}
 		if(openTag){
-			xsw.writeCharacters("\n");
+			xsw.writeCharacters('\n');
 			xsw.writeEndElement();
 		}
 		
 		//ProductPageUrls
 	    openTag = false;
 	    usedBVLocales = new ArrayList();
-	    for each(var dwLocale in bvLocaleMap.keySet()){
+	    for(var i = 0; i < localeKeys.length; i++) {
+			var dwLocale = localeKeys[i];
 	    	if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
 				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
 				
-				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
+				var dataMap = prodLocaleMap.get(dwLocale);
 				if(!openTag){
-					xsw.writeCharacters("\n");
-    				xsw.writeStartElement("ProductPageUrls");
+					xsw.writeCharacters('\n');
+    				xsw.writeStartElement('ProductPageUrls');
     				openTag = true;
     			}
     			
-    			writeLocalizedElement(xsw, "ProductPageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ProductPageURL"));
+    			writeLocalizedElement(xsw, 'ProductPageUrl', bvLocaleMap.get(dwLocale), dataMap.get('ProductPageURL'));
 	    	}
     	}
 		if(openTag){
-			xsw.writeCharacters("\n");
+			xsw.writeCharacters('\n');
 			xsw.writeEndElement();
 		}
 	    
 	    //ImageUrls
 	    openTag = false;
 	    usedBVLocales = new ArrayList();
-	    for each(var dwLocale in bvLocaleMap.keySet()){
+	    for(var i = 0; i < localeKeys.length; i++) {
+			var dwLocale = localeKeys[i];
 	    	if(!usedBVLocales.contains(bvLocaleMap.get(dwLocale))) {
 				usedBVLocales.add1(bvLocaleMap.get(dwLocale));
 				
-				var dataMap : LinkedHashMap = prodLocaleMap.get(dwLocale);
-				if(dataMap && dataMap.get("ImageURL")){
+				var dataMap = prodLocaleMap.get(dwLocale);
+				if(dataMap && dataMap.get('ImageURL')){
 		    		if(!openTag){
-		    			xsw.writeCharacters("\n");
-	    				xsw.writeStartElement("ImageUrls");
+		    			xsw.writeCharacters('\n');
+	    				xsw.writeStartElement('ImageUrls');
 	    				openTag = true;
 	    			}
 	    			
-	    			writeLocalizedElement(xsw, "ImageUrl", bvLocaleMap.get(dwLocale), dataMap.get("ImageURL"));
+	    			writeLocalizedElement(xsw, 'ImageUrl', bvLocaleMap.get(dwLocale), dataMap.get('ImageURL'));
 	    		}
 	    	}
     	}
     	if(openTag){
-    		xsw.writeCharacters("\n");
+    		xsw.writeCharacters('\n');
 			xsw.writeEndElement();
 		}
     
@@ -604,38 +609,36 @@ function writeProductLocalizedElements(xsw : XMLStreamWriter, bvLocaleMap : Hash
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-function insertLeadingZero(nb : Number) : String {
+function insertLeadingZero(nb) {
     if(nb < 10) {
-        return "0"+nb;
+        return '0'+nb;
     } else {
-        return ""+nb;
+        return ''+nb;
     }
 }
 
-function initFeed(file : File) : XMLStreamWriter {
-    var fw : FileWriter = new FileWriter(file, "UTF-8", false);
-    var xsw : XMLStreamWriter = new XMLStreamWriter(fw);
+function initFeed(file) {
+    var fw = new FileWriter(file, 'UTF-8', false);
+    var xsw = new XMLStreamWriter(fw);
     
     //Create a string to represent the extraction date
-    var date : Date = new Date();
-    var extractDate : String = date.getFullYear()+"-"+insertLeadingZero(date.getMonth()+1)+"-"+insertLeadingZero(date.getDate())+"T00:00:00.000000"; 
-    
-
-	   xsw.writeStartDocument("UTF-8", "1.0");
-	   xsw.writeCharacters("\n");
-	   xsw.writeStartElement("Feed");
-	   xsw.writeAttribute("xmlns", BV_Constants.XML_NAMESPACE_PRODUCT);
-	   xsw.writeAttribute("name", bvHelper.getCustomerName());
-	   xsw.writeAttribute("incremental", BV_Constants.XML_INCREMENTAL);
-	   xsw.writeAttribute("extractDate", extractDate);
-	   xsw.writeAttribute("generator", BV_Constants.XML_GENERATOR);
-
-    
-    return xsw;
+    var date = new Date();
+    var extractDate = date.getFullYear()+'-'+insertLeadingZero(date.getMonth()+1)+'-'+insertLeadingZero(date.getDate())+'T00:00:00.000000'; 
+	
+	xsw.writeStartDocument('UTF-8', '1.0');
+	xsw.writeCharacters('\n');
+	xsw.writeStartElement('Feed');
+	xsw.writeAttribute('xmlns', BV_Constants.XML_NAMESPACE_PRODUCT);
+	xsw.writeAttribute('name', BVHelper.getCustomerName());
+	xsw.writeAttribute('incremental', BV_Constants.XML_INCREMENTAL);
+	xsw.writeAttribute('extractDate', extractDate);
+	xsw.writeAttribute('generator', BV_Constants.XML_GENERATOR);
+	
+	return xsw;
 }
 
-function finalizeFeed(xsw : XMLStreamWriter) {
-    xsw.writeCharacters("\n");
+function finalizeFeed(xsw) {
+    xsw.writeCharacters('\n');
     
     xsw.writeEndElement();  //</Feed>
     xsw.writeEndDocument();
@@ -644,35 +647,33 @@ function finalizeFeed(xsw : XMLStreamWriter) {
     xsw.close();
 }
 
-function writeElement(xsw : XMLStreamWriter, elementName : String, chars : String) {
+function writeElement(xsw, elementName, chars) {
     xsw.writeStartElement(elementName);
     xsw.writeCharacters(chars);
     xsw.writeEndElement();
 }
 
-function writeElementCDATA(xsw : XMLStreamWriter, elementName : String, chars : String) {
+function writeElementCDATA(xsw, elementName, chars) {
     xsw.writeStartElement(elementName);
-    xsw.writeCData(chars != null ? chars : "");
+    xsw.writeCData(chars != null ? chars : '');
     xsw.writeEndElement();
 }
 
-function writeLocalizedElement(xsw : XMLStreamWriter, elementName : String, locale : String, chars : String) {
-	xsw.writeCharacters("\n");
+function writeLocalizedElement(xsw, elementName, locale, chars) {
+	xsw.writeCharacters('\n');
 	
     xsw.writeStartElement(elementName);
-	xsw.writeAttribute("locale", locale);
+	xsw.writeAttribute('locale', locale);
 	xsw.writeCharacters(chars);
 	xsw.writeEndElement();
 }
 
-function writeLocalizedElementCDATA(xsw : XMLStreamWriter, elementName : String, locale : String, chars : String) {
-	xsw.writeCharacters("\n");
+function writeLocalizedElementCDATA(xsw, elementName, locale, chars) {
+	xsw.writeCharacters('\n');
 	
     xsw.writeStartElement(elementName);
-	xsw.writeAttribute("locale", locale);
-	xsw.writeCData(chars != null ? chars : "");
+	xsw.writeAttribute('locale', locale);
+	xsw.writeCData(chars != null ? chars : '');
 	xsw.writeEndElement();
 
 }
-
-
