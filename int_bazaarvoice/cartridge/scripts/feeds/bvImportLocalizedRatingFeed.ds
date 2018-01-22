@@ -57,7 +57,7 @@ function execute(pdict) {
 			xmlReader.next();	
 			if (xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT && xmlReader.getLocalName() == 'Product')
 			{
-				productXML = xmlReader.getXMLObject();
+				productXML = xmlReader.readXMLObject();
 				id = '';
 				bvAverageRating = '0';
 				bvReviewCount = '0.0';
