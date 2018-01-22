@@ -4,17 +4,16 @@
 	<meta charset="utf-8"/>
 	<title></title>
 	<meta name="robots" content="noindex, nofollow">
-	<link rel="canonical" href="/on/demandware.store/Sites-ChalkTalkSports-Site/default/Bazaarvoice-Container"/>
+	<link rel="canonical" href="${URLUtils.url('Bazaarvoice-Container')}"/>
+	<meta name="bv:pageType" content="container">
 </head>
 <body>
-	<isscript>
-	importScript('int_bazaarvoice:/lib/libBazaarvoice.ds');
-	var bvApiUrl = getBazaarVoiceHelper().getBvApiHostUrl();
-	</isscript>
-	
-	<script type="text/javascript" src="${bvApiUrl}"></script>
-	<script>
-		$BV.container('global', {});
-	</script>
+	<isset name="BVHelper" value="${require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
+
+	<isif condition="${!empty(BVHelper) && !empty(BVHelper.getBvLoaderUrl())}">
+		<script async type="text/javascript" src="${BVHelper.getBvLoaderUrl()}"></script>
+	<iselse/>
+		<!-- Cannot load BV Loader -->
+	</isif>
 </body>
 </html>
