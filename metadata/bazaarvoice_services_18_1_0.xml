@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
-    <service-credential service-credential-id="bazaarvoice.sftp">
+    <service-credential service-credential-id="bazaarvoice.sftp.stg.SiteGenesis">
         <url>sftp-stg.bazaarvoice.com</url>
         <user-id></user-id>
         <password></password>
     </service-credential>
 
-    <service-profile service-profile-id="bazaarvoice.http">
+    <service-credential service-credential-id="bazaarvoice.sftp.prd.SiteGenesis">
+        <url>sftp.bazaarvoice.com</url>
+        <user-id></user-id>
+        <password></password>
+    </service-credential>
+	
+	<service-profile service-profile-id="bazaarvoice.http">
         <timeout-millis>500</timeout-millis>
         <rate-limit-enabled>false</rate-limit-enabled>
         <rate-limit-calls>0</rate-limit-calls>
@@ -56,14 +62,23 @@
         <credential-id/>
     </service>
 
-    <service service-id="bazaarvoice.sftp">
+    <service service-id="bazaarvoice.sftp.export.SiteGenesis">
         <service-type>SFTP</service-type>
         <enabled>true</enabled>
         <log-prefix>bazaarvoice_sftp</log-prefix>
         <comm-log-enabled>true</comm-log-enabled>
         <mock-mode-enabled>false</mock-mode-enabled>
         <profile-id>bazaarvoice.sftp</profile-id>
-        <credential-id>bazaarvoice.sftp</credential-id>
+        <credential-id>bazaarvoice.sftp.stg.SiteGenesis</credential-id>
     </service>
 
+	<service service-id="bazaarvoice.sftp.import.SiteGenesis">
+        <service-type>SFTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>bazaarvoice_sftp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>bazaarvoice.sftp</profile-id>
+        <credential-id>bazaarvoice.sftp.stg.SiteGenesis</credential-id>
+    </service>
 </services>

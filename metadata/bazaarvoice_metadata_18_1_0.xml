@@ -147,8 +147,8 @@
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
             <attribute-definition attribute-id="bvEnableInlineRatings_C2013">
-                <display-name xml:lang="x-default">Enable Hosted Inline Ratings (JS-based)</display-name>
-                <description xml:lang="x-default">Turn on BV JS-based inline ratings. This will enable display of product rating statistics on your category and search results pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <display-name xml:lang="x-default">Enable Inline Ratings</display-name>
+                <description xml:lang="x-default">Turn on BV inline ratings. This will enable display of product rating statistics on your category and search results pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
                 <type>boolean</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
