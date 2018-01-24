@@ -4,7 +4,7 @@
 	var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 	var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
-	var bvPID = "";
+	var bvPID = '';
 	if(BV_Constants.EnableProductFamilies) {
 		if(pdict.FirstProduct) {
 			bvPID = pdict.FirstProduct.ID.toLowerCase();
