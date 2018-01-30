@@ -300,7 +300,7 @@ exports.getBazaarVoiceHelper = function() {
     };
     
 	var uploadFile = function(destinationPath, destinationFilename, localFile, pdict) {
-    	var service = ServiceRegistry.get('bazaarvoice.sftp.' + Site.current.ID);
+    	var service = ServiceRegistry.get('bazaarvoice.sftp.export.' + Site.current.ID);
     	var result = service.setOperation('cd', destinationPath).call();
     	if(!result.isOk()) {
     		Logger.error('[libBazaarvoice.ds][uploadFile()] Problem testing sftp server. path: {0}, file: {1}, result: {2}', destinationPath, destinationFilename, result.msg);

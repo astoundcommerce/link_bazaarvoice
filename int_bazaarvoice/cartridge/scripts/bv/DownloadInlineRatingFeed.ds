@@ -24,7 +24,7 @@ function execute(pdict) {
     var fname = '';
     
     try {
-    	var service = ServiceRegistry.get('bazaarvoice.sftp.' + Site.current.ID);
+    	var service = ServiceRegistry.get('bazaarvoice.sftp.import.' + Site.current.ID);
     	var result;
     	 
         fpath = BV_Constants.RatingsFeedPath;

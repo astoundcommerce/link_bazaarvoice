@@ -10,7 +10,16 @@ var allSites = Site.allSites;
 for(var i = 0; i < allSites.length; i++) {
 	var siteID = allSites[i].getID();
 	
-	ServiceRegistry.configure('bazaarvoice.sftp.' + siteID, {
+	ServiceRegistry.configure('bazaarvoice.sftp.export.' + siteID, {
+		createRequest: function(svc, args){
+			return svc;
+		},
+		parseResponse: function(svc, result) {
+			return result;
+		}
+	});
+	
+	ServiceRegistry.configure('bazaarvoice.sftp.import.' + siteID, {
 		createRequest: function(svc, args){
 			return svc;
 		},
