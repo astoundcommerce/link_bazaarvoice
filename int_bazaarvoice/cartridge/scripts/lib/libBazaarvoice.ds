@@ -113,11 +113,6 @@ exports.getBazaarVoiceHelper = function() {
     };
     
     var getBvLoaderUrl = function() {
-    	var a = BV_Constants;
-    	for(var prop in a) {
-    		var b = prop;
-    	}
-        
     	// "https://apps.bazaarvoice.com/deployments/<client_name>/<site_ID>/<environment>/<locale>/bv.js"
     	var client = Site.getCurrent().getCustomPreferenceValue('bvCustomerName_C2013');
     	if(empty(client)) {
