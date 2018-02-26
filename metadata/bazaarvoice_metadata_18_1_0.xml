@@ -71,14 +71,6 @@
 
     <type-extension type-id="SitePreferences">
         <custom-attribute-definitions>
-            <attribute-definition attribute-id="bvAAShowReviewsTabJavascriptPDP_C2013">
-                <display-name xml:lang="x-default">Show Q&amp;A Tab Javascript (Product Page)</display-name>
-                <description xml:lang="x-default">This preference value is expected to be a valid client-side javascript. In the event that BV Q&amp;A are displayed behind a tab, this javascript will be used by BV to open the tab in the event that the "Read all Q&amp;A" link is clicked by an end user.</description>
-                <type>text</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <field-length>0</field-length>
-            </attribute-definition>
             <attribute-definition attribute-id="bvAdminEmail_C2013">
                 <display-name xml:lang="x-default">Administrator Email</display-name>
                 <description xml:lang="x-default">All notifications for BV-related DW job schedules will be sent to this email address.</description>
@@ -87,23 +79,6 @@
                 <externally-managed-flag>false</externally-managed-flag>
                 <min-length>0</min-length>
                 <field-length>0</field-length>
-            </attribute-definition>
-            <attribute-definition attribute-id="bvAuthenticationMethod_C2013">
-                <display-name xml:lang="x-default">Authentication Method</display-name>
-                <description xml:lang="x-default">With BV Hosted authentication method, users click the "write a review" link on a product page and authenticate by using just their email address provided in content submission page.  With DW Site authentication, users are redirected to login to the DW site before the user can access the BV submission page.</description>
-                <type>enum-of-string</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <value-definitions>
-                    <value-definition default="true">
-                        <display xml:lang="x-default">BV-Hosted Authentication</display>
-                        <value>hosted</value>
-                    </value-definition>
-                    <value-definition>
-                        <display xml:lang="x-default">DW Site Authentication</display>
-                        <value>site</value>
-                    </value-definition>
-                </value-definitions>
             </attribute-definition>
             <attribute-definition attribute-id="bvCloudSEOKey_C2013">
                 <display-name xml:lang="x-default">Cloud SEO Key</display-name>
@@ -181,15 +156,6 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
-            <attribute-definition attribute-id="bvEncodingKey_C2013">
-                <display-name xml:lang="x-default">Shared Encoding Key</display-name>
-                <description xml:lang="x-default">Key used to encode BV user authentication string. Only required when DW Site Authentication is selected.  Defined in your BV platform account.</description>
-                <type>string</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <min-length>0</min-length>
-                <field-length>0</field-length>
-            </attribute-definition>
             <attribute-definition attribute-id="bvEnvironment_C2013">
                 <display-name xml:lang="x-default">Environment</display-name>
                 <description xml:lang="x-default">BV environment that this DW instance type is integrating with</description>
@@ -252,14 +218,6 @@
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
-            <attribute-definition attribute-id="bvRRShowReviewsTabJavascript_C2013">
-                <display-name xml:lang="x-default">Show Reviews Tab Javascript function (product page)</display-name>
-                <description xml:lang="x-default">This preference value is expected to be a valid client-side javascript. In the event that Bazaarvoice reviews are displayed behind a tab, this javascript will be used by Bazaarvoice to open the tab in the event that the "Read all reviews" link is clicked by an end user.</description>
-                <type>text</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-                <field-length>0</field-length>
-            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Bazaarvoice Settings">
@@ -269,10 +227,8 @@
                 <attribute attribute-id="bvDeploymentZone_C2013"/>
                 <attribute attribute-id="bvLocaleMapping_C2013"/>
                 <attribute attribute-id="bvEnableRR_C2013"/>
-                <attribute attribute-id="bvRRShowReviewsTabJavascript_C2013"/>
                 <attribute attribute-id="bvEnableInlineRatings_C2013"/>
                 <attribute attribute-id="bvEnableAA_C2013"/>
-                <attribute attribute-id="bvAAShowReviewsTabJavascriptPDP_C2013"/>
                 <attribute attribute-id="bvEnableBVPixel_C2013"/>
                 <attribute attribute-id="bvEnableCloudSEO_C2013"/>
                 <attribute attribute-id="bvCloudSEOKey_C2013"/>

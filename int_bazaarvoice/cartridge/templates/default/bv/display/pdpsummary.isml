@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: reviewsummary.isml --->
+<!--- TEMPLATENAME: pdpsummary.isml --->
 <isscript>
 var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 BVHelper.setBvReveal();
@@ -23,11 +23,17 @@ if(!empty(bvPid)) {
 	<script type="text/javascript" language="javascript">
 	window.bvCallback = function() {
 		BV.reviews.on('show', function () {
-			<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvRRShowReviewsTabJavascript_C2013')}" encoding="off" />
+			
+			//This line assumes Site Genesis tabs and is called when clicking on the review summary
+			jQuery('.tab.reviews .tab-switch').click();
+			
         });
 		
 	    BV.questions.on('show', function () {
-	    	<isprint value="${dw.system.Site.getCurrent().getCustomPreferenceValue('bvAAShowReviewsTabJavascriptPDP_C2013')}" encoding="off" />
+	    	
+	    	//This line assumes Site Genesis tabs and is called when clicking on the Q&A summary
+	    	jQuery('.tab.questions .tab-switch').click();
+	    	
         });
 	};
 	</script>       
