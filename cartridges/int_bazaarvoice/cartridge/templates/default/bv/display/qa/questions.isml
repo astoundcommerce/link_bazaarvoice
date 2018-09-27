@@ -1,0 +1,23 @@
+<!--- TEMPLATENAME: answers.isml 
+Embeds the container that Q&A are injected to and the javascript that accesses the Q&A content.
+ ---> 
+<isscript>
+var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var bvPid = BVHelper.getProductId();
+
+// Obtain Cloud SEO content
+var CSEO = null;
+if(!empty(bvPid)) {
+	CSEO = require('int_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({"product_id" : bvPid});
+}
+</isscript>
+
+<isif condition="${BVHelper.isQAEnabled()}">
+    <!-- Questions -->
+    <div data-bv-show="questions" data-bv-productId="${bvPid}">
+    	<isif condition="${CSEO != null}">
+	    	<isprint value="${CSEO.questions().getContent()}" encoding="off" />
+	    </isif>
+    </div>
+    <!-- End Questions -->
+</isif>

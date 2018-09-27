@@ -1,8 +1,0 @@
-<!--- TEMPLATENAME: headerincludes.isml --->
-<isset name="BVHelper" value="${require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
-
-<isif condition="${!empty(BVHelper) && !empty(BVHelper.getBvLoaderUrl())}">
-	<script async type="text/javascript" src="${BVHelper.getBvLoaderUrl()}"></script>
-<iselse/>
-	<!-- Cannot load BV Loader -->
-</isif>
