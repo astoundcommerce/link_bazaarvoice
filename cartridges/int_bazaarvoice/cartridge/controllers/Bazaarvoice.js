@@ -10,6 +10,7 @@ var Cartridge = require('dw/system/Site').getCurrent().getCustomPreferenceValue(
 var app = require(Cartridge + '/cartridge/scripts/app');
 var guard = require(Cartridge + '/cartridge/scripts/guard');
 
+
 function container() {
 	app.getView().render('bv/container/container');
 }
