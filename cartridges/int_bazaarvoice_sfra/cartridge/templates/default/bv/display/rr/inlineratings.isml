@@ -1,0 +1,6 @@
+<!--- TEMPLATENAME: inlineratings.isml --->
+<isif condition="${product && product.rating && product.rating.enabled && product.rating.type.equals('native')}">
+    <div class="BVInlineRatings">
+        <img alt="" src="${product.rating.stars}"/> ${product.rating.rating}/${product.rating.range} (${product.rating.count})
+    </div>
+</isif>
