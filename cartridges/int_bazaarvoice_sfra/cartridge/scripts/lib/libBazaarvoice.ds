@@ -1,0 +1,379 @@
+'use strict';
+/**
+ *
+ * A library file for BazaarVoice communication.
+ *
+ */
+var Site = require('dw/system/Site');
+var MessageDigest = require('dw/crypto/MessageDigest');
+var StringUtils = require('dw/util/StringUtils');
+var Calendar = require('dw/util/Calendar');
+var ServiceRegistry = require('dw/svc/ServiceRegistry');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'libBazaarvoice');
+
+var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants(); 
+
+exports.getBazaarVoiceHelper = function() {
+	/*******************************************************************************************************************
+	*  getImageURL()
+	*
+	*	Returns a product image url for use in the product and purchase feeds.  By default,
+	*	the custom site preferences for image type is used to get the url: e.g. large, medium, small.
+	*	If no image is found, the medium image is used.  If no medium image is found, an empty string is returned.
+	*
+	*	feed parameter is either "PRODUCT" or "PURCHASE", defaults to PRODUCT.
+	*
+	*	If you do not use the standard DW product images (scene7, SITS, etc.), you must customize this function!
+	*******************************************************************************************************************/
+	var getImageURL = function(product, feed) {
+		var IMAGE_SIZE = '';
+ 		var imgURL = '';
+ 
+		if(feed.equals(BV_Constants.PURCHASE)) {
+			if(Site.getCurrent().getCustomPreferenceValue('bvOrderImageType_C2013') != null) {
+				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue('bvOrderImageType_C2013').toString();
+			}
+		}
+		else {
+			if(Site.getCurrent().getCustomPreferenceValue('bvProductImageType_C2013') != null) {
+				IMAGE_SIZE = Site.getCurrent().getCustomPreferenceValue('bvProductImageType_C2013').toString();
+			}
+		}
+		
+		if(!empty(IMAGE_SIZE) && product.getImage(IMAGE_SIZE)) {
+			imgURL = product.getImage(IMAGE_SIZE).getAbsURL();
+		}
+		else if(product.getImage(BV_Constants.BV_DEFAULTIMAGETYPE)) {
+			imgURL = product.getImage(BV_Constants.BV_DEFAULTIMAGETYPE).getAbsURL();
+		}
+		
+		return encodeURI(imgURL);
+	};
+	/******************************************************************************************************************
+	*******************************************************************************************************************/
+	
+	var getCustomerName = function() {
+		var name = '';
+		if(Site.getCurrent().getCustomPreferenceValue('bvCustomerName_C2013') != null){
+			name = Site.getCurrent().getCustomPreferenceValue('bvCustomerName_C2013').toString();
+		}
+		return name;
+	};
+	
+	var getRatingsFeedName = function() {
+		var fname = BV_Constants.RatingsFeedFilename;
+		if(Site.getCurrent().getCustomPreferenceValue('bvCustomerName_C2013') != null){
+			fname = BV_Constants.RatingsFeedPrefix + '_' + Site.getCurrent().getCustomPreferenceValue('bvCustomerName_C2013').toString().toLowerCase() + '_' + BV_Constants.RatingsFeedFilename;
+		}
+		return fname;
+	};
+
+	var replaceIllegalCharacters = function(rawId) {
+        return rawId.replace('&', '_and_', 'g').replace('/', '_fslash_', 'g');
+    };
+
+	var decodeId = function(id) {
+        return id.replace('_and_', '&', 'g').replace('_fslash_', '/', 'g');
+    };
+
+	var md5 = function(data) {
+        var digest = new MessageDigest(MessageDigest.DIGEST_MD5);
+        return digest.digest(data);
+    };
+
+	var encodeHex = function(data) {
+		/**
+		 * Used building output as Hex
+		 */
+		var DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+				
+        var l = data.length;
+        var out = '';
+        // two characters form the hex value.
+        for (var i = 0; i < l; i++) {
+            out += DIGITS[(0xF0 & data.charCodeAt(i)) >>> 4];
+            out += DIGITS[0x0F & data.charCodeAt(i)];
+        }
+        return out;
+    };
+
+	var encryptReviewerId = function(reviewerId, reviewerNickname) {
+		var USER_STRING_TEMPLATE = 'date={0}&userid={1}&username={2}';
+		
+        if (!empty(reviewerId) && !empty(reviewerNickname)) {
+            var dateAndreviewerId = StringUtils.format(USER_STRING_TEMPLATE, StringUtils.formatCalendar(new Calendar(), 'yyyyMMdd'), reviewerId, reviewerNickname);
+
+            var sharedKey = Site.getCurrent().getCustomPreferenceValue('bvEncodingKey_C2013');
+            var md5String = md5(sharedKey + dateAndreviewerId);
+            var hexUserID = encodeHex(dateAndreviewerId);
+
+            return md5String + hexUserID;
+        }
+        return null;
+    };
+    
+    var getBvLoaderUrl = function() {
+    	// "https://apps.bazaarvoice.com/deployments/<client_name>/<site_ID>/<environment>/<locale>/bv.js"
+    	var client = Site.getCurrent().getCustomPreferenceValue('bvCustomerName_C2013');
+    	if(empty(client)) {
+    		Logger.error('Site Preference bvCustomerName is null or empty!');
+    		return;
+    	}
+    	var bvdisplay = getDisplayData();
+    	var zoneId = bvdisplay.zone.toLowerCase().replace(' ', '_', 'g'); 
+    	var env = getEnvironment().toLowerCase();
+    	var host = BV_Constants.BVLoaderHost;
+    	
+    	return '//' + host + '/deployments/' + client + '/' + zoneId + '/' + env + '/' + bvdisplay.locale + '/bv.js';
+    };
+
+	var getBvApiHostUrl = function() {
+    	var client = Site.getCurrent().getCustomPreferenceValue('bvCustomerName_C2013');
+    	if(empty(client)) {
+    		Logger.error('Site Preference bvCustomerName is null or empty!');
+    		client = 'CLIENTNAME';
+    	}
+    	
+        var bvdisplay = getDisplayData();
+        
+        var env = getEnvironment();
+        var host = BV_Constants.APIHostStaging;
+        if(!empty(env) && env.toLowerCase() === 'production') {
+        	host = BV_Constants.APIHostProduction;
+        }
+        
+        return '//' + host + '/static/' + client + '/' + encodeURI(bvdisplay.zone) + '/' + bvdisplay.locale + '/bvapi.js';
+    };
+    
+    var getDisplayData = function() {
+    	var currentLocale = request.locale;
+		var defaultLocale = Site.getCurrent().getDefaultLocale();
+		var isCurrentDefault = currentLocale.equals(defaultLocale);
+		var allowedLocales = Site.getCurrent().allowedLocales;
+		
+		var bvzone = '';
+    	var bvlocale = '';
+		
+    	var map = Site.getCurrent().getCustomPreferenceValue('bvLocaleMapping_C2013');
+		
+		if(map.length > 1) {
+			var index = 0;
+			for(var i = 0; i < map.length; i++) {
+				var item = map[i];
+				item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
+				
+				if(BV_Constants.regFull.test(item) && isCurrentDefault) {
+					bvlocale = item;
+					break;
+				} else if(BV_Constants.regPair.test(item)) {
+					var a = item.split(':');
+					a[0] = a[0].replace(/^[\s]+|[\s]+$/g, '');
+					a[1] = a[1].replace(/^[\s]+|[\s]+$/g, '');
+					
+					if(allowedLocales.indexOf(a[0]) != -1) {
+						if(a[0] === currentLocale){
+							bvlocale = a[1];
+							if(bvlocale.indexOf('/') != -1) {
+								var b = bvlocale.split('/');
+								bvzone = decodeURI(b[0]);
+								bvlocale = b[1];
+							}
+							break;
+						}
+					} else {
+						Logger.warn('Site Preference bvLocaleMapping has inactive locale ' + a[0]);
+					}
+				}
+				
+				if(index === map.length - 1) {
+					Logger.warn('Site Preference bvLocaleMapping has no match setting for ' + currentLocale);
+				}
+				index++;
+			}
+		} else if(map.length === 1) {
+			var item = map[0];
+			item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
+			
+			if(BV_Constants.regFull.test(item)) {
+				//there is only one display code, so it doesnt matter what dw locale we are on
+				bvlocale = item;
+			} else if(BV_Constants.regPair.test(item)) {
+				var a = item.split(':');
+				a[0] = a[0].replace(/^[\s]+|[\s]+$/g, '');
+				a[1] = a[1].replace(/^[\s]+|[\s]+$/g, '');
+				
+				if(allowedLocales.indexOf(a[0]) != -1) {			
+					if(a[0] === currentLocale){
+						bvlocale = a[1];
+					} else {
+						Logger.warn('Site Preference bvLocaleMapping has no input for' + currentLocale);
+					}
+				} else {
+					Logger.warn('Site Preference bvLocaleMapping has inactive locale ' + currentLocale);
+				}
+			} else {
+				Logger.warn('Site Preference bvLocaleMapping has invalid format for' + currentLocale);
+			}
+		} else {
+			Logger.error('Site Preference bvLocaleMapping requires at least one setting');
+		}
+		
+		//Deployment Zone was not overridden in the locale mapping, so grab it from the preference
+		//If no DZ is defined, default to 'Main Site'
+		if(empty(bvzone)) {
+			bvzone = Site.getCurrent().getCustomPreferenceValue('bvDeploymentZone_C2013');
+			if(empty(bvzone)) {
+	        	Logger.warn('Site Preference bvDeploymentZone is null or empty!. Using "Main Site".');
+	        	bvzone = BV_Constants.DEFAULT_ZONE;
+	        }
+		}
+		
+		return {'zone' : bvzone, 'locale' : bvlocale};
+    };
+    
+    
+    //TODO: DO WE NEED THIS ANYMORE?????
+    var getExternalSubjectForPage = function(pdict) {
+        var ret = {};
+        
+        var bvExternalSubjectID = null;
+        if (pdict.Product != null) {
+            ret.bvSubjectType = 'product';
+            ret.bvExternalSubjectName = (pdict.Product.variant) ? pdict.Product.variationModel.master.name : pdict.Product.name;
+            bvExternalSubjectID = (pdict.Product.variant && !BV_Constants.UseVariantID) ? pdict.Product.variationModel.master.ID : pdict.Product.ID;
+        } else if (pdict.Category != null) {
+            ret.bvSubjectType = 'category';
+            ret.bvExternalSubjectName = pdict.Category.name;
+            bvExternalSubjectID = pdict.Category.ID;
+        } else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.category != null ) {
+            ret.bvSubjectType = 'category';
+            ret.bvExternalSubjectName = pdict.ProductSearchResult.category.displayName;
+            bvExternalSubjectID = pdict.ProductSearchResult.category.ID;
+        }
+        else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.deepestCommonCategory != null ) {
+            ret.bvSubjectType = 'category';
+            ret.bvExternalSubjectName = pdict.ProductSearchResult.deepestCommonCategory.displayName;
+            bvExternalSubjectID = pdict.ProductSearchResult.deepestCommonCategory.ID;
+        }
+
+        if (bvExternalSubjectID != null) {
+            ret.bvExternalSubjectID = replaceIllegalCharacters(bvExternalSubjectID);
+        }
+        
+        return ret;
+    };
+    
+    var finalizeFeed = function(xsw) {
+        xsw.writeEndElement();  //</Feed>
+        xsw.writeEndDocument();
+   
+        xsw.flush();
+        xsw.close();
+    };
+
+    var writeElement = function(xsw, elementName, chars) {
+        xsw.writeStartElement(elementName);
+        xsw.writeCharacters(chars);
+        xsw.writeEndElement();
+    };
+
+	var insertLeadingZero = function(nb) {
+        if(nb < 10) {
+            return '0' + nb;
+        } else {
+            return '' + nb;
+        }
+    };
+    
+    var getEnvironment = function() {
+    	var env = Site.getCurrent().getCustomPreferenceValue('bvEnvironment_C2013');
+    	if(empty(env) || empty(env.value)) {
+    		Logger.error('bvEnvironment is null or empty!');
+			return '';
+    	}
+    	return env.value;
+    };
+    
+	var uploadFile = function(destinationPath, destinationFilename, localFile, pdict) {
+    	var service = ServiceRegistry.get('bazaarvoice.sftp.export.' + Site.current.ID);
+    	var result = service.setOperation('cd', destinationPath).call();
+    	if(!result.isOk()) {
+    		Logger.error('[libBazaarvoice.ds][uploadFile()] Problem testing sftp server. path: {0}, file: {1}, result: {2}', destinationPath, destinationFilename, result.msg);
+            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', result.msg, '', '', '', destinationPath, destinationFilename);
+    	}
+    	
+    	result = service.setOperation('list', destinationPath).call();
+		if(!result.isOk()) {
+			Logger.error('[libBazaarvoice.ds][uploadFile()] Problem during sftp list operation: ' + result.msg);
+			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', result.msg, '', '', '', destinationPath, destinationFilename);
+		}
+		
+		var allRemoteFiles = result.getObject();
+		for(var i = 0; i < allRemoteFiles.length; i++) {
+			var f = allRemoteFiles[i];
+        	if(f.name === destinationFilename) {
+        		result = service.setOperation('del', destinationPath + '/' + destinationFilename).call();
+        		if(!result.isOk()) {
+        			Logger.error('[libBazaarvoice.ds][uploadFile()] Problem deleting existing file: ' + result.msg);
+        		}
+        	}
+        }
+        
+        result = service.setOperation('putBinary', destinationPath + '/' + destinationFilename, localFile).call();
+        if(!result.isOk()) {
+        	Logger.error('[libBazaarvoice.ds][uploadFile()] Problem uploading file: ' + result.msg);
+        	return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', 'Problem uploading file: ' + result.msg, '', '', '', destinationPath, destinationFilename);
+        }
+        
+        return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'SUCCESS', 'Export Processed - Connecton Details', '', '', '', destinationPath, destinationFilename);
+    };
+    
+    var setBvReveal = function() {
+    	session.custom.bvreveal = request.httpParameterMap.bvreveal.submitted ? request.httpParameterMap.bvreveal.stringValue : '';
+    };
+    
+    var setProductId = function(product) {
+    	var pid = '';
+    	if(product != null) {
+    		pid = (product.variant && !BV_Constants.UseVariantID) ? product.variationModel.master.ID : product.ID;
+    	}
+    	session.custom.BVSEO_PID = pid;
+    	return pid;
+    };
+    
+    var getProductId = function() {
+    	return session.custom.BVSEO_PID || '';
+    };
+    
+    var isRREnabled = function() {
+    	return Site.getCurrent().getCustomPreferenceValue('bvEnableRR_C2013') ? true : false;
+    };
+    
+    var isQAEnabled = function() {
+    	return Site.getCurrent().getCustomPreferenceValue('bvEnableAA_C2013') ? true : false;
+    };
+	    
+	return {
+		getImageURL : getImageURL,
+		getCustomerName : getCustomerName,
+		getRatingsFeedName : getRatingsFeedName,
+		replaceIllegalCharacters : replaceIllegalCharacters,
+		decodeId : decodeId,
+		encryptReviewerId : encryptReviewerId,
+		getBvLoaderUrl : getBvLoaderUrl,
+		getBvApiHostUrl : getBvApiHostUrl,
+		getDisplayData : getDisplayData,
+		getExternalSubjectForPage : getExternalSubjectForPage,
+		finalizeFeed : finalizeFeed,
+		writeElement : writeElement,
+		insertLeadingZero : insertLeadingZero,
+		getEnvironment : getEnvironment,
+		uploadFile : uploadFile,
+		setBvReveal : setBvReveal,
+		setProductId : setProductId,
+		getProductId : getProductId,
+		isRREnabled : isRREnabled,
+		isQAEnabled : isQAEnabled
+	}
+};
+

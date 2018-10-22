@@ -1,0 +1,11 @@
+<isif condition="${product && product.rating && product.rating.enabled}">
+	
+	<isif condition="${product.rating.type.equals('native')}">
+	    <isinclude template="bv/display/rr/inlineratings" />
+	  
+	<iselseif condition="${product.rating.type.equals('hosted')}">
+	    <isinclude template="bv/display/rr/inlineratings-hosted" />
+	
+	</isif>
+	
+</isif>
