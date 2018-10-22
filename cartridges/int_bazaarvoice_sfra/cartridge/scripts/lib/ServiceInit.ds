@@ -1,0 +1,75 @@
+/**
+ * Initialize HTTP and SFTP services for int_bazaarvoice
+ */
+
+var Site = require('dw/system/Site');
+var ServiceRegistry = require('dw/svc/ServiceRegistry');
+
+//need to have separate sftp services/credentials for each site
+var allSites = Site.allSites;
+for(var i = 0; i < allSites.length; i++) {
+	var siteID = allSites[i].getID();
+	
+	ServiceRegistry.configure('bazaarvoice.sftp.export.' + siteID, {
+		createRequest: function(svc, args){
+			return svc;
+		},
+		parseResponse: function(svc, result) {
+			return result;
+		}
+	});
+	
+	ServiceRegistry.configure('bazaarvoice.sftp.import.' + siteID, {
+		createRequest: function(svc, args){
+			return svc;
+		},
+		parseResponse: function(svc, result) {
+			return result;
+		}
+	});
+}
+
+/**
+*
+* HTTP Services
+*
+*/
+ServiceRegistry.configure('bazaarvoice.http', {
+	createRequest: function(svc, req){
+		svc.setRequestMethod('GET');
+	  	return req;
+	},
+	parseResponse: function(svc, client) {
+		return client.getText();
+	},
+	mockCall: function(svc, client){
+	    return {
+			statusCode: 200,
+			statusMessage: 'Success',
+			text: 'MOCK RESPONSE (' + svc.URL + ')'
+		};
+	},
+	getResponseLogMessage: function(response) {
+		return !empty(response.getText()) ? response.getText().substr(0, 100) + '\n\n...[no need to log all the content]\n\n' : 'Response is empty.';
+	}
+});
+
+ServiceRegistry.configure('bazaarvoice.http.bot', {
+	createRequest: function(svc, req){
+		svc.setRequestMethod('GET');
+	  	return req;
+	},
+	parseResponse: function(svc, client) {
+		return client.getText();
+	},
+	mockCall: function(svc, client){
+	    return {
+			statusCode: 200,
+			statusMessage: 'Success',
+			text: 'MOCK RESPONSE (' + svc.URL + ')'
+		};
+	},
+	getResponseLogMessage: function(response) {
+		return !empty(response.getText()) ? response.getText().substr(0, 100) + '\n\n...[no need to log all the content]\n\n' : 'Response is empty.';
+	}
+});

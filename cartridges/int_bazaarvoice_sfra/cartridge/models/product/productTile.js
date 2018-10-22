@@ -5,8 +5,8 @@ var URLUtils = require('dw/web/URLUtils');
 
 var decorators = require('*/cartridge/models/product/decorators/index');
 
-var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var BV_Constants = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 var ratingPref = Site.current.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
 
