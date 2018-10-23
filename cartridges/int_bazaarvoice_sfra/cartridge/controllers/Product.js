@@ -5,11 +5,12 @@ server.extend(module.superModule);
 
 var Site = require('dw/system/Site').getCurrent();
 var ProductMgr = require('dw/catalog/ProductMgr');
+var URLUtils = require('dw/web/URLUtils');
 
+var BV_Constants = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 function appendBVData(req, res) {
-	var BV_Constants = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libConstants').getConstants();
-	var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 	var BV_SEO = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libCloudSEO.ds');
 	
 	if(BVHelper.isRREnabled() || BVHelper.isQAEnabled()) {
@@ -58,10 +59,53 @@ function appendBVQuickViewData(req, res) {
 		var pid = (apiProduct.variant && !BV_Constants.UseVariantID) ? apiProduct.variationModel.master.ID : apiProduct.ID;
 		pid = BVHelper.replaceIllegalCharacters(pid);
 	
+		viewData.bvDisplay = {
+			bvPid: pid,
+			qvType: quickviewPref.value
+		};
+		
 		if(quickviewPref.value.equals('inlineratings')) {
+			if(ratingPref && ratingPref.value && ratingPref.value.equals('native')) {
+				var masterProduct = (apiProduct.variant) ? apiProduct.variationModel.master : apiProduct;
+		    	var bvAvgRating = masterProduct.custom.bvAverageRating;
+		    	var bvRatingRange = masterProduct.custom.bvRatingRange;
+		    	var bvReviewCount = masterProduct.custom.bvReviewCount;
+		    	var bvAvgRatingNum = new Number(bvAvgRating);
+		    	var bvRatingRangeNum = new Number(bvRatingRange);
+		    	var bvReviewCountNum = new Number(bvReviewCount);
+		    	
+		    	var starsFile = null;
+		    	if (isFinite(bvAvgRatingNum) && bvAvgRating && isFinite(bvRatingRangeNum) && bvRatingRange && isFinite(bvReviewCountNum) && bvReviewCount) {
+		    		starsFile = 'rating-' + bvAvgRatingNum.toFixed(1).toString().replace('.','_') + '.gif';
+		    	} else {
+		    		starsFile = 'rating-0_0.gif';
+		    	}
+		    	
+		    	viewData.bvDisplay.rating = {
+		    		enabled: true,
+		    		type: 'native',
+		    		rating: bvAvgRatingNum.toFixed(1),
+		    		range: bvRatingRangeNum.toFixed(0),
+		    		count: bvReviewCountNum.toFixed(0),
+		    		stars: URLUtils.absStatic('/images/stars/' + starsFile).toString()
+		    	};
+			} else if(ratingPref && ratingPref.value && ratingPref.value.equals('hosted')) {
+				viewData.bvDisplay.rating = {
+					enabled: true,
+					type: 'hosted'
+				}
+			} else {
+				viewData.bvDisplay.rating = {
+					enabled: false,
+					type: 'none'
+				};
+			}
 			
 		} else if(quickviewPref.value.equals('pdpsummary')) {
-			
+			viewData.bvDisplay.rr = {
+				enabled: BVHelper.isRREnabled(),
+			};
+			viewData.bvDisplay.showSummary = true;
 		}
 	
 		res.setViewData(viewData);
