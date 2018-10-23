@@ -1,0 +1,14 @@
+<!--- TEMPLATENAME: questions.isml 
+Embeds the container that Q&A are injected to and the javascript that accesses the Q&A content.
+ ---> 
+<isif condition="${pdict.bvDisplay.qa.enabled}">
+	<!-- Q&A -->
+	<div class="col-sm-12 col-md-8 col-lg-9 value content">
+		<div data-bv-show="questions" data-bv-productId="${pdict.bvDisplay.bvPid}">
+			<isif condition="${pdict.bvDisplay.qa.seo && pdict.bvDisplay.qa.seo.content}">
+		    	<isprint value="${pdict.bvDisplay.qa.seo.content}" encoding="off" />
+		    </isif>
+		</div>
+	</div>
+	<!-- End Q&A -->
+</isif>
