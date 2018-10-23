@@ -1,0 +1,39 @@
+<!--- TEMPLATENAME: descriptionAndDetails.isml --->
+<div class="description-and-detail">
+    <div class="row product-attributes collapsible-xs">
+        <isinclude template="product/components/attributes" />
+    </div>
+
+    <isif condition="${product.attributes && product.attributes.length}">
+        <hr class="d-sm-none">
+    </isif>
+
+    <div class="row description collapsible-xs <isif condition="${!product.shortDescription}">hidden-xl-down</isif>">
+        <h2 class="col-sm-12 col-md-4 col-lg-3">
+          <a class="title" href="${'#'}">${Resource.msg('label.description', 'product', null)}</a>
+        </h2>
+        <isinclude template="product/components/description" />
+    </div>
+
+    <isif condition="${product.longDescription}">
+        <hr class="d-sm-none">
+    </isif>
+
+    <div class="row details collapsible-xs <isif condition="${!product.longDescription}">hidden-xl-down</isif>">
+        <h2 class="col-sm-12 col-md-4 col-lg-3">
+          <a class="title" href="${'#'}">${Resource.msg('label.details', 'product', null)}</a>
+        </h2>
+        <isinclude template="product/components/details" />
+    </div>
+    
+    <isif condition="${pdict.bvDisplay.rr.enabled}">
+        <hr class="d-sm-none">
+    </isif>
+    
+    <div class="row reviews collapsible-xs <isif condition="${!pdict.bvDisplay.rr.enabled}">hidden-xl-down</isif>">
+        <h2 class="col-sm-12 col-md-4 col-lg-3">
+          <a class="title" href="${'#'}">${Resource.msg('label.rr', 'product', null)}</a>
+        </h2>
+        <isinclude template="bv/display/rr/reviews" />
+    </div>
+</div>

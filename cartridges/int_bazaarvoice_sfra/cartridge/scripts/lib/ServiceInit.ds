@@ -1,5 +1,5 @@
 /**
- * Initialize HTTP and SFTP services for int_bazaarvoice
+ * Initialize HTTP and SFTP services for int_bazaarvoice_sfra
  */
 
 var Site = require('dw/system/Site');
