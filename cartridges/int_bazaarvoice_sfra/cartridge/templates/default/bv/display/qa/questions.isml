@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: answers.isml 
+<!--- TEMPLATENAME: questions.isml 
 Embeds the container that Q&A are injected to and the javascript that accesses the Q&A content.
  ---> 
 <isif condition="${pdict.bvDisplay.qa.enabled}">
