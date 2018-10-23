@@ -5,8 +5,9 @@ var server = require('server');
 var Site = require('dw/system/Site').getCurrent();
 var ProductMgr = require('dw/catalog/ProductMgr');
 
-var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();	
+var BV_Constants = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var BV_SEO = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libCloudSEO.ds');
 
 server.extend(module.superModule);
 
@@ -20,12 +21,24 @@ function appendBVData(req, res) {
 		var pid = (apiProduct.variant && !BV_Constants.UseVariantID) ? apiProduct.variationModel.master.ID : apiProduct.ID;
 		pid = BVHelper.replaceIllegalCharacters(pid);
 		
+		var seoData = BV_SEO.getBVSEO({'product_id' : pid});
+		var seoReviews = seoData.reviews();
+		var seoQuestions = seoData.questions();
+		
 		viewData.bvDisplay = {
 			rr: {
-				enabled: BVHelper.isRREnabled()
+				enabled: BVHelper.isRREnabled(),
+				seo: {
+					aggregateRating: seoReviews.getAggregateRating(),
+					reviews: seoReviews.getReviews(),
+					content: seoReviews.getContent()
+				}
 			},
 			qa: {
-				enabled: BVHelper.isQAEnabled()
+				enabled: BVHelper.isQAEnabled(),
+				seo: {
+					content: seoQuestions.getContent()
+				}
 			},
 			bvPId : pid,
 			showSummary : true

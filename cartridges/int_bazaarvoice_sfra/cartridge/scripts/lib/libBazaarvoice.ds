@@ -11,7 +11,7 @@ var Calendar = require('dw/util/Calendar');
 var ServiceRegistry = require('dw/svc/ServiceRegistry');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'libBazaarvoice');
 
-var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants(); 
+var BV_Constants = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libConstants').getConstants(); 
 
 exports.getBazaarVoiceHelper = function() {
 	/*******************************************************************************************************************

@@ -10,8 +10,8 @@ if(pdict.bvScout) {
 	<!-- Reviews Summary -->
 	
 	<div data-bv-show="rating_summary" data-bv-productId="${pdict.bvDisplay.bvPid}">
-		<isif condition="${false && CSEO != null}">
-	    	<isprint value="${CSEO.reviews().getAggregateRating()}" encoding="off" />
+		<isif condition="${pdict.bvDisplay.rr.seo && pdict.bvDisplay.rr.seo.aggregateRating}">
+	    	<isprint value="${pdict.bvDisplay.rr.seo.aggregateRating}" encoding="off" />
 	    </isif>
 	</div>
 	
