@@ -10,7 +10,7 @@ server.append('Show', function(req, res, next) {
 	
 	var ratingPref = Site.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
 	
-	if(ratingPref && ratingPref.value.equals('hosted')) {
+	if(ratingPref && ratingPref.value && ratingPref.value.equals('hosted')) {
 		var viewData = res.getViewData();
 		viewData.bvScout = BVHelper.getBvLoaderUrl();
 		res.setViewData(viewData);
