@@ -1,6 +1,6 @@
 <!--- TEMPLATENAME: inlineratings.isml --->
-<isif condition="${pdict.product && pdict.product.rating && pdict.product.rating.enabled && pdict.product.rating.type.equals('native')}">
+<isif condition="${pdict.bvDisplay && pdict.bvDisplay.rating && pdict.bvDisplay.rating.enabled && pdict.bvDisplay.rating.type.equals('native')}">
     <div class="BVInlineRatings">
-        <img alt="" src="${pdict.product.rating.stars}"/> ${pdict.product.rating.rating}/${pdict.product.rating.range} (${pdict.product.rating.count})
+        <img alt="" src="${pdict.bvDisplay.rating.stars}"/> ${pdict.bvDisplay.rating.rating}/${pdict.bvDisplay.rating.range} (${pdict.bvDisplay.rating.count})
     </div>
 </isif>

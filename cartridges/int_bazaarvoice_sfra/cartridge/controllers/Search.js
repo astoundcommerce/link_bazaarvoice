@@ -9,8 +9,13 @@ server.append('Show', function(req, res, next) {
 	var Site = require('dw/system/Site').getCurrent();
 	
 	var ratingPref = Site.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
+	var quickviewPref = Site.current.getCustomPreferenceValue('bvQuickViewRatingsType_C2013');
+	var addScout = false;
+	if((ratingPref && ratingPref.value && ratingPref.value.equals('hosted')) || (quickviewPref && quickviewPref.value && quickviewPref.value.equals('pdpsummary'))) {
+		addScout = true;
+	}
 	
-	if(ratingPref && ratingPref.value.equals('hosted')) {
+	if(addScout) {
 		var viewData = res.getViewData();
 		viewData.bvScout = BVHelper.getBvLoaderUrl();
 		res.setViewData(viewData);

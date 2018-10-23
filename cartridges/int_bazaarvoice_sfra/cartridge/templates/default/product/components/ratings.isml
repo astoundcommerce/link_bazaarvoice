@@ -1,9 +1,9 @@
-<isif condition="${product && product.rating && product.rating.enabled}">
+<isif condition="${pdict.bvDisplay && pdict.bvDisplay.rating && pdict.bvDisplay.rating.enabled}">
 	
-	<isif condition="${product.rating.type.equals('native')}">
+	<isif condition="${pdict.bvDisplay.rating.type.equals('native')}">
 	    <isinclude template="bv/display/rr/inlineratings" />
 	  
-	<iselseif condition="${product.rating.type.equals('hosted')}">
+	<iselseif condition="${pdict.bvDisplay.rating.type.equals('hosted')}">
 	    <isinclude template="bv/display/rr/inlineratings-hosted" />
 	
 	</isif>
