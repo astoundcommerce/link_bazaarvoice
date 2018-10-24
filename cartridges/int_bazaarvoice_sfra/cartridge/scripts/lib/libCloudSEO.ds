@@ -395,7 +395,7 @@ function SEOContent(config, seoProduct) {
 			
 			if(!result.isOk())
 			{
-				 throw new Error('Unsuccessful GET.  status = \'{0}\', msg = {1}', result.getStatus(), result.errorMessage);
+				 throw new Error('Unsuccessful GET.  status = \'' + result.getStatus() + '\', msg = \'' + result.errorMessage + '\'');
 			}
 			
 			return result.object;
