@@ -41,7 +41,7 @@
         <hr class="d-sm-none">
     </isif>
     
-    <div class="row reviews collapsible-xs <isif condition="${!pdict.bvDisplay.qa.enabled}">hidden-xl-down</isif>">
+    <div class="row questions collapsible-xs <isif condition="${!pdict.bvDisplay.qa.enabled}">hidden-xl-down</isif>">
         <h2 class="col-sm-12 col-md-4 col-lg-3">
           <a class="title" href="${'#'}">${Resource.msg('label.qa', 'product', null)}</a>
         </h2>

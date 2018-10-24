@@ -6,31 +6,4 @@ if(pdict.bvScout) {
 }
 </isscript>
 
-<isif condition="${pdict.bvDisplay.showSummary}">
-	<!-- Reviews Summary -->
-	
-	<div data-bv-show="rating_summary" data-bv-productId="${pdict.bvDisplay.bvPid}">
-		<isif condition="${pdict.bvDisplay.rr.seo && pdict.bvDisplay.rr.seo.aggregateRating}">
-	    	<isprint value="${pdict.bvDisplay.rr.seo.aggregateRating}" encoding="off" />
-	    </isif>
-	</div>
-	
-	<script type="text/javascript" language="javascript">
-	window.bvCallback = function() {
-		BV.reviews.on('show', function () {
-			
-			//This line assumes Site Genesis tabs and is called when clicking on the review summary
-			
-			
-        });
-		
-	    BV.questions.on('show', function () {
-	    	
-	    	//This line assumes Site Genesis tabs and is called when clicking on the Q&A summary
-	    	
-	    	
-        });
-	};
-	</script>       
-	<!-- End Reviews Summary -->
-</isif>
+<isinclude template="bv/display/pdpsummary"/>
