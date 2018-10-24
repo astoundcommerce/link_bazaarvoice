@@ -41,7 +41,7 @@ function appendBVData(req, res) {
 					content: seoQuestions.getContent()
 				}
 			},
-			bvPId : pid,
+			bvPid : pid,
 			showSummary : true
 		};
 		res.setViewData(viewData);
