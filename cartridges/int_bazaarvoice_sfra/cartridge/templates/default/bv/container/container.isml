@@ -1,0 +1,17 @@
+<!--- TEMPLATENAME: container.isml --->
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title></title>
+	<meta name="robots" content="noindex, nofollow">
+	<link rel="canonical" href="${URLUtils.url('Bazaarvoice-Container')}"/>
+	<meta name="bv:pageType" content="container">
+</head>
+<body>
+	<isif condition="${!empty(pdict.bvScout)}">
+		<script async type="text/javascript" src="${pdict.bvScout}"></script>
+	<iselse/>
+		<!-- Cannot load BV Loader -->
+	</isif>
+</body>
+</html>
