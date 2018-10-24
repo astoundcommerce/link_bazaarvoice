@@ -1,0 +1,10 @@
+<!--- TEMPLATENAME: tracktransaction.isml --->
+<isif condition="${pdict.bvpixel}">
+	<script type="text/javascript">
+	window.bvCallback = function (BV) {
+		BV.pixel.trackTransaction(<isprint value="${JSON.stringify(pdict.bvpixel)}" encoding="off" />);
+	};
+	</script>
+<iselse/>
+	<!-- BV Pixel not enabled -->
+</isif>
