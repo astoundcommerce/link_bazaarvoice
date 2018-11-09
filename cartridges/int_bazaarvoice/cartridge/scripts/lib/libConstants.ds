@@ -68,9 +68,9 @@ exports.getConstants = function() {
 		MESSAGE_TEMPLATE : '[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}]',
 		MESSAGE_TEMPLATE_LOCALE : '[Job Details] [STATUS=  {0}] [Message= {1}] [Host = {2}] [User = {3}] [Password= ******] [Target FTP Folder= {5}] [File Name= {6}] [Locale = {7}]',
 		
-		XML_GENERATOR : 'Demandware LINK cartridge 18.1.0',
-		CLOUD_SEO_VERSION : 'dw_cartridge, 17.1.0',
-		XML_NAMESPACE_PRODUCT : 'http://www.bazaarvoice.com/xs/PRR/ProductFeed/5.2',
+		XML_GENERATOR : 'Salesforce Commerce Cloud (Demandware) Bazaarvoice LINK cartridge 18.2.0',
+		CLOUD_SEO_VERSION : 'dw_cartridge, 18.2.0',
+		XML_NAMESPACE_PRODUCT : 'http://www.bazaarvoice.com/xs/PRR/ProductFeed/14.7',
 		XML_NAMESPACE_PURCHASE : 'http://www.bazaarvoice.com/xs/PRR/PostPurchaseFeed/4.9',
 		XML_INCREMENTAL : 'false',
 		

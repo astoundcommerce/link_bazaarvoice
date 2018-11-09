@@ -1,5 +1,5 @@
 <!--- TEMPLATENAME: inlineratings-hosted.isml --->
-<isif condition="${Product != null && dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableInlineRatings_C2013')}">
+<isif condition="${Product != null}">
 	<isscript>
 	var BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 	var BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
