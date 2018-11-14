@@ -48,7 +48,9 @@ server.append('Confirm', function(req, res, next) {
 			var itemObj = {
 				sku: BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID),
 				name: item.product.name,
-				quantity: item.quantity.value.toFixed()
+				quantity: item.quantity.value.toFixed(),
+				price: item.price.value
+				
 			};
 			
 			var img = BVHelper.getImageURL(item.product, BV_Constants.PURCHASE);
