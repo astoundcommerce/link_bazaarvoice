@@ -40,7 +40,7 @@ function getStreamWriter(filename) {
 
 function startProductFeed() {
 	var cal = new Calendar();
-	var extract = StringUtils.formatCalendar(cal, 'yyyyMMdd') + 'T00:00:00.000000';
+	var extract = StringUtils.formatCalendar(cal, 'yyyy-MM-dd') + 'T00:00:00.000000';
 	
 	_xmlStreamWriter.writeStartDocument('UTF-8', '1.0');
 	_xmlStreamWriter.writeCharacters('\n');
