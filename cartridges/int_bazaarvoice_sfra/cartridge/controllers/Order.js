@@ -45,20 +45,22 @@ server.append('Confirm', function(req, res, next) {
 		for(var i = 0; i < lineItems.length; i++) {
 			var item = lineItems[i];
 			
-			var itemObj = {
-				sku: BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID),
-				name: item.product.name,
-				quantity: item.quantity.value.toFixed(),
+			if (item.product) {
+			    var itemObj = {
+			        sku: BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID),
+			        name: item.product.name,
+			        quantity: item.quantity.value.toFixed(),
 				price: item.price.value
-				
-			};
-			
-			var img = BVHelper.getImageURL(item.product, BV_Constants.PURCHASE);
-			if(img) {
-				itemObj.imageURL = img;
+			    };
+
+			    var img = BVHelper.getImageURL(item.product, BV_Constants.PURCHASE);
+			    if (img) {
+			        itemObj.imageURL = img;
+			    }
+			    pixelObj.items.push(itemObj);
 			}
 			
-			pixelObj.items.push(itemObj);
+			
 		}
 		
 		viewData.bvpixel = pixelObj;
