@@ -5,8 +5,8 @@ server.extend(module.superModule);
 
 var OrderMgr = require('dw/order/OrderMgr');
 
-var BV_Constants = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 
 server.append('Confirm', function(req, res, next) {

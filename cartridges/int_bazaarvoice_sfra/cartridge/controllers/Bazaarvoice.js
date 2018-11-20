@@ -19,7 +19,7 @@ var server = require('server');
 * @return {String} The string 'myFunction'
 */
 server.get('Container', function(req, res, next) {
-	var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+	var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 	
 	res.render('bv/container/container', {
 		bvScout: BVHelper.getBvLoaderUrl()

@@ -8,7 +8,7 @@
 	<meta name="bv:pageType" content="container">
 </head>
 <body>
-	<isset name="BVHelper" value="${require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
+	<isset name="BVHelper" value="${require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
 
 	<isif condition="${!empty(BVHelper) && !empty(BVHelper.getBvLoaderUrl())}">
 		<script async type="text/javascript" src="${BVHelper.getBvLoaderUrl()}"></script>

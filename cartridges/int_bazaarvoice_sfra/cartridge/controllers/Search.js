@@ -5,7 +5,7 @@ var server = require('server');
 server.extend(module.superModule);
 
 server.append('Show', function(req, res, next) {
-	var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+	var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 	var Site = require('dw/system/Site').getCurrent();
 	
 	var ratingPref = Site.getCustomPreferenceValue('bvEnableInlineRatings_C2013');

@@ -6,8 +6,8 @@ const Status = require('dw/system/Status');
 const ServiceRegistry = require('dw/svc/ServiceRegistry');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvUploadFeed.js');
 
-const BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-const BVHelper = require('int_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 function execute(parameters, stepExecution) {
 	var enabled = parameters.Enabled;

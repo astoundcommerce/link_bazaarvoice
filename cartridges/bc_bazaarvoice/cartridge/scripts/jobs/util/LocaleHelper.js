@@ -4,7 +4,7 @@ const Site = require('dw/system/Site');
 const HashMap = require('dw/util/HashMap');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'LocaleHelper.js');
 
-const BV_Constants = require('int_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
 function getLocaleMap() {
 	var localeMap = new HashMap();

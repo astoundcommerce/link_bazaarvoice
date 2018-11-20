@@ -7,11 +7,11 @@ var Site = require('dw/system/Site').getCurrent();
 var ProductMgr = require('dw/catalog/ProductMgr');
 var URLUtils = require('dw/web/URLUtils');
 
-var BV_Constants = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 function appendBVData(req, res) {
-	var BV_SEO = require('int_bazaarvoice_sfra/cartridge/scripts/lib/libCloudSEO.ds');
+	var BV_SEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds');
 	
 	if(BVHelper.isRREnabled() || BVHelper.isQAEnabled()) {
 		
