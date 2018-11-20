@@ -160,8 +160,10 @@ function writeProductFeedItem(item, localeMap) {
 			    writeElement('ProductPageUrl', URLUtils.https('Product-Show','pid',product.ID));
 			    
 			    var prodImage = BVHelper.getImageURL(product, BV_Constants.PRODUCT);
+			    var includeImages = false;
 			    if (!empty(prodImage)) {
-			    	writeElement('ImageUrl', prodImage); 
+			    	writeElement('ImageUrl', prodImage);
+			    	includeImages = true;
 			    }
 			    
 			    //Manufacturer Part Number
@@ -285,18 +287,21 @@ function writeProductFeedItem(item, localeMap) {
 			    	_xmlStreamWriter.writeEndElement();
 			    	
 			    	//Localized Image Urls
-			    	_xmlStreamWriter.writeStartElement('ImageUrls');
-			    	for(var i = 0; i < dwLocales.length; i++) {
-			    		var dwLocale = dwLocales[i];
-			    		var bvLocale = localeMap.get(dwLocale);
-			    		request.setLocale(dwLocale);
-			    		
-			    		var prodImage = BVHelper.getImageURL(product, BV_Constants.PRODUCT);
-					    if (!empty(prodImage)) {
-					    	writeLocalizedElement('ImageUrl', bvLocale, prodImage); 
-					    }
+			    	//only attempt this if the default image url was found above.
+			    	if(includeImages) {
+			    		_xmlStreamWriter.writeStartElement('ImageUrls');
+				    	for(var i = 0; i < dwLocales.length; i++) {
+				    		var dwLocale = dwLocales[i];
+				    		var bvLocale = localeMap.get(dwLocale);
+				    		request.setLocale(dwLocale);
+				    		
+				    		var prodImage = BVHelper.getImageURL(product, BV_Constants.PRODUCT);
+						    if (!empty(prodImage)) {
+						    	writeLocalizedElement('ImageUrl', bvLocale, prodImage); 
+						    }
+				    	}
+				    	_xmlStreamWriter.writeEndElement();
 			    	}
-			    	_xmlStreamWriter.writeEndElement();
 			    }
 			    
 			    request.setLocale(defaultLocale);
