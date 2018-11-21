@@ -6,8 +6,9 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'LocaleHelpe
 
 const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
-function getLocaleMap() {
+function getLocaleMap(type) {
 	var localeMap = new HashMap();
+	var context = type || '';
 	
 	var allowedLocales = Site.getCurrent().allowedLocales;
    	var defaultLocale = Site.getCurrent().getDefaultLocale();
@@ -36,7 +37,9 @@ function getLocaleMap() {
 					Logger.debug('Skipping invalid mapping: ' + item + '.  SFCC locale is not allowed for this Site.');
 				} else if(dupArray.indexOf(dwlocale) !== -1) {
 					Logger.debug('Skipping invalid mapping: ' + item + '.  SFCC locale is already mapped for this Site.');
-				} else if(localeMap.values().contains(bvlocale)) {
+				} else if(localeMap.values().contains(bvlocale) && context === 'product') {
+					//for the product feed, we have to remove duplicate BV locales, but for purchase feed, we need to be able to map
+					//any dw locale to its BV locale
 					Logger.debug('Skipping invalid mapping: ' + item + '.  BV locale is already mapped for this Site.');
 				} else {
 					localeMap.put(dwlocale, bvlocale);

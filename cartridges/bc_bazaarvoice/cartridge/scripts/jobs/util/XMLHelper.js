@@ -10,6 +10,7 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'XMLHelper.j
 
 const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+const PurchaseHelper = require('./PurchaseHelper');
 
 var _file,
 	_fileWriter,
@@ -17,7 +18,7 @@ var _file,
 
 var defaultLocale = request.getLocale();
 
-function getStreamWriter(filename) {
+function getStreamWriter(filename, localPath) {
 	if(_xmlStreamWriter) {
 		Logger.debug('Retrieving xml stream writer.');
 		return true;
@@ -28,7 +29,7 @@ function getStreamWriter(filename) {
 		return false;
 	}
 	
-	var filepath = [File.TEMP, 'bv', 'product'].join(File.SEPARATOR);
+	var filepath = [File.TEMP, localPath].join(File.SEPARATOR);
 	var filepathFile = new File(filepath);
 	filepathFile.mkdirs();
 	_file = new File(filepathFile, filename);
@@ -52,7 +53,24 @@ function startProductFeed() {
 	_xmlStreamWriter.writeAttribute('generator', BV_Constants.XML_GENERATOR);
 }
 
-function finishProductFeed(xsw) {
+function finishProductFeed() {
+	_xmlStreamWriter.writeEndElement();  //</Feed>
+	_xmlStreamWriter.writeEndDocument();
+   
+	_xmlStreamWriter.flush();
+	_xmlStreamWriter.close();
+	
+	_xmlStreamWriter = null;
+}
+
+function startPurchaseFeed() {
+	_xmlStreamWriter.writeStartDocument('UTF-8', '1.0');
+	_xmlStreamWriter.writeCharacters('\n');
+	_xmlStreamWriter.writeStartElement('Feed');
+	_xmlStreamWriter.writeAttribute('xmlns', BV_Constants.XML_NAMESPACE_PURCHASE);
+}
+
+function finishPurchaseFeed() {
 	_xmlStreamWriter.writeEndElement();  //</Feed>
 	_xmlStreamWriter.writeEndDocument();
    
@@ -312,6 +330,80 @@ function writeProductFeedItem(item, localeMap) {
 	}
 }
 
+function writePurchaseFeedItem(order, localeMap) {
+	var multiLocale = localeMap && localeMap.keySet() && localeMap.keySet().length > 1;
+	var bvLocale = null;
+	
+	if(multiLocale) {
+		bvLocale = localeMap.get(defaultLocale);
+		var orderLocale = order.getCustomerLocaleID();
+		
+		//if the order is not the default locale, and we have a mapped bv locale for it,
+		//then set the locale so we pass the correct product data
+		if(!orderLocale.equals(defaultLocale) && bvLocale) {
+			request.setLocale(orderLocale);
+			Logger.debug('Order has locale: {0}, and is mapped to BV locale: {1}', orderLocale, bvLocale);
+		}
+	}
+	
+	var emailAddress = order.getCustomerEmail();
+    var userName = order.getCustomerName();
+    var userID = order.getCustomerNo();
+    var txnDate = PurchaseHelper.getTransactionDate(order);
+    var lineItems = order.getAllProductLineItems();
+    
+    _xmlStreamWriter.writeStartElement('Interaction');
+	    
+    writeElement('EmailAddress', emailAddress);
+    if(bvLocale !== null) {
+    	writeElement('Locale', bvLocale); 
+    }
+    if(userName) {
+    	writeElement('UserName', userName);
+    }
+    if(userID) {
+    	writeElement('UserID' , userID);
+    }
+    if(txnDate) {
+    	writeElement('TransactionDate', txnDate.toISOString());
+    }
+    
+    _xmlStreamWriter.writeStartElement('Products');
+    for(var i = 0; i < lineItems.length; i++) {
+    	var lineItem = lineItems[i];
+        var prod = lineItem.getProduct();
+        if (!prod) {
+        	// Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
+        	continue;
+        }
+        
+        var externalID = BVHelper.replaceIllegalCharacters((prod.variant && !BV_Constants.UseVariantID) ? prod.variationModel.master.ID : prod.ID);
+        var name = prod.name;
+        var price = lineItem.getPriceValue();
+        var prodImage = BVHelper.getImageURL(prod, BV_Constants.PURCHASE);
+        
+        _xmlStreamWriter.writeStartElement('Product');
+		writeElement('ExternalId', externalID);
+		if(name) {
+			writeElement('Name', name);
+		}
+		if(price) {
+			writeElement('Price', price);
+		}
+		if(!empty(prodImage)) {
+			writeElement('ImageUrl' , prodImage);
+		}
+		_xmlStreamWriter.writeEndElement(); // </Product>    
+    }
+    _xmlStreamWriter.writeEndElement(); // </Products>
+    _xmlStreamWriter.writeEndElement(); // </Interaction>
+    
+    if(request.getLocale() !== defaultLocale) {
+    	request.setLocale(defaultLocale);
+    	Logger.debug('restoring locale: ' + defaultLocale);
+    }
+}
+
 function writeElement(elementName, chars) {
 	_xmlStreamWriter.writeStartElement(elementName);
 	_xmlStreamWriter.writeCharacters(chars);
@@ -342,6 +434,9 @@ module.exports = {
 	getStreamWriter : getStreamWriter,
 	startProductFeed : startProductFeed,
 	finishProductFeed : finishProductFeed,
+	startPurchaseFeed : startPurchaseFeed,
+	finishPurchaseFeed : finishPurchaseFeed,
 	transition: transition,
-	writeProductFeedItem: writeProductFeedItem
+	writeProductFeedItem: writeProductFeedItem,
+	writePurchaseFeedItem: writePurchaseFeedItem
 };

@@ -29,10 +29,11 @@ var currentType, openType;
 function beforeStep(parameters, stepExecution) {
 	Logger.debug('***** Before Step *****');
 	
-	var enabled = Site.current.getCustomPreferenceValue('bvEnableProductFeed_C2013');
+	//var enabled = Site.current.getCustomPreferenceValue('bvEnableProductFeed_C2013');
+	var enabled = parameters.Enabled;
 	if(!enabled) {
-		Logger.error('Site Preference Enable Product Feed is not true!');
-		throw new Error('Site Preference Enable Product Feed is not true!');
+		Logger.error('Product Feed Enable Parameter is not true!');
+		throw new Error('Product Feed Enable Parameter is not true!');
 	}
 	
 	if(empty(BVHelper.getCustomerName())) {
@@ -40,7 +41,11 @@ function beforeStep(parameters, stepExecution) {
 		throw new Error('Cannot retrieve customer name!');
 	}
 	
-	localeMap = LocaleHelper.getLocaleMap();
+	//prepare map of locales and determine if:
+	// - this will be a multilocale feed, or 
+	// - if we need to explicitly set a single locale because its not the default locale, or
+	// - rely on default DW and BV locales, by building a nonlocalized feed.
+	localeMap = LocaleHelper.getLocaleMap('product');
 	dwLocales = localeMap.keySet();
 	if(dwLocales.length === 1) {
 		Logger.debug('Setting job request locale to: ' + dwLocales[0]);
@@ -61,10 +66,11 @@ function beforeStep(parameters, stepExecution) {
 	var cal = new Calendar();
 	var stamp = StringUtils.formatCalendar(cal, 'yyyyMMddhhmmss');
 	var sid = Site.current.ID;
+	var path = BV_Constants.ProductFeedLocalPath;
 	var prefix = BV_Constants.ProductFeedPrefix;
     var filename = prefix + '_' + sid + '_' + stamp + '.xml'; 
     
-    xsw = XMLHelper.getStreamWriter(filename);
+    xsw = XMLHelper.getStreamWriter(filename, path);
 	if(!xsw) {
 		throw new Error('Could not init the XMLStreamWriter.');
 	}
