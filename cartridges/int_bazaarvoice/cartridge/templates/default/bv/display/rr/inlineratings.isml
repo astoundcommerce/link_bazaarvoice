@@ -18,6 +18,7 @@
 	    starsFile = 'rating-' + bvAvgRatingNum.toFixed(1).toString().replace('.','_') + '.gif';
 	} else {
 	    starsFile = 'rating-0_0.gif';
+	    bvReviewCount = 0;
 	}
 	</isscript>
 	
