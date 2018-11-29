@@ -11,6 +11,7 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'XMLHelper.j
 const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 const PurchaseHelper = require('./PurchaseHelper');
+const LocaleHelper = require('./LocaleHelper');
 
 var _file,
 	_fileWriter,
@@ -91,7 +92,7 @@ function transition(endNode, startNode) {
 }
 
 function writeProductFeedItem(item, localeMap) {
-	var multiLocale = localeMap && localeMap.keySet() && localeMap.keySet().length > 1;
+	var multiLocale = LocaleHelper.isMultiLocale(localeMap);
 	
 	switch(item.type) {
 		case 'Brands':
@@ -331,7 +332,7 @@ function writeProductFeedItem(item, localeMap) {
 }
 
 function writePurchaseFeedItem(order, localeMap) {
-	var multiLocale = localeMap && localeMap.keySet() && localeMap.keySet().length > 1;
+	var multiLocale = LocaleHelper.isMultiLocale(localeMap);
 	var bvLocale = null;
 	
 	if(multiLocale) {

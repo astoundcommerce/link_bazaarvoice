@@ -263,28 +263,6 @@ exports.getBazaarVoiceHelper = function() {
         return ret;
     };
     
-    var finalizeFeed = function(xsw) {
-        xsw.writeEndElement();  //</Feed>
-        xsw.writeEndDocument();
-   
-        xsw.flush();
-        xsw.close();
-    };
-
-    var writeElement = function(xsw, elementName, chars) {
-        xsw.writeStartElement(elementName);
-        xsw.writeCharacters(chars);
-        xsw.writeEndElement();
-    };
-
-	var insertLeadingZero = function(nb) {
-        if(nb < 10) {
-            return '0' + nb;
-        } else {
-            return '' + nb;
-        }
-    };
-    
     var getEnvironment = function() {
     	var env = Site.getCurrent().getCustomPreferenceValue('bvEnvironment_C2013');
     	if(empty(env) || empty(env.value)) {
@@ -292,40 +270,6 @@ exports.getBazaarVoiceHelper = function() {
 			return '';
     	}
     	return env.value;
-    };
-    
-	var uploadFile = function(destinationPath, destinationFilename, localFile, pdict) {
-    	var service = ServiceRegistry.get('bazaarvoice.sftp.export.' + Site.current.ID);
-    	var result = service.setOperation('cd', destinationPath).call();
-    	if(!result.isOk()) {
-    		Logger.error('[libBazaarvoice.ds][uploadFile()] Problem testing sftp server. path: {0}, file: {1}, result: {2}', destinationPath, destinationFilename, result.msg);
-            return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', result.msg, '', '', '', destinationPath, destinationFilename);
-    	}
-    	
-    	result = service.setOperation('list', destinationPath).call();
-		if(!result.isOk()) {
-			Logger.error('[libBazaarvoice.ds][uploadFile()] Problem during sftp list operation: ' + result.msg);
-			return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', result.msg, '', '', '', destinationPath, destinationFilename);
-		}
-		
-		var allRemoteFiles = result.getObject();
-		for(var i = 0; i < allRemoteFiles.length; i++) {
-			var f = allRemoteFiles[i];
-        	if(f.name === destinationFilename) {
-        		result = service.setOperation('del', destinationPath + '/' + destinationFilename).call();
-        		if(!result.isOk()) {
-        			Logger.error('[libBazaarvoice.ds][uploadFile()] Problem deleting existing file: ' + result.msg);
-        		}
-        	}
-        }
-        
-        result = service.setOperation('putBinary', destinationPath + '/' + destinationFilename, localFile).call();
-        if(!result.isOk()) {
-        	Logger.error('[libBazaarvoice.ds][uploadFile()] Problem uploading file: ' + result.msg);
-        	return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'ERROR', 'Problem uploading file: ' + result.msg, '', '', '', destinationPath, destinationFilename);
-        }
-        
-        return StringUtils.format(BV_Constants.MESSAGE_TEMPLATE,'SUCCESS', 'Export Processed - Connecton Details', '', '', '', destinationPath, destinationFilename);
     };
     
     var setBvReveal = function() {
@@ -364,11 +308,7 @@ exports.getBazaarVoiceHelper = function() {
 		getBvApiHostUrl : getBvApiHostUrl,
 		getDisplayData : getDisplayData,
 		getExternalSubjectForPage : getExternalSubjectForPage,
-		finalizeFeed : finalizeFeed,
-		writeElement : writeElement,
-		insertLeadingZero : insertLeadingZero,
 		getEnvironment : getEnvironment,
-		uploadFile : uploadFile,
 		setBvReveal : setBvReveal,
 		setProductId : setProductId,
 		getProductId : getProductId,

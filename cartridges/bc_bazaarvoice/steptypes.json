@@ -58,7 +58,36 @@
 		          	"@type":"boolean",
 		          	"@required":"false",
 		          	"@trim":"false",
-		          	"description":"Enable Upload of Product or Purchase Feed."
+		          	"description":"Enable Download of Rating Feed."
+		          	}]
+		    },
+		    "status-codes": {
+		    	"status":  [{
+		        	"@code": "ERROR",
+		            "description": "Used when the step failed with an error."
+		        }, {
+					"@code": "OK",
+					"description": "Used when the step finished successfully."
+				}]
+			}
+		}, {
+		 	"@type-id":"custom.Bazaarvoice-Rating-Import",
+		    "@supports-parallel-execution":"false",
+		    "@supports-site-context":"true",
+		    "@supports-organization-context":"false",
+		    "description":"Import the inline rating data from Bazaarvoice.",
+		    "module":"bc_bazaarvoice/cartridge/scripts/jobs/bvRatingImport.js",
+		    "function":"execute",
+		    "transactional":"true",
+		    "timeout-in-seconds":"3600000",
+		    "parameters":
+		    {
+		    	"parameter": [{
+		          	"@name":"Enabled",
+		          	"@type":"boolean",
+		          	"@required":"false",
+		          	"@trim":"false",
+		          	"description":"Enable Import of Rating Feed."
 		          	}]
 		    },
 		    "status-codes": {

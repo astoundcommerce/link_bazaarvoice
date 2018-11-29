@@ -92,6 +92,33 @@ function getLocaleMap(type) {
    	return localeMap;
 }
 
+function isMultiLocale(localeMap) {
+	return localeMap && localeMap.keySet() && localeMap.keySet().length > 1;
+}
+
+function getBVLocaleMap(localeMap) {
+	var bvMap = new HashMap();
+	var dwLocales = localeMap.keySet();
+	
+	for(var i = 0; i < dwLocales.length; i++) {
+		var dwLocale = dwLocales[i];
+		var bvLocale = localeMap.get(dwLocale);
+		if(bvMap.containsKey(bvLocale)) {
+			var currDWLocales = bvMap.get(bvLocale).toArray();
+			currDWLocales.push(dwLocale);
+			bvMap.put(bvLocale, currDWLocales);
+		} else {
+			var arr = [];
+			arr.push(dwLocale);
+			bvMap.put(bvLocale, arr);
+		}
+	}
+	
+	return bvMap;
+}
+
 module.exports = {
-	getLocaleMap : getLocaleMap
+	getLocaleMap : getLocaleMap,
+	isMultiLocale: isMultiLocale,
+	getBVLocaleMap: getBVLocaleMap
 };
