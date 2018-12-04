@@ -1,0 +1,28 @@
+<!--- TEMPLATENAME: qvratings.isml --->
+<isscript>
+//honor the Quickview Rating Type Preference (and possibly also the inline rating type):
+//	- none
+//	- inline ratings
+//		- none
+//		- hosted
+//		- native
+//	- PDP summary
+
+var quickviewPref = dw.system.Site.current.getCustomPreferenceValue('bvQuickViewRatingsType_C2013');
+var ratingTemplate = '';
+
+if(quickviewPref && quickviewPref.value && !quickviewPref.value.equals('none')) {
+	if(quickviewPref.value.equals('inlineratings')) {
+		var Product = pdict.Product;
+		ratingTemplate = 'bv/display/rr/ratings';
+	} else if(quickviewPref.value.equals('pdpsummary')) {
+		ratingTemplate = 'bv/display/pdpsummary';
+	}
+}
+</isscript>
+
+<isif condition="${!empty(ratingTemplate)}">
+	<isinclude template="${ratingTemplate}"/>
+<iselse/>
+	<!-- BV Quickview Rating Type is off  -->
+</isif>
