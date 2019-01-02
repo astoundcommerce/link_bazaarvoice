@@ -339,7 +339,8 @@ function SEOContent(config, seoProduct) {
 			
 			try {
 				var regex = /\/(\d+?)\/[^\/]+$/;
-				var matches = request.httpQueryString.match(regex);
+				param = decodeURIComponent(param);
+				var matches = param.match(regex);
 				pageNumber = matches[1];
 			} catch(e) {
 				Logger.error('_getPageNumber() Exception caught: ' + e.message);
