@@ -16,8 +16,8 @@
             </attribute-group>
         </group-definitions>
     </type-extension>
-	
-	<type-extension type-id="Product">
+
+    <type-extension type-id="Product">
         <custom-attribute-definitions>
             <attribute-definition attribute-id="bvAverageRating">
                 <display-name xml:lang="x-default">Bazaarvoice Average Rating</display-name>
@@ -114,6 +114,13 @@
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
             </attribute-definition>
+            <attribute-definition attribute-id="bvEnableBVPixel_C2013">
+                <display-name xml:lang="x-default">Enable BV Pixel</display-name>
+                <description xml:lang="x-default">Turn on the BV Pixel tag on the DW purchase transaction (checkout) page.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
             <attribute-definition attribute-id="bvEnableCloudSEO_C2013">
                 <display-name xml:lang="x-default">Enable Cloud SEO</display-name>
                 <description xml:lang="x-default">Turn on the BV SEO solution.  This will include SEO-friendly content (located in the BV SEO cloud) in your product pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
@@ -123,31 +130,24 @@
             </attribute-definition>
             <attribute-definition attribute-id="bvEnableInlineRatings_C2013">
                 <display-name xml:lang="x-default">Enable Inline Ratings</display-name>
-                <description xml:lang="x-default">Turn on BV inline ratings. This will enable display of product rating statistics on your category and search results pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
-                <type>boolean</type>
+                <description xml:lang="x-default">Turn on inline ratings. This will enable display of product rating statistics on your category and search results pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <type>enum-of-string</type>
                 <mandatory-flag>false</mandatory-flag>
                 <externally-managed-flag>false</externally-managed-flag>
-            </attribute-definition>
-            <attribute-definition attribute-id="bvEnableProductFeed_C2013">
-                <display-name xml:lang="x-default">Enable Product Feed</display-name>
-                <description xml:lang="x-default">Turn on Product Feed generation. This will enable generation of a product feed to be sent to the BV FTP server.  See documentation for additional steps to setup a scheduled job in DW for this feature to take effect.</description>
-                <type>boolean</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-            </attribute-definition>
-            <attribute-definition attribute-id="bvEnablePurchaseFeed_C2013">
-                <display-name xml:lang="x-default">Enable Purchase Feed</display-name>
-                <description xml:lang="x-default">Turn on Purchase Feed generation. This will enable generation of a purchase feed to be sent to the BV FTP server to be used to send post-interaction emails to your customers in order to solicit review submission.  See documentation for additional steps to setup a scheduled job in DW for this feature to take effect.</description>
-                <type>boolean</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
-            </attribute-definition>
-            <attribute-definition attribute-id="bvEnableBVPixel_C2013">
-                <display-name xml:lang="x-default">Enable BV Pixel</display-name>
-                <description xml:lang="x-default">Turn on the BV Pixel tag on the DW purchase transaction (checkout) page.  See documentation for additional steps that must be completed for this feature to take effect.</description>
-                <type>boolean</type>
-                <mandatory-flag>false</mandatory-flag>
-                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">No Inline Ratings</display>
+                        <value>none</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Hosted Inlline Ratings</display>
+                        <value>hosted</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Feed Based Inline Ratings</display>
+                        <value>native</value>
+                    </value-definition>
+                </value-definitions>
             </attribute-definition>
             <attribute-definition attribute-id="bvEnableRR_C2013">
                 <display-name xml:lang="x-default">Enable Ratings &amp; Reviews</display-name>
@@ -218,6 +218,23 @@
                     </value-definition>
                 </value-definitions>
             </attribute-definition>
+            <attribute-definition attribute-id="bvQuickViewRatingsType_C2013">
+                <display-name xml:lang="x-default">Quick View rating type</display-name>
+                <description xml:lang="x-default">Either Inline Rating stars (will honor the inline rating type: hosted vs native), or PDP summary stars (hosted)</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Inline Rating Stars</display>
+                        <value>inlineratings</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">PDP Summary (Aggregate Rating) Stars</display>
+                        <value>pdpsummary</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
         </custom-attribute-definitions>
         <group-definitions>
             <attribute-group group-id="Bazaarvoice Settings">
@@ -227,18 +244,18 @@
                 <attribute attribute-id="bvDeploymentZone_C2013"/>
                 <attribute attribute-id="bvLocaleMapping_C2013"/>
                 <attribute attribute-id="bvEnableRR_C2013"/>
-                <attribute attribute-id="bvEnableInlineRatings_C2013"/>
                 <attribute attribute-id="bvEnableAA_C2013"/>
                 <attribute attribute-id="bvEnableBVPixel_C2013"/>
                 <attribute attribute-id="bvEnableCloudSEO_C2013"/>
                 <attribute attribute-id="bvCloudSEOKey_C2013"/>
-                <attribute attribute-id="bvEnableProductFeed_C2013"/>
                 <attribute attribute-id="bvProductImageType_C2013"/>
-                <attribute attribute-id="bvEnablePurchaseFeed_C2013"/>
                 <attribute attribute-id="bvOrderImageType_C2013"/>
                 <attribute attribute-id="bvPurchaseFeedTriggeringEvent_C2013"/>
                 <attribute attribute-id="bvAdminEmail_C2013"/>
+                <attribute attribute-id="bvEnableInlineRatings_C2013"/>
+                <attribute attribute-id="bvQuickViewRatingsType_C2013"/>
             </attribute-group>
         </group-definitions>
     </type-extension>
+
 </metadata>
