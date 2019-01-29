@@ -16,7 +16,7 @@ if(!empty(bvPid)) {
     <!-- Questions -->
     <div data-bv-show="questions" data-bv-productId="${bvPid}">
     	<isif condition="${CSEO != null}">
-	    	<isprint value="${CSEO.questions().getContent()}" encoding="off" />
+	    	<isprint value="${CSEO.questions().getContent()}"/>
 	    </isif>
     </div>
     <!-- End Questions -->
