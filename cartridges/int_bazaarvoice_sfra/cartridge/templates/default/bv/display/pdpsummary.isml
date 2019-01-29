@@ -4,7 +4,7 @@
 	
 	<div data-bv-show="rating_summary" data-bv-productId="${pdict.bvDisplay.bvPid}">
 		<isif condition="${pdict.bvDisplay.rr.seo && pdict.bvDisplay.rr.seo.aggregateRating}">
-	    	<isprint value="${pdict.bvDisplay.rr.seo.aggregateRating}" encoding="off" />
+	    	<isprint value="${pdict.bvDisplay.rr.seo.aggregateRating}" />
 	    </isif>
 	</div>
 	
