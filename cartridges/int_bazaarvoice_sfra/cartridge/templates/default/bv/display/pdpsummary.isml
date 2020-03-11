@@ -10,19 +10,18 @@
 	
 	<script type="text/javascript" language="javascript">
 	window.bvCallback = function() {
-		BV.reviews.on('show', function () {
-			
+		
+		if (typeof BV != "undefined") {
+		BV.reviews.on('show', function () {		
 			//This line assumes SFRA collapsible panels and is called when clicking on the review summary
-			$('.row.reviews:not(.active)').toggleClass('active');
-			
+			$('.row.reviews:not(.active)').toggleClass('active');		
         });
 		
-	    BV.questions.on('show', function () {
-	    	
+	    BV.questions.on('show', function () {   	
 	    	//This line assumes SFRA collapsible panels and is called when clicking on the Q&A summary
 	    	$('.row.questions:not(.active)').toggleClass('active');
-	    	
-        });
+          });
+		}
 
 	};
 	</script>       
