@@ -1,0 +1,27 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+     "rules": {
+        "import/no-unresolved": "off",
+        "indent": ["error", 4, { "SwitchCase": 1, "VariableDeclarator": 1 }],
+        "func-names": "off",
+        "require-jsdoc": "error",
+        "valid-jsdoc": ["error", { "preferType": { "Boolean": "boolean", "Number": "number", "object": "Object", "String": "string" }, "requireReturn": false}],
+        "vars-on-top": "off",
+        "global-require": "off",
+        "no-shadow": ["error", { "allow": ["err", "callback"]}],
+        "max-len": "off"
+    }
+}

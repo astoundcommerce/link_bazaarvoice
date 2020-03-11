@@ -3,14 +3,14 @@
  */
 
 var Site = require('dw/system/Site');
-var ServiceRegistry = require('dw/svc/ServiceRegistry');
+var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 
 //need to have separate sftp services/credentials for each site
 var allSites = Site.allSites;
 for(var i = 0; i < allSites.length; i++) {
 	var siteID = allSites[i].getID();
 	
-	ServiceRegistry.configure('bazaarvoice.sftp.export.' + siteID, {
+	ServiceRegistry.createService('bazaarvoice.sftp.export.' + siteID, {
 		createRequest: function(svc, args){
 			return svc;
 		},
@@ -19,7 +19,7 @@ for(var i = 0; i < allSites.length; i++) {
 		}
 	});
 	
-	ServiceRegistry.configure('bazaarvoice.sftp.import.' + siteID, {
+	ServiceRegistry.createService('bazaarvoice.sftp.import.' + siteID, {
 		createRequest: function(svc, args){
 			return svc;
 		},
@@ -34,7 +34,7 @@ for(var i = 0; i < allSites.length; i++) {
 * HTTP Services
 *
 */
-ServiceRegistry.configure('bazaarvoice.http', {
+ServiceRegistry.createService('bazaarvoice.http', {
 	createRequest: function(svc, req){
 		svc.setRequestMethod('GET');
 	  	return req;
@@ -54,7 +54,7 @@ ServiceRegistry.configure('bazaarvoice.http', {
 	}
 });
 
-ServiceRegistry.configure('bazaarvoice.http.bot', {
+ServiceRegistry.createService('bazaarvoice.http.bot', {
 	createRequest: function(svc, req){
 		svc.setRequestMethod('GET');
 	  	return req;

@@ -14,7 +14,7 @@ const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants'
 const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 const LocaleHelper = require('./util/LocaleHelper');
 
-module.exports.execute = function(parameters, stepExecution) {
+module.exports.execute = function(parameters) {
 	try {
 		//generate a locale map
 		//also generate a reverse map of:
@@ -46,7 +46,6 @@ module.exports.execute = function(parameters, stepExecution) {
 				var bvReviewCount = '';
 				var bvRatingRange = '';
 				var ns = productXML.namespace();
-				
 				var id = productXML.ns::ExternalId.toString();
 				var product = id ? ProductMgr.getProduct(BVHelper.decodeId(id)) : null;
 				if(product) {

@@ -8,7 +8,7 @@
 */
 var Calendar = require('dw/util/Calendar');
 var HashMap = require('dw/util/HashMap');
-var ServiceRegistry = require('dw/svc/ServiceRegistry');
+var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 var StringUtils = require('dw/util/StringUtils');
 var URLUtils = require('dw/web/URLUtils');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'libCloudSEO');
@@ -164,7 +164,7 @@ function BVSEO() {
 	configMap['page'] = '1';
 	configMap['page_params'] = request.httpParameters.containsKey('bvstate') ? _getBVStateParams(request.httpParameters['bvstate'][0]) : new HashMap();
 	configMap['bvreveal'] = request.httpParameters.containsKey('bvreveal') ? request.httpParameters['bvreveal'][0] : '';
-	configMap['ssl_enabled'] = false;
+	configMap['ssl_enabled'] = true;
 	
 	/******************
 	* PUBLIC METHODS  *
@@ -266,9 +266,13 @@ function SEOContent(config, seoProduct) {
 		}
 		
 		// search the user agent string for an indictation if this is a search bot or not
-		var regex = new RegExp(configMap['bot_list']);
-		Logger.debug('isBot() result: ' + regex.test(request.httpUserAgent.toLowerCase()));
-		return regex.test(request.httpUserAgent.toLowerCase());
+		if(request.httpParameterMap.httpUserAgent.submitted){
+			var regex = new RegExp(configMap['bot_list']);
+			Logger.debug('isBot() result: ' + regex.test(request.httpUserAgent.toLowerCase()));
+			return regex.test(request.httpUserAgent.toLowerCase());
+		}else{
+			return false;
+		}
 	};
 	
 	
@@ -385,7 +389,18 @@ function SEOContent(config, seoProduct) {
 	var _fetchSeoContent = function(url) {
 		try {
 			var serviceId = _isBot() ? 'bazaarvoice.http.bot' : 'bazaarvoice.http';
-			var service = ServiceRegistry.get(serviceId);
+			
+			var service = ServiceRegistry.createService(serviceId,{
+			createRequest: function(service, result) {
+			        return result;
+			    },
+		
+			  parseResponse: function(svc, res) {
+				  return res;
+			  }
+			});
+		
+		
 			service.URL = url;
 			var timer = new Calendar();
 			var result = service.call();
@@ -456,7 +471,7 @@ function SEOContent(config, seoProduct) {
 			
 			footer += '\n	<li data-bvseo="en">'+ configMap['sdk_enabled'] +'</li>';
 			footer += '\n	<li data-bvseo="pn">'+ configMap['page'] +'</li>';
-			footer += '\n	<li data-bvseo="userAgent">'+ request.httpUserAgent.toLowerCase() +'</li>';
+			footer += '\n	<li data-bvseo="userAgent">'+ (request.httpUserAgent) ? request.httpUserAgent.toLowerCase() : '' +'</li>';
 			footer += '\n	<li data-bvseo="pageURI">'+ configMap['current_page_url'] +'</li>';
 			footer += '\n	<li data-bvseo="contentType">'+ configMap['content_type'] +'</li>';
 			footer += '\n	<li data-bvseo="subjectType">'+ configMap['subject_type'] +'</li>';

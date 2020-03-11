@@ -22,20 +22,23 @@ if(!empty(bvPid)) {
 	
 	<script type="text/javascript" language="javascript">
 	window.bvCallback = function() {
+		
 		BV.reviews.on('show', function () {
 			
 			//This line assumes Site Genesis tabs and is called when clicking on the review summary
 			jQuery('.tab.reviews .tab-switch').click();
 			
         });
+	
 		
 	    BV.questions.on('show', function () {
 	    	
 	    	//This line assumes Site Genesis tabs and is called when clicking on the Q&A summary
 	    	jQuery('.tab.questions .tab-switch').click();
 	    	
-        });
-	};
+        	});
+	  };
+
 	</script>       
 	<!-- End Reviews Summary -->
 </isif>

@@ -8,7 +8,7 @@ var Site = require('dw/system/Site');
 var MessageDigest = require('dw/crypto/MessageDigest');
 var StringUtils = require('dw/util/StringUtils');
 var Calendar = require('dw/util/Calendar');
-var ServiceRegistry = require('dw/svc/ServiceRegistry');
+var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'libBazaarvoice');
 
 var BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants(); 

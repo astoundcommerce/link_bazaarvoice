@@ -23,6 +23,7 @@
 	    	$('.row.questions:not(.active)').toggleClass('active');
 	    	
         });
+
 	};
 	</script>       
 	<!-- End Reviews Summary -->
