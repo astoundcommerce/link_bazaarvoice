@@ -32,22 +32,22 @@ var currentType, openType;
 function beforeStep(parameters) {
     Logger.debug('***** Before Step *****');
 	
-	//var enabled = Site.current.getCustomPreferenceValue('bvEnableProductFeed_C2013');
+    //var enabled = Site.current.getCustomPreferenceValue('bvEnableProductFeed_C2013');
     var enabled = parameters.Enabled;
     if(!enabled) {
         Logger.error('Product Feed Enable Parameter is not true!');
         throw new Error('Product Feed Enable Parameter is not true!');
     }
 	
-    if(empty(BVHelper.getCustomerName())) {
+    if(!BVHelper.getCustomerName()) {
         Logger.error('Cannot retrieve customer name!');
         throw new Error('Cannot retrieve customer name!');
     }
 	
-	//prepare map of locales and determine if:
-	// - this will be a multilocale feed, or 
-	// - if we need to explicitly set a single locale because its not the default locale, or
-	// - rely on default DW and BV locales, by building a nonlocalized feed.
+    //prepare map of locales and determine if:
+    // - this will be a multilocale feed, or 
+    // - if we need to explicitly set a single locale because its not the default locale, or
+    // - rely on default DW and BV locales, by building a nonlocalized feed.
     localeMap = LocaleHelper.getLocaleMap('product');
     dwLocales = localeMap.keySet();
     if(dwLocales.length === 1) {
@@ -140,7 +140,7 @@ function write(lines) {
         }
 		
         XMLHelper.writeProductFeedItem(line, localeMap);
-	 });
+    });
 }
 
 /**

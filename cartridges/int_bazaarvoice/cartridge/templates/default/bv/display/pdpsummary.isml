@@ -7,7 +7,7 @@ var bvPid = BVHelper.setProductId(pdict.Product);
 // Obtain Cloud SEO content
 var CSEO = null;
 if(!empty(bvPid)) {
-	CSEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({'product_id' : bvPid});
+	CSEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({'product_id' : bvPid});
 }
 </isscript>
 

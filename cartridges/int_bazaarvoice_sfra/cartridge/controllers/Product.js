@@ -16,7 +16,7 @@ var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').ge
  * @param {Object} res - json response from BV
  */
 function appendBVData(req, res) {
-    var BV_SEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds');
+    var BV_SEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.js');
 
     if (BVHelper.isRREnabled() || BVHelper.isQAEnabled()) {
         var viewData = res.getViewData();

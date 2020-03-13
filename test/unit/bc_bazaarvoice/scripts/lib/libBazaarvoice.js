@@ -1,6 +1,5 @@
 const assert = require('chai').assert;
 const proxyquire = require('proxyquire').noCallThru().noPreserveCache();
-const sinon = require('sinon');
 
 describe('libBazaarvoice', function () {
     const libBazaarvoice = proxyquire('../../../../../cartridges/bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice', {
@@ -30,9 +29,5 @@ describe('libBazaarvoice', function () {
     it('decodeId function testing', function() {
         let result = libBazaarvoice.getBazaarVoiceHelper().decodeId('testing_and_cartridge_fslash_');
         assert.equal(result, 'testing&cartridge/');
-    });
-    it('BVConstants function testing', function() {
-        let result = libBazaarvoice.getBazaarVoiceHelper().bvConstants();
-        assert.equal(result, 'sftp-stg.bazaarvoice.com');
     });
 });

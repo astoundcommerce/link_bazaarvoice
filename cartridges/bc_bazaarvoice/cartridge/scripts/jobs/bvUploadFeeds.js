@@ -5,10 +5,10 @@ const Site = require('dw/system/Site');
 const Status = require('dw/system/Status');
 const ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
-		'bvUploadFeed.js');
+    'bvUploadFeed.js');
 
 const BV_Constants = require(
-		'bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+    'bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
 
 /**
@@ -44,26 +44,26 @@ function execute(parameters) {
 
         var fileregex = new RegExp('^' + pattern + '_\\d{14}\\.xml$');
         var localPathFile = new File([ File.TEMP, localPath ]
-				.join(File.SEPARATOR));
+            .join(File.SEPARATOR));
         var localFiles = localPathFile.listFiles(function(f) {
             return fileregex.test(f.name);
         });
 
         var service = ServiceRegistry.createService('bazaarvoice.sftp.export.'
 				+ Site.current.ID, {
-    createRequest : function(service, result) {
-        return result;
-    },
+            createRequest : function(service, result) {
+                return result;
+            },
 
-    parseResponse : function(svc, res) {
-        return res;
-    }
-});
+            parseResponse : function(svc, res) {
+                return res;
+            }
+        });
 
         var result = service.setOperation('cd', remotePath).call();
         if (!result.isOk()) {
             Logger.error('Problem testing sftp server. path: {0}, result: {1}',
-					remotePath, result.msg);
+                remotePath, result.msg);
             return new Status(Status.ERROR);
         }
 
@@ -78,7 +78,7 @@ function execute(parameters) {
             var f = allRemoteFiles[i];
             if (fileregex.test(f.name) === true) {
                 result = service.setOperation('del', remotePath + '/' + f.name)
-						.call();
+                    .call();
                 if (!result.isOk()) {
                     Logger.error('Problem deleting existing file: '
 							+ result.msg);
@@ -86,11 +86,11 @@ function execute(parameters) {
             }
         }
 
-        for (var i = 0; i < localFiles.length; i++) {
-            var file = localFiles[i];
+        for (let i = 0; i < localFiles.length; i++) {
+            let file = localFiles[i];
 
             result = service.setOperation('putBinary',
-					remotePath + '/' + file.name, file).call();
+                remotePath + '/' + file.name, file).call();
             if (!result.isOk()) {
                 Logger.error('Problem uploading file: ' + result.msg);
                 return new Status(Status.ERROR);
@@ -101,7 +101,7 @@ function execute(parameters) {
 
     } catch (ex) {
         Logger.error('Exception caught during product feed upload: {0}',
-				ex.message);
+            ex.message);
         return new Status(Status.ERROR);
     }
 
