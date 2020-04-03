@@ -14,7 +14,7 @@ if(!empty(bvPid)) {
 <isif condition="${BVHelper.isRREnabled() || BVHelper.isQAEnabled()}">
 	<!-- Reviews Summary -->
 	
-	<div data-bv-show="rating_summary" data-bv-productId="${bvPid}">
+	<div data-bv-show="rating_summary" data-bv-productId="${bvPid}" id="data-bv-show" style="display:none" >
 		<isif condition="${CSEO != null}">
 	    	<isprint value="${CSEO.reviews().getAggregateRating()}" />
 	    </isif>
@@ -38,6 +38,11 @@ if(!empty(bvPid)) {
 		}
 	  };
 
+	  setTimeout(function(){ 
+		  document.getElementById("data-bv-show").style.display = 'block';
+	  }, 1000);
+		
+		
 	</script>       
 	<!-- End Reviews Summary -->
 </isif>

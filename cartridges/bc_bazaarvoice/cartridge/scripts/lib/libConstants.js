@@ -1,6 +1,9 @@
 'use strict';
+var Site = require('dw/system/Site');
                     
 exports.getConstants = function() {
+
+
     return {
         /*****************************************************************
 		**  CONFIGURATION VARIABLES:
@@ -50,7 +53,7 @@ exports.getConstants = function() {
         //If you show inline ratings for variations of the same master on a product grid (slicing for example),
         //then you need to enable the use of product families here.  This will add all variations to the product
         //feed, group them into families based on the master ID, and will use variation IDs for inline ratings. 
-        EnableProductFamilies : false,
+        EnableProductFamilies : (Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013') != null) ? Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013') : false,
         //If the above setting is set to true, then this will collect content at the variant level
         UseVariantID : false,
         /*****************************************************************

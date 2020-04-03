@@ -52,7 +52,7 @@ module.exports.execute = function(parameters) {
 					if(multiLocale) {
 						
 						var localeItemList = productXML.ns::ReviewStatistics.ns::LocaleDistribution.ns::LocaleDistributionItem;
-						if(localeItemList.length() > 0) {
+						if(localeItemList && localeItemList.length() > 0) {
 							for(var i = 0; i < localeItemList.length(); i++) {
 								var localeItem = localeItemList[i];
 								
@@ -70,6 +70,8 @@ module.exports.execute = function(parameters) {
 									}
 									
 									var dwLocales = bvLocaleMap.get(bvLocale);
+									
+									if(dwLocales && dwLocales != null){
 									for(var j = 0; j < dwLocales.length; j++) {
 										var dwLocale = dwLocales[j];
 										request.setLocale(dwLocale);
@@ -77,6 +79,7 @@ module.exports.execute = function(parameters) {
 									    product.custom.bvReviewCount = bvReviewCount;
 									    product.custom.bvRatingRange = bvRatingRange;
 									}
+								}
 									
 								}
 							}

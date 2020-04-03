@@ -1,6 +1,8 @@
 <!--- TEMPLATENAME: answers.isml 
 Embeds the container that Q&A are injected to and the javascript that accesses the Q&A content.
  ---> 
+
+ 
 <isscript>
 var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 var bvPid = BVHelper.getProductId();
