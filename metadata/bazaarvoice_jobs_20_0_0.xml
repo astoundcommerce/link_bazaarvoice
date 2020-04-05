@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs xmlns="http://www.demandware.com/xml/impex/jobs/2015-07-01">
+    <job job-id="Bazaarvoice Inline Ratings Import" priority="0">
+        <description/>
+        <parameters/>
+        <split sequential="false">
+            <flow>
+                <context site-id="RefArch"/>
+                <template-ref template-id="template_704"/>
+            </flow>
+            <flow>
+                <context site-id="SiteGenesis"/>
+                <template-ref template-id="template_704"/>
+            </flow>
+            <flow-template template-id="template_704">
+                <step step-id="Download Rating Feed" type="custom.Bazaarvoice-Download" enforce-restart="false">
+                    <description/>
+                    <parameters>
+                        <parameter name="Enabled">true</parameter>
+                    </parameters>
+                </step>
+            </flow-template>
+        </split>
+        <split sequential="false">
+            <flow>
+                <context site-id="RefArch"/>
+                <template-ref template-id="template_61"/>
+            </flow>
+            <flow>
+                <context site-id="SiteGenesis"/>
+                <template-ref template-id="template_61"/>
+            </flow>
+            <flow-template template-id="template_61">
+                <step step-id="Import Ratings" type="custom.Bazaarvoice-Rating-Import" enforce-restart="false">
+                    <description/>
+                    <parameters>
+                        <parameter name="Enabled">true</parameter>
+                    </parameters>
+                    <rules>
+                        <on-exit status="ERROR">
+                            <stop-job/>
+                        </on-exit>
+                    </rules>
+                </step>
+            </flow-template>
+        </split>
+        <rules>
+            <on-running runtime-threshold="60m" enabled="true">
+                <mark-job-as-hanging/>
+                <send-mail>
+                    <from>jobs@yourdomain.com</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-running>
+            <on-retry enabled="true">
+                <send-mail>
+                    <from>jobs@yourdomain.com</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-retry>
+            <on-exit status="ERROR" enabled="true">
+                <send-mail>
+                    <from>jobs@yourdomain.com</from>
+                    <to>jobadmin@yourdomain.com</to>
+				</send-mail>
+            </on-exit>
+        </rules>
+        <triggers>
+            <run-once enabled="true">
+                <date>2018-11-18Z</date>
+                <time>01:40:33.000Z</time>
+            </run-once>
+        </triggers>
+    </job>
+
+    <job job-id="Bazaarvoice Product Feed" priority="0">
+        <description/>
+        <parameters/>
+        <split sequential="false">
+            <flow>
+                <context site-id="RefArch"/>
+                <template-ref template-id="template_3926"/>
+            </flow>
+            <flow>
+                <context site-id="SiteGenesis"/>
+                <template-ref template-id="template_3926"/>
+            </flow>
+            <flow-template template-id="template_3926">
+                <step step-id="Site Specific Feed" type="custom.Bazaarvoice-Product-Feed-Export" enforce-restart="true">
+                    <description/>
+                    <parameters>
+                        <parameter name="Enabled">true</parameter>
+                    </parameters>
+                    <rules>
+                        <on-exit status="ERROR">
+                            <continue/>
+                        </on-exit>
+                    </rules>
+                </step>
+            </flow-template>
+        </split>
+        <split sequential="false">
+            <flow>
+                <context site-id="RefArch"/>
+                <template-ref template-id="template_123"/>
+            </flow>
+            <flow>
+                <context site-id="SiteGenesis"/>
+                <template-ref template-id="template_123"/>
+            </flow>
+            <flow-template template-id="template_123">
+                <step step-id="Upload Product Feeds" type="custom.Bazaarvoice-Upload" enforce-restart="false">
+                    <description>Product Feed Upload</description>
+                    <parameters>
+                        <parameter name="Enabled">true</parameter>
+                        <parameter name="FeedType">Product</parameter>
+                    </parameters>
+                </step>
+            </flow-template>
+        </split>
+        <rules>
+            <on-running runtime-threshold="60m" enabled="true">
+                <mark-job-as-hanging/>
+                <send-mail>
+                    <from>jobs@bazaarvoice02.tech-prtnr-na01.dw.demandware.net</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-running>
+            <on-retry enabled="true">
+                <send-mail>
+                    <from>jobs@bazaarvoice02.tech-prtnr-na01.dw.demandware.net</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-retry>
+            <on-exit status="ERROR" enabled="true">
+                <send-mail>
+                    <from>jobs@bazaarvoice02.tech-prtnr-na01.dw.demandware.net</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-exit>
+        </rules>
+        <triggers>
+            <run-once enabled="true">
+                <date>2018-11-18Z</date>
+                <time>01:40:33.000Z</time>
+            </run-once>
+        </triggers>
+    </job>
+
+    <job job-id="Bazaarvoice Purchase Feed" priority="0">
+        <description/>
+        <parameters/>
+        <split sequential="false">
+            <flow>
+                <context site-id="RefArch"/>
+                <template-ref template-id="template_44"/>
+            </flow>
+            <flow>
+                <context site-id="SiteGenesis"/>
+                <template-ref template-id="template_44"/>
+            </flow>
+            <flow-template template-id="template_44">
+                <step step-id="Generate Site PIE feed" type="custom.Bazaarvoice-Purchase-Feed-Export" enforce-restart="false">
+                    <description/>
+                    <parameters>
+                        <parameter name="Enabled">true</parameter>
+                        <parameter name="PurchaseFeedWaitDays">0</parameter>
+                        <parameter name="PurchaseFeedNumDays">14</parameter>
+                    </parameters>
+                    <rules>
+                        <on-exit status="ERROR">
+                            <continue/>
+                        </on-exit>
+                    </rules>
+                </step>
+            </flow-template>
+        </split>
+        <split sequential="false">
+            <flow>
+                <context site-id="RefArch"/>
+                <template-ref template-id="template_48"/>
+            </flow>
+            <flow>
+                <context site-id="SiteGenesis"/>
+                <template-ref template-id="template_48"/>
+            </flow>
+            <flow-template template-id="template_48">
+                <step step-id="Upload PIE feed" type="custom.Bazaarvoice-Upload" enforce-restart="false">
+                    <description/>
+                    <parameters>
+                        <parameter name="Enabled">true</parameter>
+                        <parameter name="FeedType">Purchase</parameter>
+                    </parameters>
+                </step>
+            </flow-template>
+        </split>
+        <rules>
+            <on-running runtime-threshold="60m" enabled="true">
+                <mark-job-as-hanging/>
+                <send-mail>
+                    <from>jobs@bazaarvoice02.tech-prtnr-na01.dw.demandware.net</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-running>
+            <on-retry enabled="true">
+                <send-mail>
+                    <from>jobs@bazaarvoice02.tech-prtnr-na01.dw.demandware.net</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-retry>
+            <on-exit status="ERROR" enabled="true">
+                <send-mail>
+                    <from>jobs@bazaarvoice02.tech-prtnr-na01.dw.demandware.net</from>
+                    <to>jobadmin@yourdomain.com</to>
+                </send-mail>
+            </on-exit>
+        </rules>
+        <triggers>
+            <run-once enabled="true">
+                <date>2018-11-18Z</date>
+                <time>01:40:33.000Z</time>
+            </run-once>
+        </triggers>
+    </job>
+
+</jobs>

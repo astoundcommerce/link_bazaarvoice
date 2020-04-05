@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns="http://www.demandware.com/xml/impex/services/2014-09-26">
+    <service-credential service-credential-id="bazaarvoice.sftp.stg.RefArch">
+        <url>sftp-stg.bazaarvoice.com</url>
+    </service-credential>
+	
+	<service-credential service-credential-id="bazaarvoice.sftp.prd.RefArch">
+        <url>sftp.bazaarvoice.com</url>
+    </service-credential>
+
+    <service-profile service-profile-id="bazaarvoice.http">
+        <timeout-millis>500</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>3</cb-calls>
+        <cb-millis>2000</cb-millis>
+    </service-profile>
+
+    <service-profile service-profile-id="bazaarvoice.http.bot">
+        <timeout-millis>2000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>3</cb-calls>
+        <cb-millis>10000</cb-millis>
+    </service-profile>
+
+    <service-profile service-profile-id="bazaarvoice.sftp">
+        <timeout-millis>5000</timeout-millis>
+        <rate-limit-enabled>false</rate-limit-enabled>
+        <rate-limit-calls>0</rate-limit-calls>
+        <rate-limit-millis>0</rate-limit-millis>
+        <cb-enabled>true</cb-enabled>
+        <cb-calls>3</cb-calls>
+        <cb-millis>20000</cb-millis>
+    </service-profile>
+
+    <service service-id="bazaarvoice.http">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>bazaarvoice_http</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>bazaarvoice.http</profile-id>
+        <credential-id/>
+    </service>
+
+    <service service-id="bazaarvoice.http.bot">
+        <service-type>HTTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>bazaarvoice_http</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>bazaarvoice.http.bot</profile-id>
+        <credential-id/>
+    </service>
+
+    <service service-id="bazaarvoice.sftp.export.RefArch">
+        <service-type>SFTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>bazaarvoice_sftp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>bazaarvoice.sftp</profile-id>
+        <credential-id>bazaarvoice.sftp.stg.RefArch</credential-id>
+    </service>
+
+    <service service-id="bazaarvoice.sftp.import.RefArch">
+        <service-type>SFTP</service-type>
+        <enabled>true</enabled>
+        <log-prefix>bazaarvoice_sftp</log-prefix>
+        <comm-log-enabled>true</comm-log-enabled>
+        <force-prd-enabled>false</force-prd-enabled>
+        <mock-mode-enabled>false</mock-mode-enabled>
+        <profile-id>bazaarvoice.sftp</profile-id>
+        <credential-id>bazaarvoice.sftp.stg.RefArch</credential-id>
+    </service>
+
+</services>

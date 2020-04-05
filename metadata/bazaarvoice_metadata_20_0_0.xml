@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://www.demandware.com/xml/impex/metadata/2006-10-31">
+    <type-extension type-id="Order">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvSentInPPEFeed">
+                <display-name xml:lang="x-default">Whether order already sent in Bazaarvoice PPE feed or not</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Bazaarvoice">
+                <display-name xml:lang="x-default">Bazaarvoice Attribute</display-name>
+                <attribute attribute-id="bvSentInPPEFeed"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="Product">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvAverageRating">
+                <display-name xml:lang="x-default">Bazaarvoice Average Rating</display-name>
+                <type>string</type>
+                <localizable-flag>true</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvRatingRange">
+                <display-name xml:lang="x-default">Bazaarvoice Rating Range</display-name>
+                <type>string</type>
+                <localizable-flag>true</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvReviewCount">
+                <display-name xml:lang="x-default">Bazaarvoice Review Count</display-name>
+                <type>string</type>
+                <localizable-flag>true</localizable-flag>
+                <site-specific-flag>false</site-specific-flag>
+                <mandatory-flag>false</mandatory-flag>
+                <visible-flag>false</visible-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <order-required-flag>false</order-required-flag>
+                <externally-defined-flag>false</externally-defined-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Bazaarvoice">
+                <display-name xml:lang="x-default">Custom Attribute</display-name>
+                <attribute attribute-id="bvAverageRating"/>
+                <attribute attribute-id="bvReviewCount"/>
+                <attribute attribute-id="bvRatingRange"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+    <type-extension type-id="SitePreferences">
+        <custom-attribute-definitions>
+            <attribute-definition attribute-id="bvAdminEmail_C2013">
+                <display-name xml:lang="x-default">Administrator Email</display-name>
+                <description xml:lang="x-default">All notifications for BV-related DW job schedules will be sent to this email address.</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCloudSEOKey_C2013">
+                <display-name xml:lang="x-default">Cloud SEO Key</display-name>
+                <description xml:lang="x-default">SEO Cloud key value as defined in your BV platform account.  This key is only required if Cloud SEO is enabled.</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvCustomerName_C2013">
+                <display-name xml:lang="x-default">Client Name</display-name>
+                <description xml:lang="x-default">Client Name as defined in your BV platform account</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvDeploymentZone_C2013">
+                <display-name xml:lang="x-default">Deployment Zone</display-name>
+                <description xml:lang="x-default">Deployment Zone Name as defined in your BV platform account</description>
+                <type>string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableAA_C2013">
+                <display-name xml:lang="x-default">Enable Question &amp; Answer</display-name>
+                <description xml:lang="x-default">Turn on BV Questions &amp; Answers. This will enable display of Q&amp;A content on your product pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableBVPixel_C2013">
+                <display-name xml:lang="x-default">Enable BV Pixel</display-name>
+                <description xml:lang="x-default">Turn on the BV Pixel tag on the DW purchase transaction (checkout) page.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableCloudSEO_C2013">
+                <display-name xml:lang="x-default">Enable Cloud SEO</display-name>
+                <description xml:lang="x-default">Turn on the BV SEO solution.  This will include SEO-friendly content (located in the BV SEO cloud) in your product pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableInlineRatings_C2013">
+                <display-name xml:lang="x-default">Enable Inline Ratings</display-name>
+                <description xml:lang="x-default">Turn on inline ratings. This will enable display of product rating statistics on your category and search results pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">No Inline Ratings</display>
+                        <value>none</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Hosted Inlline Ratings</display>
+                        <value>hosted</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Feed Based Inline Ratings</display>
+                        <value>native</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnableRR_C2013">
+                <display-name xml:lang="x-default">Enable Ratings &amp; Reviews</display-name>
+                <description xml:lang="x-default">Turn on BV Ratings &amp; Reviews. This will enable display of R&amp;R content on your product pages.  See documentation for additional steps that must be completed for this feature to take effect.</description>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvEnvironment_C2013">
+                <display-name xml:lang="x-default">Environment</display-name>
+                <description xml:lang="x-default">BV environment that this DW instance type is integrating with</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition default="true">
+                        <display xml:lang="x-default">Staging</display>
+                        <value>Staging</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Production</display>
+                        <value>Production</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvLocaleMapping_C2013">
+                <display-name xml:lang="x-default">Locale Mapping(s)</display-name>
+                <description xml:lang="x-default">Colon separated value pairs that define how DW Locales are mapped to BV Locales.  DW Locales must be enabled in the current DW Site.  BV Locales must be enabled within your BV platform acocunt.  Format: ["(DW Locale ID)":]"(BV Locale)"</description>
+                <type>set-of-string</type>
+                <mandatory-flag>true</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <field-length>0</field-length>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvOrderImageType_C2013">
+                <display-name xml:lang="x-default">Purchase Feed Image Type</display-name>
+                <description xml:lang="x-default">This is the Image Size type used in the feed. The value must match an existing Image Size type. If Image Type custom site preference is set to anything other than medium, then when the feed generator discovers a product that does not have that size type defined, the medium image will be used. If no medium image is set for that product, no image URL will be added in the feed</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>medium</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvProductImageType_C2013">
+                <display-name xml:lang="x-default">Product Feed Image Type</display-name>
+                <description xml:lang="x-default">This is the Image Size type used in the feed. The value must match an existing Image Size type. If Image Type custom site preference is set to anything other than medium, then when the feed generator discovers a product that does not have that size type defined, the medium image will be used. If no medium image is set for that product, no image URL will be added in the feed</description>
+                <type>string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <min-length>0</min-length>
+                <field-length>0</field-length>
+                <default-value>medium</default-value>
+            </attribute-definition>
+             <attribute-definition attribute-id="bvEnableProductFamilies_C2013">
+                <display-name xml:lang="x-default">BV Enable Product Families</display-name>
+                <type>boolean</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <default-value>false</default-value>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvPurchaseFeedTriggeringEvent_C2013">
+                <display-name xml:lang="x-default">Purchase Feed Triggering Event</display-name>
+                <description xml:lang="x-default">This determines whether to use the purchase date or ship date when calculating which purchases to include in the purchase feed.</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Shipping</display>
+                        <value>shipping</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">Purchase</display>
+                        <value>purchase</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+            <attribute-definition attribute-id="bvQuickViewRatingsType_C2013">
+                <display-name xml:lang="x-default">Quick View rating type</display-name>
+                <description xml:lang="x-default">Either Inline Rating stars (will honor the inline rating type: hosted vs native), or PDP summary stars (hosted)</description>
+                <type>enum-of-string</type>
+                <mandatory-flag>false</mandatory-flag>
+                <externally-managed-flag>false</externally-managed-flag>
+                <value-definitions>
+                    <value-definition>
+                        <display xml:lang="x-default">Inline Rating Stars</display>
+                        <value>inlineratings</value>
+                    </value-definition>
+                    <value-definition>
+                        <display xml:lang="x-default">PDP Summary (Aggregate Rating) Stars</display>
+                        <value>pdpsummary</value>
+                    </value-definition>
+                </value-definitions>
+            </attribute-definition>
+        </custom-attribute-definitions>
+        <group-definitions>
+            <attribute-group group-id="Bazaarvoice Settings">
+                <display-name xml:lang="x-default">Bazaarvoice Settings</display-name>
+                <attribute attribute-id="bvEnvironment_C2013"/>
+                <attribute attribute-id="bvCustomerName_C2013"/>
+                <attribute attribute-id="bvDeploymentZone_C2013"/>
+                <attribute attribute-id="bvLocaleMapping_C2013"/>
+                <attribute attribute-id="bvEnableRR_C2013"/>
+                <attribute attribute-id="bvEnableAA_C2013"/>
+                <attribute attribute-id="bvEnableBVPixel_C2013"/>
+                <attribute attribute-id="bvEnableCloudSEO_C2013"/>
+                <attribute attribute-id="bvCloudSEOKey_C2013"/>
+                <attribute attribute-id="bvProductImageType_C2013"/>
+                <attribute attribute-id="bvOrderImageType_C2013"/>
+                <attribute attribute-id="bvPurchaseFeedTriggeringEvent_C2013"/>
+                <attribute attribute-id="bvAdminEmail_C2013"/>
+                <attribute attribute-id="bvEnableInlineRatings_C2013"/>
+                <attribute attribute-id="bvQuickViewRatingsType_C2013"/>
+                <attribute attribute-id="bvEnableProductFamilies_C2013"/>
+            </attribute-group>
+        </group-definitions>
+    </type-extension>
+
+</metadata>
