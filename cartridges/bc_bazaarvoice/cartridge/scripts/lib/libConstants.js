@@ -55,7 +55,7 @@ exports.getConstants = function() {
         //feed, group them into families based on the master ID, and will use variation IDs for inline ratings. 
         EnableProductFamilies : (Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013') != null) ? Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013') : false,
         //If the above setting is set to true, then this will collect content at the variant level
-        UseVariantID : false,
+        UseVariantID : (Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013') != true) ? false : true,
         /*****************************************************************
 		*    END CONFIGURATION VARIABLES
 		******************************************************************/
