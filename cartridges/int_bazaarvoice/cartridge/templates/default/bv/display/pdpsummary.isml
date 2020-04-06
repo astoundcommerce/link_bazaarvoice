@@ -16,7 +16,7 @@ if(!empty(bvPid)) {
 	
 	<div data-bv-show="rating_summary" data-bv-productId="${bvPid}" id="data-bv-show" style="display:none" >
 		<isif condition="${CSEO != null}">
-	    	<isprint value="${CSEO.reviews().getAggregateRating()}" />
+	    	<isprint value="${CSEO.reviews().getAggregateRating()}" encoding="off"/>
 	    </isif>
 	</div>
 	
