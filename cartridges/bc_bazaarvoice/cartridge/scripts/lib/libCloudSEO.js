@@ -20,7 +20,7 @@ var _createService = function(serviceId) {
 		return ServiceRegistry.createService(serviceId, {
 			createRequest: function(svc, result) {
 				svc.setRequestMethod('GET');
-				return result;
+				return svc;
 			},
 			parseResponse: function(svc, client) {
 				return client.getText();

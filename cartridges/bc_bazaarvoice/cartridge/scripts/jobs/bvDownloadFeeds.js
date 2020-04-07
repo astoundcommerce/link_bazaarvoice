@@ -4,20 +4,17 @@ const File = require('dw/io/File');
 const Site = require('dw/system/Site');
 const Status = require('dw/system/Status');
 const ServiceRegistry = require('dw/svc/LocalServiceRegistry');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
-    'bvDownloadFeeds.js');
+const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvDownloadFeeds.js');
+const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
-const BV_Constants = require(
-    'bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice')
-    .getBazaarVoiceHelper();
 
-module.exports.execute = function() {
+module.exports.execute = function(parameters, stepExecution) {
     try {
         var service = ServiceRegistry.createService('bazaarvoice.sftp.import.'
 				+ Site.current.ID, {
             createRequest : function(service, result) {
-                return result;
+                return service;
             },
 
             parseResponse : function(svc, res) {

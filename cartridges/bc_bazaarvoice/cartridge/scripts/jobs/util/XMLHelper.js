@@ -1,5 +1,6 @@
 'use strict';
 
+const Site = require('dw/system/Site');
 const Calendar = require('dw/util/Calendar');
 const StringUtils = require('dw/util/StringUtils');
 const File = require('dw/io/File');
@@ -186,8 +187,9 @@ function writeProductFeedItem(item, localeMap) {
 
         case 'Products':
             let product = item.obj;
+            let enableProductFamilies = Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');
             if (product.online && product.searchable
-				&& (BV_Constants.EnableProductFamilies || !product.letiant)) {
+				&& (enableProductFamilies || !product.variant)) {
                 _xmlStreamWriter.writeStartElement('Product');
 
                 writeElement('ExternalId', BVHelper
@@ -239,8 +241,8 @@ function writeProductFeedItem(item, localeMap) {
                     _xmlStreamWriter.writeEndElement();
                 } else if (product.master) {
                     let showEans = false;
-                    for (let i = 0; i < product.letiants.length; i++) {
-                        if (!product.letiants[i].EAN) {
+                    for (let i = 0; i < product.variants.length; i++) {
+                        if (!product.variants[i].EAN) {
                             showEans = true;
                             break;
                         }
@@ -248,9 +250,9 @@ function writeProductFeedItem(item, localeMap) {
 
                     if (showEans) {
                         _xmlStreamWriter.writeStartElement('EANs');
-                        for (let i = 0; i < product.letiants.length; i++) {
-                            if (!product.letiants[i].EAN) {
-                                writeElement('EAN', product.letiants[i].EAN);
+                        for (let i = 0; i < product.variants.length; i++) {
+                            if (!product.variants[i].EAN) {
+                                writeElement('EAN', product.variants[i].EAN);
                             }
                         }
                         _xmlStreamWriter.writeEndElement();
@@ -264,8 +266,8 @@ function writeProductFeedItem(item, localeMap) {
                     _xmlStreamWriter.writeEndElement();
                 } else if (product.master) {
                     let showUpcs = false;
-                    for (let i = 0; i < product.letiants.length; i++) {
-                        if (!product.letiants[i].UPC) {
+                    for (let i = 0; i < product.variants.length; i++) {
+                        if (!product.variants[i].UPC) {
                             showUpcs = true;
                             break;
                         }
@@ -273,19 +275,19 @@ function writeProductFeedItem(item, localeMap) {
 
                     if (showUpcs) {
                         _xmlStreamWriter.writeStartElement('UPCs');
-                        for (let i = 0; i < product.letiants.length; i++) {
-                            if (product.letiants[i].UPC) {
-                                writeElement('UPC', product.letiants[i].UPC);
+                        for (let i = 0; i < product.variants.length; i++) {
+                            if (product.variants[i].UPC) {
+                                writeElement('UPC', product.variants[i].UPC);
                             }
                         }
                         _xmlStreamWriter.writeEndElement();
                     }
                 }
 
-                //add product family attributes here for letiants and masters,
+                //add product family attributes here for variants and masters,
                 //only if Product Families are enabled in libConstants.js
                 if (BV_Constants.EnableProductFamilies
-					&& (product.master || product.letiant)) {
+					&& (product.master || product.variant)) {
                     _xmlStreamWriter.writeStartElement('Attributes');
 
                     //use the master ID plus '-family' as the family ID
@@ -434,7 +436,7 @@ function writePurchaseFeedItem(order, localeMap) {
         }
 
         let externalID = BVHelper
-            .replaceIllegalCharacters((prod.letiant && !BV_Constants.UseletiantID) ? prod.letiationModel.master.ID
+            .replaceIllegalCharacters((prod.variant && !BV_Constants.UsevariantID) ? prod.letiationModel.master.ID
                 : prod.ID);
         let name = prod.name;
         let price = lineItem.getPriceValue();

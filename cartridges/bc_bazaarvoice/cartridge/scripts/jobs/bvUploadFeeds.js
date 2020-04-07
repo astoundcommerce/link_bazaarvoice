@@ -4,11 +4,9 @@ const File = require('dw/io/File');
 const Site = require('dw/system/Site');
 const Status = require('dw/system/Status');
 const ServiceRegistry = require('dw/svc/LocalServiceRegistry');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
-    'bvUploadFeed.js');
+const Logger = require('dw/system/Logger').getLogger('Bazaarvoice','bvUploadFeed.js');
 
-const BV_Constants = require(
-    'bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
 
 /**
@@ -16,7 +14,7 @@ const BV_Constants = require(
  * @param {Object} parameters - object of site parameters
  * @returns {string} the status results
  */
-function execute(parameters) {
+function execute(parameters, stepExecution) {
     var enabled = parameters.Enabled;
     if (!enabled) {
         Logger.info('Upload step is not enabled, skipping....');
@@ -52,7 +50,7 @@ function execute(parameters) {
         var service = ServiceRegistry.createService('bazaarvoice.sftp.export.'
 				+ Site.current.ID, {
             createRequest : function(service, result) {
-                return result;
+                return service;
             },
 
             parseResponse : function(svc, res) {

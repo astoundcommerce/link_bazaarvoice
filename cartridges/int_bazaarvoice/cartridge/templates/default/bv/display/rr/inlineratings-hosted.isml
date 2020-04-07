@@ -5,7 +5,9 @@
 	var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 	var bvPID = '';
-	if(BV_Constants.EnableProductFamilies) {
+	 var enableProductFamilies = dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');
+
+	if(enableProductFamilies) {
 		if(pdict.FirstProduct) {
 			bvPID = pdict.FirstProduct.ID.toLowerCase();
 		}

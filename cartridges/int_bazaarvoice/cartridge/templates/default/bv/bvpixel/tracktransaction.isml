@@ -22,13 +22,16 @@
 				"state"		:	"${pdict.Order.billingAddress.stateCode}",
 				"country"	:	"${pdict.Order.billingAddress.countryCode}",
 				"currency"	:	"${pdict.Order.currencyCode}",
+				"partnerSource":"${BV_Constants.XML_GENERATOR}",
+				"source":"${BV_Constants.SOURCE}",
+				"sourceVersion":"${BV_Constants.SOURCE_VERSION}",
 				"items"		:	[
 				<isscript>var plicounter = 0;</isscript>
 				<isloop items="${pdict.Order.allProductLineItems}" var="item" status="itemstat">
 					<isif condition="${item.product != null}">
 						<isif condition="${plicounter > 0}">,</isif>
 						{
-							"sku"		:	"${BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
+							"productId"	:	"${BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
 							"name"		:	"${item.product.name}",
 							"price"		:	"${item.basePrice.value}",
 							<isif condition="${!empty(BVHelper.getImageURL(item.product, BV_Constants.PURCHASE))}">

@@ -33,7 +33,9 @@ server.append('Confirm', function (req, res, next) {
             partnerSource: BV_Constants.XML_GENERATOR,
             locale: bvdata.locale,
             deploymentZone: bvdata.zone.toLowerCase().replace(' ', '_', 'g'),
-            items: []
+            items: [],
+            source: BV_Constants.SOURCE,
+            sourceVersion: BV_Constants.SOURCE_VERSION
         };
 
         if (order.customerNo) {
@@ -46,7 +48,7 @@ server.append('Confirm', function (req, res, next) {
 
             if (item.product) {
                 var itemObj = {
-                    sku: BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID),
+                    productId: BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID),
                     name: item.product.name,
                     quantity: item.quantity.value.toFixed(),
                     price: item.price.value
