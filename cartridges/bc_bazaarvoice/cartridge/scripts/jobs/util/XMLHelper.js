@@ -200,9 +200,8 @@ function writeProductFeedItem(item, localeMap) {
                     (product.shortDescription == null ? pname
                         : product.shortDescription));
 
-                if (product.getBrand() != null && !product.brand) {
-                    writeElementCDATA('BrandExternalId', BVHelper
-                        .replaceIllegalCharacters(product.brand));
+                if (product.getBrand() != null && product.brand) {
+                    writeElementCDATA('BrandExternalId', BVHelper.replaceIllegalCharacters(product.brand));
                 }
 
                 let categoryExternalId = BV_Constants.CATEGORY_NONE;
@@ -242,7 +241,7 @@ function writeProductFeedItem(item, localeMap) {
                 } else if (product.master) {
                     let showEans = false;
                     for (let i = 0; i < product.variants.length; i++) {
-                        if (!product.variants[i].EAN) {
+                        if (product.variants[i].EAN) {
                             showEans = true;
                             break;
                         }
@@ -251,7 +250,7 @@ function writeProductFeedItem(item, localeMap) {
                     if (showEans) {
                         _xmlStreamWriter.writeStartElement('EANs');
                         for (let i = 0; i < product.variants.length; i++) {
-                            if (!product.variants[i].EAN) {
+                            if (product.variants[i].EAN) {
                                 writeElement('EAN', product.variants[i].EAN);
                             }
                         }
@@ -267,7 +266,7 @@ function writeProductFeedItem(item, localeMap) {
                 } else if (product.master) {
                     let showUpcs = false;
                     for (let i = 0; i < product.variants.length; i++) {
-                        if (!product.variants[i].UPC) {
+                        if (product.variants[i].UPC) {
                             showUpcs = true;
                             break;
                         }
