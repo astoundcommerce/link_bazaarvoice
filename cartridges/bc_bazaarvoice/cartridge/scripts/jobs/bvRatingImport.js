@@ -12,7 +12,7 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvRatingImp
 
 const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-const LocaleHelper = require('./util/LocaleHelper');
+const LocaleHelper = require('./util/localeHelper');
 
 module.exports.execute = function(parameters) {
 	try {

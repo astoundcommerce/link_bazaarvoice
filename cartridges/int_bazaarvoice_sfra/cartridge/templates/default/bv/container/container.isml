@@ -4,7 +4,6 @@
 	<meta charset="utf-8"/>
 	<title></title>
 	<meta name="robots" content="noindex, nofollow">
-	<link rel="canonical" href="${URLUtils.url('Bazaarvoice-Container')}"/>
 	<meta name="bv:pageType" content="container">
 </head>
 <body>

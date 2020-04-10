@@ -7,15 +7,14 @@ const File = require('dw/io/File');
 const FileWriter = require('dw/io/FileWriter');
 const URLUtils = require('dw/web/URLUtils');
 const XMLStreamWriter = require('dw/io/XMLIndentingStreamWriter');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
-    'XMLHelper.js');
+const Logger = require('dw/system/Logger').getLogger('Bazaarvoice','XMLHelper.js');
 
 const BV_Constants = require('*/cartridge/scripts/lib/libConstants')
     .getConstants();
 const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice')
     .getBazaarVoiceHelper();
-const PurchaseHelper = require('./PurchaseHelper');
-const LocaleHelper = require('./LocaleHelper');
+const PurchaseHelper = require('./purchaseHelper');
+const LocaleHelper = require('./localeHelper');
 
 let _file, _fileWriter, _xmlStreamWriter;
 

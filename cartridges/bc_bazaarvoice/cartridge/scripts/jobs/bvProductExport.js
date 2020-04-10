@@ -11,10 +11,10 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvProductEx
 // BV Helper Scripts
 const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-const CategoryHelper = require('./util/CategoryHelper');
-const BrandHelper = require('./util/BrandHelper');
-const LocaleHelper = require('./util/LocaleHelper');
-const XMLHelper = require('./util/XMLHelper');
+const CategoryHelper = require('./util/categoryHelper');
+const BrandHelper = require('./util/brandHelper');
+const LocaleHelper = require('./util/localeHelper');
+const XMLHelper = require('./util/xmlHelper');
 
 var localeMap, dwLocales;
 var brandIter, catIter, prodIter;

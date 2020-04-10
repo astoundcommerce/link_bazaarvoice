@@ -11,9 +11,9 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
 
 // BV Helper Scripts
 const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-const LocaleHelper = require('./util/LocaleHelper');
-const XMLHelper = require('./util/XMLHelper');
-const PurchaseHelper = require('./util/PurchaseHelper');
+const LocaleHelper = require('./util/localeHelper');
+const XMLHelper = require('./util/xmlHelper');
+const PurchaseHelper = require('./util/purchaseHelper');
 
 // local variables
 var localeMap, dwLocales;
