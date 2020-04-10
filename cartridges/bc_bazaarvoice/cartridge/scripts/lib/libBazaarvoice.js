@@ -231,38 +231,7 @@ exports.getBazaarVoiceHelper = function() {
         
         return {'zone' : bvzone, 'locale' : bvlocale};
     };
-    
-    
-    //TODO: DO WE NEED THIS ANYMORE?????
-    var getExternalSubjectForPage = function(pdict) {
-        var ret = {};
-        
-        var bvExternalSubjectID = null;
-        if (pdict.Product != null) {
-            ret.bvSubjectType = 'product';
-            ret.bvExternalSubjectName = (pdict.Product.variant) ? pdict.Product.variationModel.master.name : pdict.Product.name;
-            bvExternalSubjectID = (pdict.Product.variant && !BV_Constants.UseVariantID) ? pdict.Product.variationModel.master.ID : pdict.Product.ID;
-        } else if (pdict.Category != null) {
-            ret.bvSubjectType = 'category';
-            ret.bvExternalSubjectName = pdict.Category.name;
-            bvExternalSubjectID = pdict.Category.ID;
-        } else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.category != null ) {
-            ret.bvSubjectType = 'category';
-            ret.bvExternalSubjectName = pdict.ProductSearchResult.category.displayName;
-            bvExternalSubjectID = pdict.ProductSearchResult.category.ID;
-        }
-        else if (pdict.ProductSearchResult != null && pdict.ProductSearchResult.deepestCommonCategory != null ) {
-            ret.bvSubjectType = 'category';
-            ret.bvExternalSubjectName = pdict.ProductSearchResult.deepestCommonCategory.displayName;
-            bvExternalSubjectID = pdict.ProductSearchResult.deepestCommonCategory.ID;
-        }
 
-        if (bvExternalSubjectID != null) {
-            ret.bvExternalSubjectID = replaceIllegalCharacters(bvExternalSubjectID);
-        }
-        
-        return ret;
-    };
     
     var getEnvironment = function() {
         var env = Site.getCurrent().getCustomPreferenceValue('bvEnvironment_C2013');
@@ -308,7 +277,6 @@ exports.getBazaarVoiceHelper = function() {
         getBvLoaderUrl : getBvLoaderUrl,
         getBvApiHostUrl : getBvApiHostUrl,
         getDisplayData : getDisplayData,
-        getExternalSubjectForPage : getExternalSubjectForPage,
         getEnvironment : getEnvironment,
         setBvReveal : setBvReveal,
         setProductId : setProductId,
