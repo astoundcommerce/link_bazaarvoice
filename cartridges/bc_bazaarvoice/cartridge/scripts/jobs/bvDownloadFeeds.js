@@ -9,18 +9,18 @@ const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').
 const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
 
-module.exports.execute = function(parameters, stepExecution) {
+module.exports.execute = function (parameters) {
     try {
-        var service = ServiceRegistry.createService('bazaarvoice.sftp.import.'
-				+ Site.current.ID, {
-            createRequest : function(service, result) {
-                return service;
-            },
+        var service = ServiceRegistry.createService('bazaarvoice.sftp.import.' +
+            Site.current.ID, {
+                createRequest: function (service, result) {
+                    return service;
+                },
 
-            parseResponse : function(svc, res) {
-                return res;
-            }
-        });
+                parseResponse: function (svc, res) {
+                    return res;
+                }
+            });
         var result;
 
         var fpath = BV_Constants.RatingsFeedPath;
@@ -40,12 +40,12 @@ module.exports.execute = function(parameters, stepExecution) {
         }
 
         //make sure the directories have been made
-        var tempPath = [ File.TEMP, 'bv', 'ratings' ].join(File.SEPARATOR);
+        var tempPath = [File.TEMP, 'bv', 'ratings'].join(File.SEPARATOR);
         var tempFile = new File(tempPath);
         tempFile.mkdirs();
 
         //create the file for downloading
-        tempPath = [ File.TEMP, 'bv', 'ratings', 'ratings.xml.gz' ]
+        tempPath = [File.TEMP, 'bv', 'ratings', 'ratings.xml.gz']
             .join(File.SEPARATOR);
         tempFile = new File(tempPath);
 
@@ -53,11 +53,11 @@ module.exports.execute = function(parameters, stepExecution) {
             fpath + File.SEPARATOR + fname, tempFile).call();
         if (result.isOk()) {
             //gunzip
-            tempPath = [ File.TEMP, 'bv', 'ratings' ].join(File.SEPARATOR);
+            tempPath = [File.TEMP, 'bv', 'ratings'].join(File.SEPARATOR);
             tempFile.gunzip(new File(tempPath));
 
             //need to rename the file after gunzip to remove the .gz 
-            tempPath = [ File.TEMP, 'bv', 'ratings', 'ratings.xml' ]
+            tempPath = [File.TEMP, 'bv', 'ratings', 'ratings.xml']
                 .join(File.SEPARATOR);
             tempFile = new File(tempPath);
 

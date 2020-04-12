@@ -8,11 +8,8 @@ const FileWriter = require('dw/io/FileWriter');
 const URLUtils = require('dw/web/URLUtils');
 const XMLStreamWriter = require('dw/io/XMLIndentingStreamWriter');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice','XMLHelper.js');
-
-const BV_Constants = require('*/cartridge/scripts/lib/libConstants')
-    .getConstants();
-const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice')
-    .getBazaarVoiceHelper();
+const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 const PurchaseHelper = require('./purchaseHelper');
 const LocaleHelper = require('./localeHelper');
 
@@ -124,16 +121,17 @@ function writeProductFeedItem(item, localeMap) {
     let multiLocale = LocaleHelper.isMultiLocale(localeMap);
 
     switch (item.type) {
-        case 'Brands':
+        case 'Brands':{
             let brand = item.obj;
             _xmlStreamWriter.writeStartElement('Brand');
             writeElementCDATA('Name', brand.value);
             writeElementCDATA('ExternalId', BVHelper
                 .replaceIllegalCharacters(brand.value));
             _xmlStreamWriter.writeEndElement();
-            break;
+        }break;
+        
 
-        case 'Categories':
+        case 'Categories':{
             let category = item.obj;
             _xmlStreamWriter.writeStartElement('Category');
             writeElement('ExternalId', BVHelper
@@ -182,9 +180,9 @@ function writeProductFeedItem(item, localeMap) {
             request.setLocale(defaultLocale);
 
             _xmlStreamWriter.writeEndElement();
-            break;
+        }break;
 
-        case 'Products':
+        case 'Products':{
             let product = item.obj;
             let enableProductFamilies = Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');
             if (product.online && product.searchable
@@ -359,11 +357,10 @@ function writeProductFeedItem(item, localeMap) {
                             let bvLocale = localeMap.get(dwLocale);
                             request.setLocale(dwLocale);
 
-                            let prodImage = BVHelper.getImageURL(product,
+                            let _prodImage = BVHelper.getImageURL(product,
                                 BV_Constants.PRODUCT);
-                            if (prodImage) {
-                                writeLocalizedElement('ImageUrl', bvLocale,
-                                    prodImage);
+                            if (_prodImage) {
+                                writeLocalizedElement('ImageUrl', bvLocale,_prodImage);
                             }
                         }
                         _xmlStreamWriter.writeEndElement();
@@ -374,7 +371,7 @@ function writeProductFeedItem(item, localeMap) {
 
                 _xmlStreamWriter.writeEndElement();
             }
-            break;
+        }break;
     }
 }
 

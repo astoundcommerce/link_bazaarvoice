@@ -3,7 +3,6 @@
 const ArrayList = require('dw/util/ArrayList');
 const CatalogMgr = require('dw/catalog/CatalogMgr');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'CategoryHelper.js');
-
 var categoryList = new ArrayList();
 
 /**

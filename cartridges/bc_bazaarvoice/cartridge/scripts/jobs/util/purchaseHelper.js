@@ -2,7 +2,6 @@
 
 const Site = require('dw/system/Site');
 
-
 /** 
 * This is a function fires off the product feed.
 * @returns {string} A color object

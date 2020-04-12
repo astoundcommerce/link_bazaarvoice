@@ -1,6 +1,9 @@
 'use strict';
 
-
+/**
+ * constants used through the running of BV jobs
+ * @returns {array}  an array of predefined variables
+ */
 function getConstants() {
 
 

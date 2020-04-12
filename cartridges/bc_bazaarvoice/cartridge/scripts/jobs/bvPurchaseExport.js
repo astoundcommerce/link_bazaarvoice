@@ -211,7 +211,7 @@ function write(orders) {
  * cleanup and close XML
  * @param {string} success - value
  */
-function afterStep(success) {
+function afterStep() {
     Logger.debug('***** After Step *****');
     XMLHelper.finishPurchaseFeed();
     orderItr.close();

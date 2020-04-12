@@ -4,7 +4,7 @@ const File = require('dw/io/File');
 const Site = require('dw/system/Site');
 const Status = require('dw/system/Status');
 const ServiceRegistry = require('dw/svc/LocalServiceRegistry');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice','bvUploadFeed.js');
+const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvUploadFeed.js');
 
 const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
@@ -14,7 +14,7 @@ const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants'
  * @param {Object} parameters - object of site parameters
  * @returns {string} the status results
  */
-function execute(parameters, stepExecution) {
+function execute(parameters) {
     var enabled = parameters.Enabled;
     if (!enabled) {
         Logger.info('Upload step is not enabled, skipping....');
@@ -41,22 +41,22 @@ function execute(parameters, stepExecution) {
         }
 
         var fileregex = new RegExp('^' + pattern + '_\\d{14}\\.xml$');
-        var localPathFile = new File([ File.TEMP, localPath ]
+        var localPathFile = new File([File.TEMP, localPath]
             .join(File.SEPARATOR));
-        var localFiles = localPathFile.listFiles(function(f) {
+        var localFiles = localPathFile.listFiles(function (f) {
             return fileregex.test(f.name);
         });
 
-        var service = ServiceRegistry.createService('bazaarvoice.sftp.export.'
-				+ Site.current.ID, {
-            createRequest : function(service, result) {
-                return service;
-            },
+        var service = ServiceRegistry.createService('bazaarvoice.sftp.export.' +
+            Site.current.ID, {
+                createRequest: function (service, result) {
+                    return service;
+                },
 
-            parseResponse : function(svc, res) {
-                return res;
-            }
-        });
+                parseResponse: function (svc, res) {
+                    return res;
+                }
+            });
 
         var result = service.setOperation('cd', remotePath).call();
         if (!result.isOk()) {
@@ -78,8 +78,8 @@ function execute(parameters, stepExecution) {
                 result = service.setOperation('del', remotePath + '/' + f.name)
                     .call();
                 if (!result.isOk()) {
-                    Logger.error('Problem deleting existing file: '
-							+ result.msg);
+                    Logger.error('Problem deleting existing file: ' +
+                        result.msg);
                 }
             }
         }

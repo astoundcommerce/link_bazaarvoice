@@ -1,5 +1,5 @@
 {
-  "name": "Bazaarvoice LINK Cartridge",
+  "name": "bazaarvoice-link-cartridge",
   "version": "20.1.0",
   "description": "Salesforce Commerce Cloud LINK Cartridge For Bazaarvoice LINK Cartridge",
   "paths": {
