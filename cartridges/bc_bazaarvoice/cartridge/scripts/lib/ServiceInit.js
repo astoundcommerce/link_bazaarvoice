@@ -35,7 +35,7 @@ for(var i = 0; i < allSites.length; i++) {
             *
             */
 ServiceRegistry.createService('bazaarvoice.http', {
-    createRequest: function(svc, req){
+    createRequest: function(svc){
         svc.setRequestMethod('GET');
         return svc;
     },
@@ -55,7 +55,7 @@ ServiceRegistry.createService('bazaarvoice.http', {
 });
             
 ServiceRegistry.createService('bazaarvoice.http.bot', {
-    createRequest: function(svc, req){
+    createRequest: function(svc){
         svc.setRequestMethod('GET');
         return svc;
     },

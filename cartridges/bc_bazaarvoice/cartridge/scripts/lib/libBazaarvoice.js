@@ -10,7 +10,7 @@ var StringUtils = require('dw/util/StringUtils');
 var Calendar = require('dw/util/Calendar');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'libBazaarvoice');
 
-var BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants(); 
+var BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants(); 
 
 exports.getBazaarVoiceHelper = function() {
     /*******************************************************************************************************************
@@ -161,7 +161,7 @@ exports.getBazaarVoiceHelper = function() {
             var index = 0;
             for(var i = 0; i < map.length; i++) {
                 let item = map[i];
-                item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
+                item = item.replace(/^[\s]+|["]|[\s]+$/g, '');
                 
                 if(BV_Constants.regFull.test(item) && isCurrentDefault) {
                     bvlocale = item;
@@ -193,7 +193,7 @@ exports.getBazaarVoiceHelper = function() {
             }
         } else if(map.length === 1) {
             let item = map[0];
-            item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
+            item = item.replace(/^[\s]+|["]|[\s]+$/g, '');
             
             if(BV_Constants.regFull.test(item)) {
                 //there is only one display code, so it doesnt matter what dw locale we are on
@@ -243,7 +243,7 @@ exports.getBazaarVoiceHelper = function() {
     };
     
     var setBvReveal = function() {
-        session.custom.bvreveal = request.httpParameterMap.bvreveal.submitted ? request.httpParameterMap.bvreveal.stringValue : '';
+        session.privacy.bvreveal = request.httpParameterMap.bvreveal.submitted ? request.httpParameterMap.bvreveal.stringValue : '';
     };
     
     var setProductId = function(product) {
@@ -251,12 +251,12 @@ exports.getBazaarVoiceHelper = function() {
         if(product != null) {
             pid = (product.variant && !BV_Constants.UseVariantID) ? product.variationModel.master.ID : product.ID;
         }
-        session.custom.BVSEO_PID = pid;
+        session.privacy.BVSEO_PID = pid;
         return pid;
     };
     
     var getProductId = function() {
-        return session.custom.BVSEO_PID || '';
+        return session.privacy.BVSEO_PID || '';
     };
     
     var isRREnabled = function() {

@@ -6,7 +6,7 @@ const Status = require('dw/system/Status');
 const ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvUploadFeed.js');
 
-const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 
 
 /**
@@ -49,7 +49,7 @@ function execute(parameters) {
 
         var service = ServiceRegistry.createService('bazaarvoice.sftp.export.' +
             Site.current.ID, {
-                createRequest: function (service, result) {
+                createRequest: function () {
                     return service;
                 },
 
@@ -72,7 +72,7 @@ function execute(parameters) {
         }
 
         var allRemoteFiles = result.getObject();
-        for (var i = 0; i < allRemoteFiles.length; i++) {
+        for (let i = 0; i < allRemoteFiles.length; i++) {
             var f = allRemoteFiles[i];
             if (fileregex.test(f.name) === true) {
                 result = service.setOperation('del', remotePath + '/' + f.name)

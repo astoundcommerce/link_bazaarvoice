@@ -1,8 +1,8 @@
 <!--- TEMPLATENAME: inlineratings-hosted.isml --->
 <isif condition="${Product != null}">
 	<isscript>
-	var BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-	var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+	var BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+	var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 	var bvPID = '';
 	 var enableProductFamilies = dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');

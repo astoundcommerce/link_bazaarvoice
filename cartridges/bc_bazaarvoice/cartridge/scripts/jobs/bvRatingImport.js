@@ -10,8 +10,8 @@ const XMLStreamConstants = require('dw/io/XMLStreamConstants');
 const XMLStreamReader = require('dw/io/XMLStreamReader');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvRatingImport.js');
 
-const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 const LocaleHelper = require('./util/localeHelper');
 
 module.exports.execute = function(parameters) {

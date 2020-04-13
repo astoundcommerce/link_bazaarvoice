@@ -5,15 +5,15 @@ const Site = require('dw/system/Site');
 const Status = require('dw/system/Status');
 const ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvDownloadFeeds.js');
-const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 
 
-module.exports.execute = function (parameters) {
+module.exports.execute = function () {
     try {
         var service = ServiceRegistry.createService('bazaarvoice.sftp.import.' +
             Site.current.ID, {
-                createRequest: function (service, result) {
+                createRequest: function () {
                     return service;
                 },
 

@@ -15,8 +15,8 @@ var URLUtils = require('dw/web/URLUtils');
 server.append('Show', function (req, res, next) {
     var viewData = res.getViewData();
 
-    var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-    var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+    var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+    var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
     var ratingPref = Site.current.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
     var ProductMgr = require('dw/catalog/ProductMgr');
 

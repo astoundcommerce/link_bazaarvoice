@@ -4,13 +4,13 @@ Embeds the container that Q&A are injected to and the javascript that accesses t
 
  
 <isscript>
-var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 var bvPid = BVHelper.getProductId();
 
 // Obtain Cloud SEO content
 var CSEO = null;
 if(!empty(bvPid)) {
-	CSEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({"product_id" : bvPid});
+	CSEO = require('*/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({"product_id" : bvPid});
 }
 </isscript>
 

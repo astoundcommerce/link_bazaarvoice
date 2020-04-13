@@ -7,8 +7,8 @@ var Site = require('dw/system/Site').getCurrent();
 var ProductMgr = require('dw/catalog/ProductMgr');
 var URLUtils = require('dw/web/URLUtils');
 
-var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 /**
  * Returns RR and Questions from BV
@@ -16,7 +16,7 @@ var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').ge
  * @param {Object} res - json response from BV
  */
 function appendBVData(req, res) {
-    var BV_SEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.js');
+    var BV_SEO = require('*/cartridge/scripts/lib/libCloudSEO.js');
 
     if (BVHelper.isRREnabled() || BVHelper.isQAEnabled()) {
         var viewData = res.getViewData();

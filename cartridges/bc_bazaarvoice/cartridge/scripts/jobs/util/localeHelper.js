@@ -3,7 +3,7 @@
 const Site = require('dw/system/Site');
 const HashMap = require('dw/util/HashMap');
 const Logger = require('dw/system/Logger').getLogger('Bazaarvoice','LocaleHelper.js');
-const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 
 /**
  * Returns localeMap hashmap
@@ -25,7 +25,7 @@ function getLocaleMap(type) {
         var dupArray = [];
         for (let i = 0; i < prefMappings.length; i++) {
             let item = prefMappings[i];
-            item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
+            item = item.replace(/^[\s]+|["]|[\s]+$/g, '');
 
             // if this is a BV locale only item, then apply it to the default DW
             // locale, but only once
@@ -83,7 +83,7 @@ function getLocaleMap(type) {
         Logger.debug('Exactly 1 locale mapped in site preference...');
 
         let item = prefMappings[0];
-        item = item.replace(/^[\s]+|[\"]|[\s]+$/g, '');
+        item = item.replace(/^[\s]+|["]|[\s]+$/g, '');
 
         if (BV_Constants.regFull.test(item)) {
             Logger

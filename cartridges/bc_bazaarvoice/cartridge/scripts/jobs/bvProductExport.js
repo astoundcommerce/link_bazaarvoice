@@ -9,8 +9,8 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvProductEx
 
 
 // BV Helper Scripts
-const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-const BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 const CategoryHelper = require('./util/categoryHelper');
 const BrandHelper = require('./util/brandHelper');
 const LocaleHelper = require('./util/localeHelper');

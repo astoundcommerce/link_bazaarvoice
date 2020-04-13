@@ -10,7 +10,7 @@ const Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
     'bvPurchaseExport.js');
 
 // BV Helper Scripts
-const BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 const LocaleHelper = require('./util/localeHelper');
 const XMLHelper = require('./util/xmlHelper');
 const PurchaseHelper = require('./util/purchaseHelper');

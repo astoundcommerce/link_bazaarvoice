@@ -13,8 +13,8 @@ var StringUtils = require('dw/util/StringUtils');
 var URLUtils = require('dw/web/URLUtils');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'libCloudSEO');
 
-var BV_Constants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 var _createService = function(serviceId) {
 		return ServiceRegistry.createService(serviceId, {
@@ -204,8 +204,8 @@ function BVSEO() {
 			}
 			
 			//we may need to pull the bvreveal parameter from the session
-			if(empty(configMap['bvreveal']) && !empty(session.custom.bvreveal)) {
-				configMap['bvreveal'] = session.custom.bvreveal;
+			if(empty(configMap['bvreveal']) && !empty(session.privacy.bvreveal)) {
+				configMap['bvreveal'] = session.privacy.bvreveal;
 			}
 			
 			_reviews = new SEOContent(configMap, 'reviews');

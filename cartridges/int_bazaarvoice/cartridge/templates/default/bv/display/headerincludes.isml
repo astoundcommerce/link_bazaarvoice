@@ -1,6 +1,6 @@
 <!--- TEMPLATENAME: headerincludes.isml --->
-<isset name="BVHelper" value="${require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
-<isset name="BV_Constants" value="${require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants()}" scope="page" />
+<isset name="BVHelper" value="${require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
+<isset name="BV_Constants" value="${require('*/cartridge/scripts/lib/libConstants').getConstants()}" scope="page" />
 
 <iscomment>
 DWP-448: Display the current LINK version for CSR debugging
