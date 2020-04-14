@@ -49,8 +49,8 @@ function beforeStep(parameters) {
     // prepare the order query, using the job parameters to determin the
     // timeframe of orders to pull
     // - default to the values set in the constants file
-    var numDaysLookback = parameters.PurchaseFeedNumDays
-			|| BV_Constants.PurchaseFeedNumDays;
+    var numDaysLookback = parameters.PurchaseFeedNumDays ||
+        BV_Constants.PurchaseFeedNumDays;
     var startCalendar = new Calendar();
     startCalendar.add(Calendar.DATE, (-1 * numDaysLookback)); // Subtract
     // numDaysLookback
@@ -58,8 +58,8 @@ function beforeStep(parameters) {
     // current date.
     startDate = startCalendar.getTime();
 
-    var numDaysWait = parameters.PurchaseFeedWaitDays
-			|| BV_Constants.PurchaseFeedWaitDays;
+    var numDaysWait = parameters.PurchaseFeedWaitDays ||
+        BV_Constants.PurchaseFeedWaitDays;
     var endCalendar = new Calendar();
     endCalendar.add(Calendar.DATE, (-1 * numDaysWait));
     endDate = endCalendar.getTime();
@@ -127,84 +127,90 @@ function process(item) {
 function write(orders) {
     Logger.debug('***** Write *****');
 
-    [].forEach
-        .call(
-            orders,
-            function(order) {
-                // make sure we havent sent this order yet
-                // we cannot query against this custom boolean if the
-                // value was never set, aka legacy orders
-                // if(order.custom[CUSTOM_FLAG] === true) {
-                // Logger.debug('Skipping Order:' + order.getOrderNo() +
-                // '. Order was already sent to BV.');
-                // return;
-                // }
+    try {
 
-                // Our original order query pulled orders that were
-                // created before the end date. (same as purchase
-                // triggering event)
-                // If we are using the shipping trigger, then:
-                // - make sure the order shipping status is set
-                // - test if the latest shipment was created before our
-                // end date.
-                if (triggeringEvent === 'shipping') {
-                    if (order.getShippingStatus().value !== Order.SHIPPING_STATUS_SHIPPED) {
-                        Logger.debug('Skipping Order:'
-										+ order.getOrderNo()
-										+ '. Not completely shipped.');
+        [].forEach
+            .call(
+                orders,
+                function (order) {
+                    // make sure we havent sent this order yet
+                    // we cannot query against this custom boolean if the
+                    // value was never set, aka legacy orders
+                    // if(order.custom[CUSTOM_FLAG] === true) {
+                    // Logger.debug('Skipping Order:' + order.getOrderNo() +
+                    // '. Order was already sent to BV.');
+                    // return;
+                    // }
+
+                    // Our original order query pulled orders that were
+                    // created before the end date. (same as purchase
+                    // triggering event)
+                    // If we are using the shipping trigger, then:
+                    // - make sure the order shipping status is set
+                    // - test if the latest shipment was created before our
+                    // end date.
+                    if (triggeringEvent === 'shipping') {
+                        if (order.getShippingStatus().value !== Order.SHIPPING_STATUS_SHIPPED) {
+                            Logger.debug('Skipping Order:' +
+                                order.getOrderNo() +
+                                '. Not completely shipped.');
+                            return;
+                        }
+
+                        var latestItemShipDate = PurchaseHelper
+                            .getLatestShipmentDate(order);
+                        if (latestItemShipDate.getTime() > endDate
+                            .getTime()) {
+                            Logger
+                                .debug('Skipping Order:' +
+                                    order.getOrderNo() +
+                                    '. Order\'s latest shipment not before the End Date of: ' +
+                                    endDate.toISOString());
+                            return;
+                        }
+                    }
+
+                    // Ensure we have everything on this order that would be
+                    // required in the output feed
+
+                    // Nothing fancy, but do we have what basically looks
+                    // like a legit email address?
+                    if (order.getCustomerEmail() ||
+                        !order.getCustomerEmail().match(/@/)) {
+                        Logger.debug('kipping Order:' + order.getOrderNo() +
+                            '. No valid email address.');
                         return;
                     }
 
-                    var latestItemShipDate = PurchaseHelper
-                        .getLatestShipmentDate(order);
-                    if (latestItemShipDate.getTime() > endDate
-                        .getTime()) {
-                        Logger
-                            .debug('Skipping Order:'
-												+ order.getOrderNo()
-												+ '. Order\'s latest shipment not before the End Date of: '
-												+ endDate.toISOString());
+                    // Does the order have any line items ?
+                    if (order.getAllProductLineItems().getLength() < 1) {
+                        Logger.debug('Skipping order:' + order.getOrderNo() +
+                            '. No line items in this order.');
                         return;
                     }
-                }
 
-                // Ensure we have everything on this order that would be
-                // required in the output feed
+                    // We need to find out if the order is placed with the
+                    // current locale
+                    // we have already verified that we have a matching bv
+                    // locale in the mappings
+                    // if(!order.getCustomerLocaleID().equals(currentLocale)
+                    // && (!localeMap ||
+                    // !localeMap.get(order.getCustomerLocaleID()))) {
+                    // Logger.debug('Skipping order: order locale {1} does
+                    // not have a mapped BV locale.',
+                    // order.getCustomerLocaleID());
+                    // return;
+                    // }
 
-                // Nothing fancy, but do we have what basically looks
-                // like a legit email address?
-                if (order.getCustomerEmail()
-								|| !order.getCustomerEmail().match(/@/)) {
-                    Logger.debug('kipping Order:' + order.getOrderNo()
-									+ '. No valid email address.');
-                    return;
-                }
+                    XMLHelper.writePurchaseFeedItem(order, localeMap);
 
-                // Does the order have any line items ?
-                if (order.getAllProductLineItems().getLength() < 1) {
-                    Logger.debug('Skipping order:' + order.getOrderNo()
-									+ '. No line items in this order.');
-                    return;
-                }
+                    // set the flag so we dont export this order again
+                    order.custom[BV_Constants.CUSTOM_FLAG] = true;
+                });
 
-                // We need to find out if the order is placed with the
-                // current locale
-                // we have already verified that we have a matching bv
-                // locale in the mappings
-                // if(!order.getCustomerLocaleID().equals(currentLocale)
-                // && (!localeMap ||
-                // !localeMap.get(order.getCustomerLocaleID()))) {
-                // Logger.debug('Skipping order: order locale {1} does
-                // not have a mapped BV locale.',
-                // order.getCustomerLocaleID());
-                // return;
-                // }
-
-                XMLHelper.writePurchaseFeedItem(order, localeMap);
-
-                // set the flag so we dont export this order again
-                order.custom[BV_Constants.CUSTOM_FLAG] = true;
-            });
+    } catch (ex) {
+        XMLHelper.closeWriter();
+    }
 }
 
 /**
@@ -218,10 +224,10 @@ function afterStep() {
 }
 
 module.exports = {
-    beforeStep : beforeStep,
-    getTotalCount : getTotalCount,
-    read : read,
-    process : process,
-    write : write,
-    afterStep : afterStep
+    beforeStep: beforeStep,
+    getTotalCount: getTotalCount,
+    read: read,
+    process: process,
+    write: write,
+    afterStep: afterStep
 };

@@ -46,6 +46,7 @@ function getStreamWriter(filename, localPath) {
 
 /** This function serves to set data for the start of the feed*/
 function startProductFeed() {
+
     let cal = new Calendar();
     let extract = StringUtils.formatCalendar(cal, 'yyyy-MM-dd')
 			+ 'T00:00:00.000000';
@@ -72,6 +73,12 @@ function finishProductFeed() {
     _xmlStreamWriter.close();
 
     _xmlStreamWriter = null;
+}
+
+/** This function closes and flushes the feed*/
+function closeWriter(){
+    _xmlStreamWriter.flush();
+    _xmlStreamWriter.close();
 }
 
 /** This function start purschase feed*/
@@ -522,5 +529,6 @@ module.exports = {
     finishPurchaseFeed : finishPurchaseFeed,
     transition : transition,
     writeProductFeedItem : writeProductFeedItem,
-    writePurchaseFeedItem : writePurchaseFeedItem
+    writePurchaseFeedItem : writePurchaseFeedItem,
+    closeWriter : closeWriter
 };
