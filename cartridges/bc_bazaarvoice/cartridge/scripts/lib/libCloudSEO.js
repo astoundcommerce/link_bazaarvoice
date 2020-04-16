@@ -17,27 +17,27 @@ var BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants(
 var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 var _createService = function(serviceId) {
-		return ServiceRegistry.createService(serviceId, {
-			createRequest: function(svc, result) {
-				svc.setRequestMethod('GET');
-				return svc;
-			},
-			parseResponse: function(svc, client) {
-				return client.getText();
-			},
-			mockCall: function(svc, client) {
-				return {
-					statusCode: 200,
-					statusMessage: 'Success',
-					text: 'MOCK RESPONSE (' + svc.URL + ')'
-				};
-			},
-			getResponseLogMessage: function(response) {
-				return !empty(response.getText()) ? response.getText().substr(0, 100) + '\n\n...[no need to log all the content]\n\n' : 'Response is empty.';
-			}
-		});
-	}
- 	
+    return ServiceRegistry.createService(serviceId, {
+        createRequest: function(svc) {
+            svc.setRequestMethod('GET');
+            return svc;
+        },
+        parseResponse: function(svc, client) {
+            return client.getText();
+        },
+        mockCall: function(svc) {
+            return {
+                statusCode: 200,
+                statusMessage: 'Success',
+                text: 'MOCK RESPONSE (' + svc.URL + ')'
+            };
+        },
+        getResponseLogMessage: function(response) {
+            return !empty(response.getText()) ? response.getText().substr(0, 100) + '\n\n...[no need to log all the content]\n\n' : 'Response is empty.';
+        }
+    });
+}
+	
 
 /**
 * BVSEO class
@@ -62,165 +62,170 @@ var _createService = function(serviceId) {
 *		bot_detection (boolean) (defaults to true, only rendering content if a bot is detected, or bvreveal is a uri parameter)
 */
 var supportedContentTypes = {
-	'r' : 'reviews',
-	'q' : 'questions',
-	's' : 'stories',
-	'u' : 'universal',
-	'sp' : 'spotlights'
+    'r' : 'reviews',
+    'q' : 'questions',
+    's' : 'stories',
+    'u' : 'universal',
+    'sp' : 'spotlights'
 };
 var supportedSubjectTypes = {
-	'p' : 'product',
-	'c' : 'category',
-	'e' : 'entry',
-	'd' : 'detail',
-	's' : 'seller'
+    'p' : 'product',
+    'c' : 'category',
+    'e' : 'entry',
+    'd' : 'detail',
+    's' : 'seller'
 };
 
+/**
+ * SEO content this get display on page
+ * @returns {string} various output based on method call
+ */
 function BVSEO() {
 	
 	//put this first so it can initialize the current_page_url paramter
 	/******************
+	* @returns {string} url string value
 	* PRIVATE METHODS *
 	******************/
-	var _getCurrentUrl = function() {
-		var url;
-		if(request.isHttpSecure()) {
-			url = URLUtils.https('Product-Show');
-		} else {
-			url = URLUtils.http('Product-Show');
-		}
-		if(!empty(request.httpQueryString)) {
-			for(var i = 0; i < request.httpParameterMap.parameterNames.length; i++) {
-				var pname = request.httpParameterMap.parameterNames[i];
-				var pval = request.httpParameterMap.get(pname);
-				url.append(pname, pval);
-			}
-		}
-		Logger.debug('_getCurrentUrl() CurrentUrl:\n ' + url);
-		return url.toString();
-	};
+    var _getCurrentUrl = function() {
+        var url;
+        if(request.isHttpSecure()) {
+            url = URLUtils.https('Product-Show');
+        } else {
+            url = URLUtils.http('Product-Show');
+        }
+        if(!empty(request.httpQueryString)) {
+            for(var i = 0; i < request.httpParameterMap.parameterNames.length; i++) {
+                var pname = request.httpParameterMap.parameterNames[i];
+                var pval = request.httpParameterMap.get(pname);
+                url.append(pname, pval);
+            }
+        }
+        Logger.debug('_getCurrentUrl() CurrentUrl:\n ' + url);
+        return url.toString();
+    };
 	
-	var _getBVStateParams = function(bvstate) {
+    var _getBVStateParams = function(bvstate) {
 		//break out bvstate into map
-		var bvsMap = new HashMap();
-		var bvsArr = bvstate.split('/');
-		for(var i = 0; i < bvsArr.length; i++) {
-			var param = bvsArr[i];
-			var paramArr = param.split(':');
-			if(!empty(paramArr[0])) {
-				var key = paramArr[0];
-				var val = '';
-				if(!empty(paramArr[1])) {
-					val = paramArr[1];
-				}
-				bvsMap[key] = val;
-			}
-		}
+        var bvsMap = new HashMap();
+        var bvsArr = bvstate.split('/');
+        for(var i = 0; i < bvsArr.length; i++) {
+            var param = bvsArr[i];
+            var paramArr = param.split(':');
+            if(!empty(paramArr[0])) {
+                var key = paramArr[0];
+                var val = '';
+                if(!empty(paramArr[1])) {
+                    val = paramArr[1];
+                }
+                bvsMap[key] = val;
+            }
+        }
 		
 		//sanitize the data
-		var params = new HashMap();
-		if(bvsMap.size() > 0 && !empty(bvsMap['ct'])) {
-			if(!empty(bvsMap['id'])) {
-				params.put('subject_id', bvsMap['id']);
-			}
-			if(!empty(bvsMap['pg'])) {
-				params.put('page', bvsMap['pg']);
-			}
-			if(!empty(bvsMap['ct'])) {
-				if(empty(supportedContentTypes[bvsMap['ct']])) {
-					Logger.error('[libCloudSEO.ds][_getBVStateParams()] Unsupported Content Type: ' + bvsMap['ct']);
-				} else {
-					params.put('content_type', supportedContentTypes[bvsMap['ct']]);
-				}
-			}
-			if(!empty(bvsMap['st'])) {
-				if(empty(supportedSubjectTypes[bvsMap['st']])) {
-					Logger.error('[libCloudSEO.ds][_getBVStateParams()] Unsupported Subject Type: ' + bvsMap['st']);
-				} else {
-					params.put('subject_type', supportedSubjectTypes[bvsMap['st']]);
-				}
-			}
-			if(!empty(bvsMap['reveal'])) {
-				params.put('bvreveal', bvsMap['reveal']);
-			}
-		}
+        var params = new HashMap();
+        if(bvsMap.size() > 0 && !empty(bvsMap['ct'])) {
+            if(!empty(bvsMap['id'])) {
+                params.put('subject_id', bvsMap['id']);
+            }
+            if(!empty(bvsMap['pg'])) {
+                params.put('page', bvsMap['pg']);
+            }
+            if(!empty(bvsMap['ct'])) {
+                if(empty(supportedContentTypes[bvsMap['ct']])) {
+                    Logger.error('[libCloudSEO.ds][_getBVStateParams()] Unsupported Content Type: ' + bvsMap['ct']);
+                } else {
+                    params.put('content_type', supportedContentTypes[bvsMap['ct']]);
+                }
+            }
+            if(!empty(bvsMap['st'])) {
+                if(empty(supportedSubjectTypes[bvsMap['st']])) {
+                    Logger.error('[libCloudSEO.ds][_getBVStateParams()] Unsupported Subject Type: ' + bvsMap['st']);
+                } else {
+                    params.put('subject_type', supportedSubjectTypes[bvsMap['st']]);
+                }
+            }
+            if(!empty(bvsMap['reveal'])) {
+                params.put('bvreveal', bvsMap['reveal']);
+            }
+        }
 		
-		var bvsUsed = false;
-		if(params.size() > 0) {
-			bvsUsed = true;
-		}
-		params.put('base_url_bvstate', bvsUsed);
+        var bvsUsed = false;
+        if(params.size() > 0) {
+            bvsUsed = true;
+        }
+        params.put('base_url_bvstate', bvsUsed);
 		
-		if(empty(params['page'])) {
-			params.put('page', '1');
-		}
+        if(empty(params['page'])) {
+            params.put('page', '1');
+        }
 		
-		return params;
-	};
+        return params;
+    };
 	
 	
 	/******************
 	* PRIVATE MEMBERS *
 	******************/
-	var _reviews, _questions;
-	var configMap = new HashMap();
+    var _reviews, _questions;
+    var configMap = new HashMap();
 	
 	//required configurations, no defaults
-	configMap['product_id'] = '';
-	configMap['deployment_zone_id'] = '';
-	configMap['cloud_key'] = '';
+    configMap['product_id'] = '';
+    configMap['deployment_zone_id'] = '';
+    configMap['cloud_key'] = '';
 	
 	//optional configurations
-	configMap['staging'] = true;
-	configMap['current_page_url'] = _getCurrentUrl();
-	configMap['subject_type'] = 'product';
+    configMap['staging'] = true;
+    configMap['current_page_url'] = _getCurrentUrl();
+    configMap['subject_type'] = 'product';
 	
 	//timeout values are pulled from service profiles below, but we are setting defaults here
-	configMap['execution_timeout'] = 500;
-	configMap['execution_timeout_bot'] = 2000;
+    configMap['execution_timeout'] = 500;
+    configMap['execution_timeout_bot'] = 2000;
 	
-	configMap['charset'] = 'UTF-8';
-	configMap['content_type'] = 'reviews';
-	configMap['bot_list'] = '(msnbot|google|teoma|bingbot|yandexbot|yahoo)';
-	configMap['bot_detection'] = true;
-	configMap['seo_sdk_enabled'] = true;
-	configMap['page'] = '1';
-	configMap['page_params'] = request.httpParameters.containsKey('bvstate') ? _getBVStateParams(request.httpParameters['bvstate'][0]) : new HashMap();
-	configMap['bvreveal'] = request.httpParameters.containsKey('bvreveal') ? request.httpParameters['bvreveal'][0] : '';
-	configMap['ssl_enabled'] = true;
+    configMap['charset'] = 'UTF-8';
+    configMap['content_type'] = 'reviews';
+    configMap['bot_list'] = '(msnbot|google|teoma|bingbot|yandexbot|yahoo)';
+    configMap['bot_detection'] = true;
+    configMap['seo_sdk_enabled'] = true;
+    configMap['page'] = '1';
+    configMap['page_params'] = request.httpParameters.containsKey('bvstate') ? _getBVStateParams(request.httpParameters['bvstate'][0]) : new HashMap();
+    configMap['bvreveal'] = request.httpParameters.containsKey('bvreveal') ? request.httpParameters['bvreveal'][0] : '';
+    configMap['ssl_enabled'] = true;
 	
 	/******************
 	* PUBLIC METHODS  *
 	******************/
-	return {
-		init : function(config) {
-			for(var param in config) {
-				if(configMap.containsKey(param)) {
-					configMap[param] = config[param];
-				}
-				else {
-					Logger.debug('init() Incorrect parameter passed to BVSEO: ' + param);
-				}
-			}
+    return {
+        init : function(config) {
+            for(var param in config) {
+                if(configMap.containsKey(param)) {
+                    configMap[param] = config[param];
+                }
+                else {
+                    Logger.debug('init() Incorrect parameter passed to BVSEO: ' + param);
+                }
+            }
 			
 			//we may need to pull the bvreveal parameter from the session
-			if(empty(configMap['bvreveal']) && !empty(session.privacy.bvreveal)) {
-				configMap['bvreveal'] = session.privacy.bvreveal;
-			}
+            if(empty(configMap['bvreveal']) && !empty(session.privacy.bvreveal)) {
+                configMap['bvreveal'] = session.privacy.bvreveal;
+            }
 			
-			_reviews = new SEOContent(configMap, 'reviews');
-			_questions = new SEOContent(configMap, 'questions');
-		},
+            _reviews = new SEOContent(configMap, 'reviews');
+            _questions = new SEOContent(configMap, 'questions');
+        },
 		
-		reviews : function() {
-			return _reviews;
-		},
+        reviews : function() {
+            return _reviews;
+        },
 		
-		questions : function() {
-			return _questions;
-		}
+        questions : function() {
+            return _questions;
+        }
 		
-	};
+    };
 }
 
 
@@ -228,23 +233,25 @@ function BVSEO() {
 
 /**
 * class SEOContent
-*
+* @param {string} config content_type
+* @param {obj} seoProduct object
+* @returns {string} payload data from BV
 */
 function SEOContent(config, seoProduct) {
-	var configMap;
-	if(config == null || config.empty) {
-		Logger.error('Cannot create SEOContent object.  Config parameter is null or empty.');
-		return null;
-	}
-	configMap = config.clone();
+    var configMap;
+    if(config == null || config.empty) {
+        Logger.error('Cannot create SEOContent object.  Config parameter is null or empty.');
+        return null;
+    }
+    configMap = config.clone();
 	
-	if(!empty(seoProduct)) {
-		configMap['content_type'] = seoProduct;
-	}
+    if(!empty(seoProduct)) {
+        configMap['content_type'] = seoProduct;
+    }
 	
-	var msg = '';
-	var seo_url = '';
-	var response_time = 0;
+    var msg = '';
+    var seo_url = '';
+    var response_time = 0;
 	
 	
 	/******************
@@ -253,457 +260,455 @@ function SEOContent(config, seoProduct) {
 	
 	/**
 	* _setBuildMessage
+	* @param {string} str BV message
 	*
 	*/
-	var _setBuildMessage = function(str){
-		str = StringUtils.rtrim(str);
-		msg += ' ' + str + ';';
-	};
+    var _setBuildMessage = function(str){
+        str = StringUtils.rtrim(str);
+        msg += ' ' + str + ';';
+    };
 	
 	/**
 	* _getBVReveal()
-	*
+	* @returns {bool} verification of debugging info for BV
 	*/
-	var _getBVReveal = function() {
-		var bvreveal = false;
-		if(!empty(configMap['bvreveal']) && configMap['bvreveal'] == 'debug') {
-			bvreveal = true;
-		} else if(!empty(configMap['page_params']['bvreveal']) && configMap['page_params']['bvreveal'] == 'debug') {
-			bvreveal = true;
-		}
-		return bvreveal;
-	};
+    var _getBVReveal = function() {
+        var bvreveal = false;
+        if(!empty(configMap['bvreveal']) && configMap['bvreveal'] == 'debug') {
+            bvreveal = true;
+        } else if(!empty(configMap['page_params']['bvreveal']) && configMap['page_params']['bvreveal'] == 'debug') {
+            bvreveal = true;
+        }
+        return bvreveal;
+    };
 	
 	/**
 	* isBot()
+	* @returns {bool} return bool for reveal
 	*
 	* Helper method to determine if current request is a bot or not. Will 
     * use the configured regex string which can be overriden with params.
     */
-	var _isBot = function() {
+    var _isBot = function() {
 		// we need to check the user agent string to see if this is a bot,
         // unless the bvreveal parameter is there or we have disabled bot
         // detection through the bot_detection flag
-		if(_getBVReveal()) {
-			return true;
-		}
+        if(_getBVReveal()) {
+            return true;
+        }
 		
 		// search the user agent string for an indictation if this is a search bot or not
-		if(request.httpParameterMap.httpUserAgent.submitted){
-			var regex = new RegExp(configMap['bot_list']);
-			Logger.debug('isBot() result: ' + regex.test(request.httpUserAgent.toLowerCase()));
-			return regex.test(request.httpUserAgent.toLowerCase());
-		}else{
-			return false;
-		}
-	};
+        if(request.httpParameterMap.httpUserAgent.submitted){
+            var regex = new RegExp(configMap['bot_list']);
+            Logger.debug('isBot() result: ' + regex.test(request.httpUserAgent.toLowerCase()));
+            return regex.test(request.httpUserAgent.toLowerCase());
+        }else{
+            return false;
+        }
+    };
 	
 	
 	//set the timeout based on the service profiles, so thjey can be set without code changes.
-	try {
-		configMap['execution_timeout_bot'] = _createService('bazaarvoice.http.bot').getConfiguration().getProfile().getTimeoutMillis();
-		configMap['execution_timeout'] = _createService('bazaarvoice.http').getConfiguration().getProfile().getTimeoutMillis();
-	} catch(te) {
-		Logger.error('_isBot() Unable to pull the timeout values from the service profiles, using defaults instead.');
-	}
-	configMap['latency_timeout'] = _isBot() ? configMap['execution_timeout_bot'] : configMap['execution_timeout'];
-	
-	
+    try {
+        configMap['execution_timeout_bot'] = _createService('bazaarvoice.http.bot').getConfiguration().getProfile().getTimeoutMillis();
+        configMap['execution_timeout'] = _createService('bazaarvoice.http').getConfiguration().getProfile().getTimeoutMillis();
+    } catch(te) {
+        Logger.error('_isBot() Unable to pull the timeout values from the service profiles, using defaults instead.');
+    }
+    configMap['latency_timeout'] = _isBot() ? configMap['execution_timeout_bot'] : configMap['execution_timeout'];
 	
 	/**
 	* getPageNumber()
+	*@returns {number} Helper method to pull from the URL the page of SEO we need to view.
 	*
 	* Helper method to pull from the URL the page of SEO we need to view.
 	*/
-	var _getPageNumber = function() {
+    var _getPageNumber = function() {
 		//default to page 1 if a page is not specified in the URL
-		var pageNumber = '1';	
+        var pageNumber = '1';	
+        var regex;
+        var param;
 		
 		//bvstate page number should take precedent if the content type matches
-		if(configMap['page_params']['base_url_bvstate']) {
-			if(configMap['content_type'] == configMap['page_params']['content_type']) {
-				pageNumber = configMap['page_params']['page'];
-			}
-			var param = request.httpParameters['bvstate'][0].replace('/', '\/', 'g');
-			param = encodeURIComponent(param);
-			var regex = new RegExp('bvstate=' + param + '[&]?');
-			configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
-		}
-		else if(configMap.containsKey('page') && configMap['page'] != pageNumber) {
-			pageNumber = configMap['page'];
-		}
+        if(configMap['page_params']['base_url_bvstate']) {
+            if(configMap['content_type'] == configMap['page_params']['content_type']) {
+                pageNumber = configMap['page_params']['page'];
+            }
+            param = request.httpParameters['bvstate'][0].replace('/', '\/', 'g');
+            param = encodeURIComponent(param);
+            regex = new RegExp('bvstate=' + param + '[&]?');
+            configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
+        }
+        else if(configMap.containsKey('page') && configMap['page'] != pageNumber) {
+            pageNumber = configMap['page'];
+        }
 		//some implementations wil use bvpage query parameter like ?bvpage=2
-		else if(request.httpParameters.containsKey('bvpage')) {
-			pageNumber = request.httpParameters['bvpage'][0];
+        else if(request.httpParameters.containsKey('bvpage')) {
+            pageNumber = request.httpParameters['bvpage'][0];
 			
 			//remove the bvpage parameter from the current URL so we don't keep appending it
-			var param = request.httpParameters['bvpage'][0].replace('/', '\/', 'g');
-			param = encodeURIComponent(param);
-			var regex = new RegExp('bvpage=' + param + '[&]?');
-			configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
-		}
+            param = request.httpParameters['bvpage'][0].replace('/', '\/', 'g');
+            param = encodeURIComponent(param);
+            regex = new RegExp('bvpage=' + param + '[&]?');
+            configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
+        }
 		//other implementations use the bvrrp, bvqap, or bvsyp parameter ?bvrrp=1234-en_us/reviews/product/2/ASF234.htm
-		else if(request.httpParameters.containsKey('bvrrp') || request.httpParameters.containsKey('bvqap') || request.httpParameters.containsKey('bvsyp')) {
-			var param;
-			if(request.httpParameters.containsKey('bvrrp')) {
-				param = request.httpParameters['bvrrp'][0].replace('/', '\/', 'g');
-				param = encodeURIComponent(param);
-				var regex = new RegExp('bvrrp=' + param + '[&]?');
-				configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
-			}
-			else if(request.httpParameters.containsKey('bvqap')) {
-				param = request.httpParameters['bvqap'][0].replace('/', '\/', 'g');
-				param = encodeURIComponent(param);
-				var regex = new RegExp('bvqap=' + param + '[&]?');
-				configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
-			}
-			else {
-				param = request.httpParameters['bvsyp'][0].replace('/', '\/', 'g');
-				param = encodeURIComponent(param);
-				var regex = new RegExp('bvsyp=' + param + '[&]?');
-				configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
-			}
+        else if(request.httpParameters.containsKey('bvrrp') || request.httpParameters.containsKey('bvqap') || request.httpParameters.containsKey('bvsyp')) {
+            param;
+            if(request.httpParameters.containsKey('bvrrp')) {
+                param = request.httpParameters['bvrrp'][0].replace('/', '\/', 'g');
+                param = encodeURIComponent(param);
+                regex = new RegExp('bvrrp=' + param + '[&]?');
+                configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
+            }
+            else if(request.httpParameters.containsKey('bvqap')) {
+                param = request.httpParameters['bvqap'][0].replace('/', '\/', 'g');
+                param = encodeURIComponent(param);
+                regex = new RegExp('bvqap=' + param + '[&]?');
+                configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
+            }
+            else {
+                param = request.httpParameters['bvsyp'][0].replace('/', '\/', 'g');
+                param = encodeURIComponent(param);
+                regex = new RegExp('bvsyp=' + param + '[&]?');
+                configMap['current_page_url'] = configMap['current_page_url'].replace(regex, '');
+            }
 			
-			try {
-				var regex = /\/(\d+?)\/[^\/]+$/;
-				var matches = request.httpQueryString.match(regex);
-				pageNumber = matches[1];
-			} catch(e) {
-				Logger.error('_getPageNumber() Exception caught: ' + e.message);
-			}
+            try {
+                regex = /\/(\d+?)\/[^\/]+$/;
+                var matches = request.httpQueryString.match(regex);
+                pageNumber = matches[1];
+            } catch(e) {
+                Logger.error('_getPageNumber() Exception caught: ' + e.message);
+            }
 			
-			Logger.debug('_getPageNumber() URL after param check: ' + configMap['current_page_url']);
-			Logger.debug('_getPageNumber() Page Number: ' + pageNumber);
-		}
+            Logger.debug('_getPageNumber() URL after param check: ' + configMap['current_page_url']);
+            Logger.debug('_getPageNumber() Page Number: ' + pageNumber);
+        }
 		
-		return pageNumber;
-	};
+        return pageNumber;
+    };
 	
 	/**
 	* buildSeoUrl()
+	*@param {number} page page number used to seo
+	* @returns {string} page  The seo url
 	*
 	* Helper method to that builds the URL to the SEO payload
 	*/
-	var _buildSeoUrl = function(page) {
+    var _buildSeoUrl = function(page) {
 		//staging or production?
-		var host = BV_Constants.SEOHostStaging;
-		if(configMap['staging'] == false) {
-			host = BV_Constants.SEOHostProduction;
-		}
-		var scheme = configMap['ssl_enabled'] ? 'https://' : 'http://';
+        var host = BV_Constants.SEOHostStaging;
+        if(configMap['staging'] == false) {
+            host = BV_Constants.SEOHostProduction;
+        }
+        var scheme = configMap['ssl_enabled'] ? 'https://' : 'http://';
 		
-		var url = scheme + host;
-		url += '/' + configMap['cloud_key'];
-		url += '/' + encodeURI(configMap['deployment_zone_id'].replace(' ', '_', 'g'));
-		url += '/' + configMap['content_type'];
-		url += '/' + configMap['subject_type'];
-		url += '/' + page;
-		url += '/' + encodeURI(configMap['product_id']) + '.htm';
+        var url = scheme + host;
+        url += '/' + configMap['cloud_key'];
+        url += '/' + encodeURI(configMap['deployment_zone_id'].replace(' ', '_', 'g'));
+        url += '/' + configMap['content_type'];
+        url += '/' + configMap['subject_type'];
+        url += '/' + page;
+        url += '/' + encodeURI(configMap['product_id']) + '.htm';
 		
-		Logger.debug('_buildSeoUrl() seoUrl: ' + url);
-		return url;
-	};
+        Logger.debug('_buildSeoUrl() seoUrl: ' + url);
+        return url;
+    };
 	
 	/**
 	* fetchSeoContent()
-	*
+	*@param {string} url use to fetch SEO
+	*@returns {Object} returns object 
 	* Helper method that will take in a URL and return it's payload
 	*/
-	var _fetchSeoContent = function(url) {
-		try {
-			var serviceId = _isBot() ? 'bazaarvoice.http.bot' : 'bazaarvoice.http';
-			var service = _createService(serviceId);
+    var _fetchSeoContent = function(url) {
+        try {
+            var serviceId = _isBot() ? 'bazaarvoice.http.bot' : 'bazaarvoice.http';
+            var service = _createService(serviceId);
 				
-			service.URL = url;
-			var timer = new Calendar();
-			var result = service.call();
-			var timer2 = new Calendar();
-			var timespan = timer2.getTime().getTime() - timer.getTime().getTime();
-			response_time = timespan;
+            service.URL = url;
+            var timer = new Calendar();
+            var result = service.call();
+            var timer2 = new Calendar();
+            var timespan = timer2.getTime().getTime() - timer.getTime().getTime();
+            response_time = timespan;
 			
-			if(!result.isOk())
+            if(!result.isOk())
 			{
-				 throw new Error('Unsuccessful GET.  status = \''+result.getStatus()+'\', msg = \'' + result.errorMessage + '\'');
-			}
+                throw new Error('Unsuccessful GET.  status = \''+result.getStatus()+'\', msg = \'' + result.errorMessage + '\'');
+            }
 			
-			return result.object;
-		}
-		catch(ex) {
-			Logger.error('_fetchSeoContent() Exception while retrieving cloud content from ' + url + ': ' + ex.message);
-			_setBuildMessage(ex.message);
-			return '';
-		}
-	};
+            return result.object;
+        }
+        catch(ex) {
+            Logger.error('_fetchSeoContent() Exception while retrieving cloud content from ' + url + ': ' + ex.message);
+            _setBuildMessage(ex.message);
+            return '';
+        }
+    };
 	
 	/**
 	* replaceTokens()
-	*
+	*@param {string} content url string
+	*@returns {string} content  return replaced string
 	* After we have an SEO payload we need to replace the {INSERT_PAGE_URI}
 	* tokens with the current page url so pagination works. 
 	*/
-	var _replaceTokens = function(content : String) {
+    var _replaceTokens = function(content) {
 		//determine if query string exists in current page url
-		var prefix = '?';
-		if(configMap['current_page_url'].indexOf('?') != -1) {
-			if(configMap['current_page_url'].lastIndexOf('&') == configMap['current_page_url'].length - 1) {
-				prefix = '';
-			} else {
-				prefix = '&';
-			}
-		}
+        var prefix = '?';
+        if(configMap['current_page_url'].indexOf('?') != -1) {
+            if(configMap['current_page_url'].lastIndexOf('&') == configMap['current_page_url'].length - 1) {
+                prefix = '';
+            } else {
+                prefix = '&';
+            }
+        }
 		
-		var test = content.replace('{INSERT_PAGE_URI}', configMap['current_page_url'] + prefix, 'g');
-		return content.replace('{INSERT_PAGE_URI}', configMap['current_page_url'] + prefix, 'g');
-	};
+        return content.replace('{INSERT_PAGE_URI}', configMap['current_page_url'] + prefix, 'g');
+    };
 	
 	/**
 	* buildComment()
-	*
+	*@param {string} method content type
+	*@returns {string} footer html string
 	* Helper method to add a comment to the seo content
 	*/
-	var _buildComment = function(method) {
-		var footer = '\n<ul id="BVSEOSDK_meta" style="display: none !important;">';
-		footer += '\n	<li data-bvseo="sdk">bvseo_sdk, '+ BV_Constants.CLOUD_SEO_VERSION +', p_sdk_3.2.0</li>';
-		footer += '\n	<li data-bvseo="sp_mt">CLOUD, '+ method +', '+ response_time +'ms</li>';
-		footer += '\n	<li data-bvseo="ct_st">'+ configMap['content_type'] +', '+ configMap['subject_type'] +'</li>';
-		if(!empty(msg)) {
-			footer += '\n	<li data-bvseo="ms">bvseo-msg: '+ StringUtils.stringToHtml(msg) +'</li>';
-		}
-		footer += '\n</ul>';
+    var _buildComment = function(method) {
+        var footer = '\n<ul id="BVSEOSDK_meta" style="display: none !important;">';
+        footer += '\n	<li data-bvseo="sdk">bvseo_sdk, '+ BV_Constants.CLOUD_SEO_VERSION +', p_sdk_3.2.0</li>';
+        footer += '\n	<li data-bvseo="sp_mt">CLOUD, '+ method +', '+ response_time +'ms</li>';
+        footer += '\n	<li data-bvseo="ct_st">'+ configMap['content_type'] +', '+ configMap['subject_type'] +'</li>';
+        if(!empty(msg)) {
+            footer += '\n	<li data-bvseo="ms">bvseo-msg: '+ StringUtils.stringToHtml(msg) +'</li>';
+        }
+        footer += '\n</ul>';
 		
-		if(_getBVReveal()) {
-			footer += '\n<ul id="BVSEOSDK_DEBUG" style="display:none;">';
-			footer += '\n	<li data-bvseo="staging">'+ configMap['staging'] +'</li>';
-			footer += '\n	<li data-bvseo="seo.sdk.enabled">'+ configMap['seo_sdk_enabled'] +'</li>';
-			footer += '\n	<li data-bvseo="seo.sdk.execution.timeout.bot">'+ configMap['execution_timeout_bot'] +'</li>';
-			footer += '\n	<li data-bvseo="seo.sdk.execution.timeout">'+ configMap['execution_timeout'] +'</li>';
-			footer += '\n	<li data-bvseo="cloudKey">'+ configMap['cloud_key'] +'</li>';
-			footer += '\n	<li data-bvseo="bv.root.folder">'+ encodeURI(configMap['deployment_zone_id'].replace(' ', '_', 'g')) +'</li>';
-			footer += '\n	<li data-bvseo="seo.sdk.charset">'+ configMap['charset'] +'</li>';
-			footer += '\n	<li data-bvseo="seo.sdk.ssl.enabled">'+ configMap['ssl_enabled'] +'</li>';
-			footer += '\n	<li data-bvseo="crawlerAgentPattern">'+ configMap['bot_list'] +'</li>';
-			footer += '\n	<li data-bvseo="subjectID">'+ encodeURI(configMap['product_id']) +'</li>';
+        if(_getBVReveal()) {
+            footer += '\n<ul id="BVSEOSDK_DEBUG" style="display:none;">';
+            footer += '\n	<li data-bvseo="staging">'+ configMap['staging'] +'</li>';
+            footer += '\n	<li data-bvseo="seo.sdk.enabled">'+ configMap['seo_sdk_enabled'] +'</li>';
+            footer += '\n	<li data-bvseo="seo.sdk.execution.timeout.bot">'+ configMap['execution_timeout_bot'] +'</li>';
+            footer += '\n	<li data-bvseo="seo.sdk.execution.timeout">'+ configMap['execution_timeout'] +'</li>';
+            footer += '\n	<li data-bvseo="cloudKey">'+ configMap['cloud_key'] +'</li>';
+            footer += '\n	<li data-bvseo="bv.root.folder">'+ encodeURI(configMap['deployment_zone_id'].replace(' ', '_', 'g')) +'</li>';
+            footer += '\n	<li data-bvseo="seo.sdk.charset">'+ configMap['charset'] +'</li>';
+            footer += '\n	<li data-bvseo="seo.sdk.ssl.enabled">'+ configMap['ssl_enabled'] +'</li>';
+            footer += '\n	<li data-bvseo="crawlerAgentPattern">'+ configMap['bot_list'] +'</li>';
+            footer += '\n	<li data-bvseo="subjectID">'+ encodeURI(configMap['product_id']) +'</li>';
 			
-			footer += '\n	<li data-bvseo="en">'+ configMap['sdk_enabled'] +'</li>';
-			footer += '\n	<li data-bvseo="pn">'+ configMap['page'] +'</li>';
-			footer += '\n	<li data-bvseo="userAgent">'+ (request.httpUserAgent) ? request.httpUserAgent.toLowerCase() : '' +'</li>';
-			footer += '\n	<li data-bvseo="pageURI">'+ configMap['current_page_url'] +'</li>';
-			footer += '\n	<li data-bvseo="contentType">'+ configMap['content_type'] +'</li>';
-			footer += '\n	<li data-bvseo="subjectType">'+ configMap['subject_type'] +'</li>';
+            footer += '\n	<li data-bvseo="en">'+ configMap['sdk_enabled'] +'</li>';
+            footer += '\n	<li data-bvseo="pn">'+ configMap['page'] +'</li>';
+            footer += '\n	<li data-bvseo="userAgent">'+ (request.httpUserAgent) ? request.httpUserAgent.toLowerCase() : '' +'</li>';
+            footer += '\n	<li data-bvseo="pageURI">'+ configMap['current_page_url'] +'</li>';
+            footer += '\n	<li data-bvseo="contentType">'+ configMap['content_type'] +'</li>';
+            footer += '\n	<li data-bvseo="subjectType">'+ configMap['subject_type'] +'</li>';
 			
-			if(!empty(seo_url)) {
-				footer += '\n	<li data-bvseo="contentURL">'+ seo_url +'</li>';
-			}
-			footer += '\n</ul>';
-		}
+            if(!empty(seo_url)) {
+                footer += '\n	<li data-bvseo="contentURL">'+ seo_url +'</li>';
+            }
+            footer += '\n</ul>';
+        }
 		
-		return footer;
-	};
-	
-	/**
-	* toString()
-	*
-	* Print the config values of this object
-	*/
-	var _toString = function() {
-		var str = '';
-		var keys = configMap.keySet();
-		for(var i = 0; i < keys.length; i++) {
-			var key = keys[i];
-			if(key != 'cloud_key') {
-				str += '(' + key + ' >>> ' + configMap[key] + ')\n';
-			}
-		}
-		return str;
-	};
+        return footer;
+    };
+
 	
 	
 	
 	/**
 	* _isSdkEnabled
-	*
+	*@returns {bool} is the SDK enabled
 	*/
-	var _isSdkEnabled = function() {
-		return configMap['seo_sdk_enabled'] || _getBVReveal();
-	};
+    var _isSdkEnabled = function() {
+        return configMap['seo_sdk_enabled'] || _getBVReveal();
+    };
 	
 	/**
 	* _getFullSeoContents
+	*@returns {string} return HTML content
 	*/
-	var _getFullSeoContents = function(method) {
-		var seo_content = '';
-		var seo_content = '';
+    var _getFullSeoContents = function() {
+        var seo_content = '';
+        var page_number = _getPageNumber();
 		
-		var page_number = _getPageNumber();
+        seo_url = _buildSeoUrl(page_number);
 		
-		seo_url = _buildSeoUrl(page_number);
-		
-		if(_isSdkEnabled()) {
-			seo_content = _fetchSeoContent(seo_url);
+        if(_isSdkEnabled()) {
+            seo_content = _fetchSeoContent(seo_url);
 			
-			seo_content = _replaceTokens(seo_content);
-		} else {
-			_setBuildMessage('SEO SDK is disabled. Enable by setting seo.sdk.enabled to true.');
-		}
+            seo_content = _replaceTokens(seo_content);
+        } else {
+            _setBuildMessage('SEO SDK is disabled. Enable by setting seo.sdk.enabled to true.');
+        }
 		
-		return seo_content;
-	};
+        return seo_content;
+    };
 	
 	/**
 	* _replaceSection()
+	*@param {string} str html content from BV
+	*@param {string} begin comment section for aggregate rating
+	*@param {string} end comment section ending for aggregate rating
+	*@returns {string} return HTML content from BV
 	*/
-	var _replaceSection = function(str, begin, end) {
-		var result = str;
-		var start_index = str.indexOf(begin);
-		if(start_index != -1) {
-			var end_index = str.indexOf(end);
-			if(end_index != -1) {
-				end_index += end.length;
-				var str_begin = str.substring(0, start_index);
-				var str_end = str.substring(end_index);
-				result = str_begin + str_end;
-			}
-		}
+    var _replaceSection = function(str, begin, end) {
+        var result = str;
+        var start_index = str.indexOf(begin);
+        if(start_index != -1) {
+            var end_index = str.indexOf(end);
+            if(end_index != -1) {
+                end_index += end.length;
+                var str_begin = str.substring(0, start_index);
+                var str_end = str.substring(end_index);
+                result = str_begin + str_end;
+            }
+        }
 		
-		return result;
-	};
+        return result;
+    };
 	
 	/**
 	* _renderReviews()
+	*@returns {string} returns html comment
 	*/
-	var _renderReviews = function() {
-		var payload = _renderSEO('getReviews');
+    var _renderReviews = function() {
+        var payload = _renderSEO('getReviews');
 		
-		payload = _replaceSection(payload, '<!--begin-aggregate-rating-->', '<!--end-aggregate-rating-->');
+        payload = _replaceSection(payload, '<!--begin-aggregate-rating-->', '<!--end-aggregate-rating-->');
 		
-		var schema_org_text = 'itemscope itemtype=\"http://schema.org/Product\"';
-		payload = payload.replace(schema_org_text, '', 'g');
+        var schema_org_text = 'itemscope itemtype=\"http://schema.org/Product\"';
+        payload = payload.replace(schema_org_text, '', 'g');
 		
-		return payload;
-	};
+        return payload;
+    };
 	
 	/**
 	* _renderAggregateRating()
+	*@returns {string} returns html comment
 	*/
-	var _renderAggregateRating = function() {
-		var payload = _renderSEO('getAggregateRating');
+    var _renderAggregateRating = function() {
+        var payload = _renderSEO('getAggregateRating');
 		
-		payload = _replaceSection(payload, '<!--begin-reviews-->', '<!--end-reviews-->');
+        payload = _replaceSection(payload, '<!--begin-reviews-->', '<!--end-reviews-->');
 		
-		payload = _replaceSection(payload, '<!--begin-pagination-->', '<!--end-pagination-->');
+        payload = _replaceSection(payload, '<!--begin-pagination-->', '<!--end-pagination-->');
 		
-		return payload;
-	};
+        return payload;
+    };
 	
 	/**
 	* _renderSEO
+	*@param {string} method passing method type
+	*@returns {string} payload passing html from BV
 	*/
-	var _renderSEO = function(method) {
-		var payload = '';
+    var _renderSEO = function(method) {
+        var payload = '';
 		
-		if(!_isBot() && configMap['latency_timeout'] == 0) {
-			_setBuildMessage('EXECUTION_TIMEOUT is set to 0 ms; JavaScript-only Display.');
-		} else {
-			if(_isBot() && configMap['latency_timeout'] < 100) {
-				configMap['latency_timeout'] = 100;
-				_setBuildMessage('EXECUTION_TIMEOUT_BOT is less than the minimum value allowed. Minimum value of 100ms used.');
-			}
+        if(!_isBot() && configMap['latency_timeout'] == 0) {
+            _setBuildMessage('EXECUTION_TIMEOUT is set to 0 ms; JavaScript-only Display.');
+        } else {
+            if(_isBot() && configMap['latency_timeout'] < 100) {
+                configMap['latency_timeout'] = 100;
+                _setBuildMessage('EXECUTION_TIMEOUT_BOT is less than the minimum value allowed. Minimum value of 100ms used.');
+            }
 			
-			try {
-				payload = _getFullSeoContents(method);
-			} catch(ex) {
-				_setBuildMessage(ex.message);
-			}
-		}
+            try {
+                payload = _getFullSeoContents();
+            } catch(ex) {
+                _setBuildMessage(ex.message);
+            }
+        }
 		
-		payload += _buildComment(method);
-		return payload;
-	};
+        payload += _buildComment(method);
+        return payload;
+    };
 	
 	
 	/******************
 	* PUBLIC METHODS  *
 	******************/
-	return {
-		getContent : function() {
-			var payload = _renderSEO('getContent'); 
-			return payload;
-		},
+    return {
+        getContent : function() {
+            var payload = _renderSEO('getContent'); 
+            return payload;
+        },
 		
-		getReviews : function() {
-			var payload = '';
+        getReviews : function() {
+            var payload = '';
 			
-			if(configMap['content_type'] == 'questions') {
-				_setBuildMessage('Content Type \'' + configMap['content_type'] + '\' is not supported by getReviews().');
-				payload = _buildComment('getReviews');
-			} else if(configMap['content_type'] == 'reviews') {
-				payload = _renderReviews();
-			}
+            if(configMap['content_type'] == 'questions') {
+                _setBuildMessage('Content Type \'' + configMap['content_type'] + '\' is not supported by getReviews().');
+                payload = _buildComment('getReviews');
+            } else if(configMap['content_type'] == 'reviews') {
+                payload = _renderReviews();
+            }
 			
-			return payload;
-		},
+            return payload;
+        },
 		
-		getAggregateRating : function() {
-			var payload = '';
+        getAggregateRating : function() {
+            var payload = '';
 			
-			if(configMap['content_type'] == 'questions') {
-				_setBuildMessage('Content Type \'' + configMap['content_type'] + '\' is not supported by getAggregateRating().');
-				payload = _buildComment('getAggregateRating');
-			} else if(configMap['content_type'] == 'reviews') {
-				payload = _renderAggregateRating();
-			}
+            if(configMap['content_type'] == 'questions') {
+                _setBuildMessage('Content Type \'' + configMap['content_type'] + '\' is not supported by getAggregateRating().');
+                payload = _buildComment('getAggregateRating');
+            } else if(configMap['content_type'] == 'reviews') {
+                payload = _renderAggregateRating();
+            }
 			
-			return payload;
-		}
-	};
+            return payload;
+        }
+    };
 }
 
 exports.getBVSEO = function(config) {
 	//test for required parameters before we begin
-	if(empty(config.product_id)) {
-		Logger.error('Error initializing cloud SEO object.  Missing product_id.');
-		return null;
-	}
+    if(empty(config.product_id)) {
+        Logger.error('Error initializing cloud SEO object.  Missing product_id.');
+        return null;
+    }
 	
 	/*
 	* The BV cloud SEO SDKs all pass in the key and deployment zone id as config parameters.
 	* For this cartridge, it makes more sense to pull the values from the Site Preferences here.
 	* The only dynamic parameter is the product id, so why complicate the integration?
 	*/
-	config.cloud_key = dw.system.Site.getCurrent().getCustomPreferenceValue('bvCloudSEOKey_C2013');
-	if(empty(config.cloud_key)) {
-		Logger.error('Error initializing cloud SEO object.  Missing cloud_key.');
-		return null;
-	}
+    config.cloud_key = dw.system.Site.getCurrent().getCustomPreferenceValue('bvCloudSEOKey_C2013');
+    if(empty(config.cloud_key)) {
+        Logger.error('Error initializing cloud SEO object.  Missing cloud_key.');
+        return null;
+    }
 	
-	var bvdisplay = BVHelper.getDisplayData();
+    var bvdisplay = BVHelper.getDisplayData();
 	
 	/*
 	* If the SEODisplayCode constant is empty, then try to use the Deployment Zone.
 	*/
-	config.deployment_zone_id = BV_Constants.SEODisplayCode;
-	if(empty(config.deployment_zone_id)) {
-		config.deployment_zone_id = bvdisplay.zone;
-		if(empty(config.deployment_zone_id)) {
-			Logger.error('Error initializing cloud SEO object.  Missing deployment_zone_id.  You must supply either bvCloudSEODisplayCode_C2013 or bvDeploymentZone_C2013');
-			return null;
-		}
-	}
+    config.deployment_zone_id = BV_Constants.SEODisplayCode;
+    if(empty(config.deployment_zone_id)) {
+        config.deployment_zone_id = bvdisplay.zone;
+        if(empty(config.deployment_zone_id)) {
+            Logger.error('Error initializing cloud SEO object.  Missing deployment_zone_id.  You must supply either bvCloudSEODisplayCode_C2013 or bvDeploymentZone_C2013');
+            return null;
+        }
+    }
 	
-	var locale = bvdisplay.locale;
-	if(!empty(locale)) {
-		config.deployment_zone_id += '-' + locale;
-	}
+    var locale = bvdisplay.locale;
+    if(!empty(locale)) {
+        config.deployment_zone_id += '-' + locale;
+    }
 	
 	/*
 	* Check the site preference to decide if this is the staging or production environment.
 	*/
-	var env = BVHelper.getEnvironment();
-	if(!empty(env) && env.toLowerCase() == 'production') {
-    	config.staging = false;
+    var env = BVHelper.getEnvironment();
+    if(!empty(env) && env.toLowerCase() == 'production') {
+        config.staging = false;
     }
 	
-	var bvseo = new BVSEO();
-	bvseo.init(config);
-	return bvseo;
+    var bvseo = new BVSEO();
+    bvseo.init(config);
+    return bvseo;
 };
