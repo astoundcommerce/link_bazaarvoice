@@ -1,8 +1,8 @@
-const assert = require('chai').assert;
-const proxyquire = require('proxyquire').noCallThru().noPreserveCache();
+var assert = require('chai').assert;
+var proxyquire = require('proxyquire').noCallThru().noPreserveCache();
 
 describe('libBazaarvoice', function () {
-    const libBazaarvoice = proxyquire('../../../../../cartridges/bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice', {
+    var libBazaarvoice = proxyquire('../../../../../cartridges/bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice', {
         'dw/system/Site': {
             getCurrent: function () {
                 return {
@@ -17,17 +17,17 @@ describe('libBazaarvoice', function () {
         'dw/util/Calendar': {},
         'dw/svc/LocalServiceRegistry': {},
         'dw/system/Logger': {
-            getLogger: function (){}
+            getLogger: function () {}
         },
         'bc_bazaarvoice/cartridge/scripts/lib/libConstants':
             require('../../../../../cartridges/bc_bazaarvoice/cartridge/scripts/lib/libConstants')
     });
-    it('replaceIllegalCharacters function testing', function() {
-        let result = libBazaarvoice.getBazaarVoiceHelper().replaceIllegalCharacters('testing&cartridge/');
+    it('replaceIllegalCharacters function testing', function () {
+        var result = libBazaarvoice.getBazaarVoiceHelper().replaceIllegalCharacters('testing&cartridge/');
         assert.equal(result, 'testing_and_cartridge_fslash_');
     });
-    it('decodeId function testing', function() {
-        let result = libBazaarvoice.getBazaarVoiceHelper().decodeId('testing_and_cartridge_fslash_');
+    it('decodeId function testing', function () {
+        var result = libBazaarvoice.getBazaarVoiceHelper().decodeId('testing_and_cartridge_fslash_');
         assert.equal(result, 'testing&cartridge/');
     });
 });

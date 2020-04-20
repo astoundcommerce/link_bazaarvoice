@@ -38,9 +38,9 @@ server.append('Show', function (req, res, next) {
         var bvAvgRating = masterProduct.custom.bvAverageRating;
         var bvRatingRange = masterProduct.custom.bvRatingRange;
         var bvReviewCount = masterProduct.custom.bvReviewCount;
-        var bvAvgRatingNum = new Number(bvAvgRating);
-        var bvRatingRangeNum = new Number(bvRatingRange);
-        var bvReviewCountNum = new Number(bvReviewCount);
+        var bvAvgRatingNum = Number(bvAvgRating);
+        var bvRatingRangeNum = Number(bvRatingRange);
+        var bvReviewCountNum = Number(bvReviewCount);
 
         var starsFile = null;
         if (isFinite(bvAvgRatingNum) && bvAvgRating && isFinite(bvRatingRangeNum) && bvRatingRange && isFinite(bvReviewCountNum) && bvReviewCount) {
@@ -67,6 +67,5 @@ server.append('Show', function (req, res, next) {
     res.setViewData(viewData);
     next();
 });
-
 
 module.exports = server.exports();

@@ -60,7 +60,7 @@
                     </div>
                 </section>
 
-                <isif condition="${product.productType !== 'bundle'}">
+                <isif condition="${product.productType  !== 'bundle'}">
                     <!-- Options -->
                     <isif condition="${product.options && product.options.length > 0}">
                         <isinclude template="product/components/options" />

@@ -11,7 +11,7 @@
 	<script type="text/javascript" language="javascript">
 	window.bvCallback = function() {
 		
-		if (typeof BV != "undefined") {
+		if (typeof BV !=="undefined") {
 		BV.reviews.on('show', function () {		
 			//This line assumes SFRA collapsible panels and is called when clicking on the review summary
 			$('.row.reviews:not(.active)').toggleClass('active');		

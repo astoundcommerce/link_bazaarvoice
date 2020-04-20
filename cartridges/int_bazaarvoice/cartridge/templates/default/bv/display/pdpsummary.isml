@@ -15,7 +15,7 @@ if(!empty(bvPid)) {
 	<!-- Reviews Summary -->
 	
 	<div data-bv-show="rating_summary" data-bv-productId="${bvPid}" id="data-bv-show" style="display:none" >
-		<isif condition="${CSEO != null}">
+		<isif condition="${CSEO !== null}">
 	    	<isprint value="${CSEO.reviews().getAggregateRating()}" encoding="off"/>
 	    </isif>
 	</div>
@@ -23,7 +23,7 @@ if(!empty(bvPid)) {
 	<script type="text/javascript" language="javascript">
 	window.bvCallback = function() {
 		
-		if (typeof BV != "undefined") {
+		if (typeof BV !=="undefined") {
 		BV.reviews.on('show', function () {	
 			//This line assumes Site Genesis tabs and is called when clicking on the review summary
 			jQuery('.tab.reviews .tab-switch').click();

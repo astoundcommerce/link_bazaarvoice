@@ -1,24 +1,27 @@
 'use strict';
 
 // API includes
-const Calendar = require('dw/util/Calendar');
-const StringUtils = require('dw/util/StringUtils');
-const Order = require('dw/order/Order');
-const OrderMgr = require('dw/order/OrderMgr');
-const Site = require('dw/system/Site');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
+var Calendar = require('dw/util/Calendar');
+var StringUtils = require('dw/util/StringUtils');
+var Order = require('dw/order/Order');
+var OrderMgr = require('dw/order/OrderMgr');
+var Site = require('dw/system/Site');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice',
     'bvPurchaseExport.js');
 
 // BV Helper Scripts
-const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-const LocaleHelper = require('./util/localeHelper');
-const XMLHelper = require('./util/xmlHelper');
-const PurchaseHelper = require('./util/purchaseHelper');
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var LocaleHelper = require('./util/localeHelper');
+var XMLHelper = require('./util/xmlHelper');
+var PurchaseHelper = require('./util/purchaseHelper');
 
 // local variables
-var localeMap, dwLocales;
-var orderItr, orderCount;
-var startDate, endDate;
+var localeMap; var
+    dwLocales;
+var orderItr; var
+    orderCount;
+var startDate; var
+    endDate;
 var triggeringEvent;
 
 /**
@@ -50,7 +53,7 @@ function beforeStep(parameters) {
     // timeframe of orders to pull
     // - default to the values set in the constants file
     var numDaysLookback = parameters.PurchaseFeedNumDays ||
-        BV_Constants.PurchaseFeedNumDays;
+        bvConstants.PurchaseFeedNumDays;
     var startCalendar = new Calendar();
     startCalendar.add(Calendar.DATE, (-1 * numDaysLookback)); // Subtract
     // numDaysLookback
@@ -59,7 +62,7 @@ function beforeStep(parameters) {
     startDate = startCalendar.getTime();
 
     var numDaysWait = parameters.PurchaseFeedWaitDays ||
-        BV_Constants.PurchaseFeedWaitDays;
+        bvConstants.PurchaseFeedWaitDays;
     var endCalendar = new Calendar();
     endCalendar.add(Calendar.DATE, (-1 * numDaysWait));
     endDate = endCalendar.getTime();
@@ -74,8 +77,8 @@ function beforeStep(parameters) {
     var cal = new Calendar();
     var stamp = StringUtils.formatCalendar(cal, 'yyyyMMddhhmmss');
     var sid = Site.current.ID;
-    var path = BV_Constants.PurchaseFeedLocalPath;
-    var prefix = BV_Constants.PurchaseFeedPrefix;
+    var path = bvConstants.PurchaseFeedLocalPath;
+    var prefix = bvConstants.PurchaseFeedPrefix;
     var filename = prefix + '_' + sid + '_' + stamp + '.xml';
 
     var xsw = XMLHelper.getStreamWriter(filename, path);
@@ -104,9 +107,11 @@ function getTotalCount() {
  */
 function read() {
     Logger.debug('***** Read *****');
+    var order;
     if (orderItr.hasNext()) {
-        return orderItr.next();
+        order = orderItr.next();
     }
+    return order;
 }
 
 /**
@@ -128,11 +133,11 @@ function write(orders) {
     Logger.debug('***** Write *****');
 
     try {
-
         [].forEach
             .call(
                 orders,
                 function (order) {
+                    var orderObj = order;
                     // make sure we havent sent this order yet
                     // we cannot query against this custom boolean if the
                     // value was never set, aka legacy orders
@@ -203,11 +208,9 @@ function write(orders) {
                     // }
 
                     XMLHelper.writePurchaseFeedItem(order, localeMap);
-
                     // set the flag so we dont export this order again
-                    order.custom[BV_Constants.CUSTOM_FLAG] = true;
+                    orderObj.custom[bvConstants.CUSTOM_FLAG] = true;
                 });
-
     } catch (ex) {
         XMLHelper.closeWriter();
     }

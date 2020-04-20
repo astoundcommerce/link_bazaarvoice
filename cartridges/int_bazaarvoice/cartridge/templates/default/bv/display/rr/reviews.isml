@@ -15,7 +15,7 @@ if(!empty(bvPid)) {
 <isif condition="${BVHelper.isRREnabled()}">
 	<!-- Reviews -->
 	<div data-bv-show="reviews" data-bv-productId="${bvPid}">
-		<isif condition="${CSEO != null}">
+		<isif condition="${CSEO !== null}">
 	    	<isprint value="${CSEO.reviews().getReviews()}" encoding="off"/>
 	    </isif>
 	</div>

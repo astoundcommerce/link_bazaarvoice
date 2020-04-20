@@ -17,7 +17,7 @@ if(!empty(bvPid)) {
 <isif condition="${BVHelper.isQAEnabled()}">
     <!-- Questions -->
     <div data-bv-show="questions" data-bv-productId="${bvPid}">
-    	<isif condition="${CSEO != null}">
+    	<isif condition="${CSEO !== null}">
 	    	<isprint value="${CSEO.questions().getContent()}" encoding="off"/>
 	    </isif>
     </div>

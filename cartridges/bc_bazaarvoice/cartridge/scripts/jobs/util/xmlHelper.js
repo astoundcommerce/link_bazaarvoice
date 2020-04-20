@@ -1,21 +1,74 @@
 'use strict';
 
-const Site = require('dw/system/Site');
-const Calendar = require('dw/util/Calendar');
-const StringUtils = require('dw/util/StringUtils');
-const File = require('dw/io/File');
-const FileWriter = require('dw/io/FileWriter');
-const URLUtils = require('dw/web/URLUtils');
-const XMLStreamWriter = require('dw/io/XMLIndentingStreamWriter');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice','XMLHelper.js');
-const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-const PurchaseHelper = require('./purchaseHelper');
-const LocaleHelper = require('./localeHelper');
+var Site = require('dw/system/Site');
+var Calendar = require('dw/util/Calendar');
+var StringUtils = require('dw/util/StringUtils');
+var File = require('dw/io/File');
+var FileWriter = require('dw/io/FileWriter');
+var URLUtils = require('dw/web/URLUtils');
+var XMLStreamWriter = require('dw/io/XMLIndentingStreamWriter');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'XMLHelper.js');
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var PurchaseHelper = require('./purchaseHelper');
+var LocaleHelper = require('./localeHelper');
 
-let _file, _fileWriter, _xmlStreamWriter;
+var file; var fileWriter; var
+    xmlStreamWriter;
 
-let defaultLocale = request.getLocale();
+var defaultLocale = request.getLocale();
+
+/**
+ * Represents a transition function.
+ *
+ * @param {string} elementName - product element.
+ * @param {string} chars - characters.
+ */
+function writeElement(elementName, chars) {
+    xmlStreamWriter.writeStartElement(elementName);
+    xmlStreamWriter.writeCharacters(chars);
+    xmlStreamWriter.writeEndElement();
+}
+
+/**
+ * Represents a writing localized  function.
+ *
+ * @param {string} elementName - product element.
+ * @param {string} locale - set product locale.
+ * @param {string} chars - characters.
+ */
+function writeLocalizedElement(elementName, locale, chars) {
+    xmlStreamWriter.writeStartElement(elementName);
+    xmlStreamWriter.writeAttribute('locale', locale);
+    xmlStreamWriter.writeCharacters(chars);
+    xmlStreamWriter.writeEndElement();
+}
+
+/**
+ * Represents a writeElementCDATA function.
+ *
+ * @param {string} elementName - product element.
+ * @param {string} chars - characters.
+ */
+function writeElementCDATA(elementName, chars) {
+    xmlStreamWriter.writeStartElement(elementName);
+    xmlStreamWriter.writeCData(chars !== null ? chars : '');
+    xmlStreamWriter.writeEndElement();
+}
+
+/**
+ * Represents a writeLocalizedElementCDATA function.
+ *
+ * @param {string} elementName - product element.
+ * @param {string} locale - set product locale.
+ * @param {string} chars - characters.
+ */
+function writeLocalizedElementCDATA(elementName, locale, chars) {
+    xmlStreamWriter.writeStartElement(elementName);
+    xmlStreamWriter.writeAttribute('locale', locale);
+    xmlStreamWriter.writeCData(chars !== null ? chars : '');
+    xmlStreamWriter.writeEndElement();
+}
 
 /**
  *Function to write file
@@ -24,7 +77,7 @@ let defaultLocale = request.getLocale();
  * @returns {boolean} flag
  */
 function getStreamWriter(filename, localPath) {
-    if (_xmlStreamWriter) {
+    if (xmlStreamWriter) {
         Logger.debug('Retrieving xml stream writer.');
         return true;
     }
@@ -34,123 +87,121 @@ function getStreamWriter(filename, localPath) {
         return false;
     }
 
-    let filepath = [ File.TEMP, localPath ].join(File.SEPARATOR);
-    let filepathFile = new File(filepath);
+    var filepath = [File.TEMP, localPath].join(File.SEPARATOR);
+    var filepathFile = new File(filepath);
     filepathFile.mkdirs();
-    _file = new File(filepathFile, filename);
-    _fileWriter = new FileWriter(_file);
-    _xmlStreamWriter = new XMLStreamWriter(_fileWriter);
+    file = new File(filepathFile, filename);
+    fileWriter = new FileWriter(file);
+    xmlStreamWriter = new XMLStreamWriter(fileWriter);
 
     return true;
 }
 
-/** This function serves to set data for the start of the feed*/
+/** This function serves to set data for the start of the feed */
 function startProductFeed() {
+    var cal = new Calendar();
+    var extract = StringUtils.formatCalendar(cal, 'yyyy-MM-dd') +
+			'T00:00:00.000000';
 
-    let cal = new Calendar();
-    let extract = StringUtils.formatCalendar(cal, 'yyyy-MM-dd')
-			+ 'T00:00:00.000000';
-
-    _xmlStreamWriter.writeStartDocument('UTF-8', '1.0');
-    _xmlStreamWriter.writeCharacters('\n');
-    _xmlStreamWriter.writeStartElement('Feed');
-    _xmlStreamWriter
-        .writeAttribute('xmlns', BV_Constants.XML_NAMESPACE_PRODUCT);
-    _xmlStreamWriter.writeAttribute('name', BVHelper.getCustomerName());
-    _xmlStreamWriter
-        .writeAttribute('incremental', BV_Constants.XML_INCREMENTAL);
-    _xmlStreamWriter.writeAttribute('extractDate', extract);
-    _xmlStreamWriter.writeAttribute('generator', BV_Constants.XML_GENERATOR);
+    xmlStreamWriter.writeStartDocument('UTF-8', '1.0');
+    xmlStreamWriter.writeCharacters('\n');
+    xmlStreamWriter.writeStartElement('Feed');
+    xmlStreamWriter
+        .writeAttribute('xmlns', bvConstants.XML_NAMESPACE_PRODUCT);
+    xmlStreamWriter.writeAttribute('name', BVHelper.getCustomerName());
+    xmlStreamWriter
+        .writeAttribute('incremental', bvConstants.XML_INCREMENTAL);
+    xmlStreamWriter.writeAttribute('extractDate', extract);
+    xmlStreamWriter.writeAttribute('generator', bvConstants.XML_GENERATOR);
 }
 
-
-/** This function closes and flushes the feed*/
+/** This function closes and flushes the feed */
 function finishProductFeed() {
-    _xmlStreamWriter.writeEndElement(); //</Feed>
-    _xmlStreamWriter.writeEndDocument();
+    xmlStreamWriter.writeEndElement(); // </Feed>
+    xmlStreamWriter.writeEndDocument();
 
-    _xmlStreamWriter.flush();
-    _xmlStreamWriter.close();
-    _fileWriter.close();
+    xmlStreamWriter.flush();
+    xmlStreamWriter.close();
+    fileWriter.close();
 
-    _xmlStreamWriter = null;
+    xmlStreamWriter = null;
 }
 
-/** This function closes and flushes the feed*/
-function closeWriter(){
-    _xmlStreamWriter.flush();
-    _xmlStreamWriter.close();
-    _fileWriter.close();
+/** This function closes and flushes the feed */
+function closeWriter() {
+    xmlStreamWriter.flush();
+    xmlStreamWriter.close();
+    fileWriter.close();
 }
 
-/** This function start purschase feed*/
+/** This function start purschase feed */
 function startPurchaseFeed() {
-    _xmlStreamWriter.writeStartDocument('UTF-8', '1.0');
-    _xmlStreamWriter.writeCharacters('\n');
-    _xmlStreamWriter.writeStartElement('Feed');
-    _xmlStreamWriter.writeAttribute('xmlns',
-        BV_Constants.XML_NAMESPACE_PURCHASE);
+    xmlStreamWriter.writeStartDocument('UTF-8', '1.0');
+    xmlStreamWriter.writeCharacters('\n');
+    xmlStreamWriter.writeStartElement('Feed');
+    xmlStreamWriter.writeAttribute('xmlns',
+        bvConstants.XML_NAMESPACE_PURCHASE);
 }
 
-
-/** This function finish purschase feed*/
+/** This function finish purschase feed */
 function finishPurchaseFeed() {
-    _xmlStreamWriter.writeEndElement(); //</Feed>
-    _xmlStreamWriter.writeEndDocument();
+    xmlStreamWriter.writeEndElement(); // </Feed>
+    xmlStreamWriter.writeEndDocument();
 
-    _xmlStreamWriter.flush();
-    _xmlStreamWriter.close();
-    _fileWriter.close();
-    _xmlStreamWriter = null;
+    xmlStreamWriter.flush();
+    xmlStreamWriter.close();
+    fileWriter.close();
+    xmlStreamWriter = null;
 }
 
 /**
  * Represents a transition function.
- * 
+ *
  * @param {string} endNode - end node from one product.
  * @param {string} startNode - start node for another product.
  */
 function transition(endNode, startNode) {
     if (endNode) {
-        _xmlStreamWriter.writeEndElement();
+        xmlStreamWriter.writeEndElement();
     }
 
     if (startNode) {
-        _xmlStreamWriter.writeStartElement(startNode);
+        xmlStreamWriter.writeStartElement(startNode);
     }
 }
 
 /**
  * Represents a transition function.
- * 
+ *
  * @param {string} item - product item.
  * @param {string} localeMap - set product locale.
  */
 function writeProductFeedItem(item, localeMap) {
-    let multiLocale = LocaleHelper.isMultiLocale(localeMap);
-
+    var multiLocale = LocaleHelper.isMultiLocale(localeMap);
+    var dwLocales;
+    var dwLocale;
+    var bvLocale;
     switch (item.type) {
-        case 'Brands':{
-            let brand = item.obj;
-            _xmlStreamWriter.writeStartElement('Brand');
+        case 'Brands':
+            var brand = item.obj;
+            xmlStreamWriter.writeStartElement('Brand');
             writeElementCDATA('Name', brand.value);
             writeElementCDATA('ExternalId', BVHelper
                 .replaceIllegalCharacters(brand.value));
-            _xmlStreamWriter.writeEndElement();
-        }break;
-        
+            xmlStreamWriter.writeEndElement();
+            break;
 
-        case 'Categories':{
-            let category = item.obj;
-            _xmlStreamWriter.writeStartElement('Category');
+        case 'Categories':
+            var category = item.obj;
+            xmlStreamWriter.writeStartElement('Category');
             writeElement('ExternalId', BVHelper
                 .replaceIllegalCharacters(category.ID));
 
-            let parent = category.getParent();
-            if (parent != null) {
-                //We don't want to set our ParentExternalId to 'root', so make sure the parent of this parent is non-null
-                let parentOfParent = parent.getParent();
-                if (parentOfParent != null) {
+            var parent = category.getParent();
+            if (parent !== null) {
+                // We don't want to set our ParentExternalId to 'root', so make sure the parent of this parent is non-null
+                var parentOfParent = parent.getParent();
+                if (parentOfParent !== null) {
                     writeElement('ParentExternalId', BVHelper
                         .replaceIllegalCharacters(parent.ID));
                 }
@@ -161,60 +212,60 @@ function writeProductFeedItem(item, localeMap) {
                 category.ID));
 
             if (multiLocale) {
-                let dwLocales = localeMap.keySet();
+                dwLocales = localeMap.keySet();
 
-                _xmlStreamWriter.writeStartElement('CategoryPageUrls');
-                for (let i = 0; i < dwLocales.length; i++) {
-                    let dwLocale = dwLocales[i];
-                    let bvLocale = localeMap.get(dwLocale);
+                xmlStreamWriter.writeStartElement('CategoryPageUrls');
+                for (var index = 0; index < dwLocales.length; index++) {
+                    dwLocale = dwLocales[index];
+                    bvLocale = localeMap.get(dwLocale);
                     request.setLocale(dwLocale);
 
                     writeLocalizedElement('CategoryPageUrl', bvLocale, URLUtils
                         .https('Search-Show', 'cgid', category.ID));
                 }
-                _xmlStreamWriter.writeEndElement();
+                xmlStreamWriter.writeEndElement();
 
-                _xmlStreamWriter.writeStartElement('Names');
-                for (let i = 0; i < dwLocales.length; i++) {
-                    let dwLocale = dwLocales[i];
-                    let bvLocale = localeMap.get(dwLocale);
+                xmlStreamWriter.writeStartElement('Names');
+                for (var index1 = 0; index1 < dwLocales.length; index1++) {
+                    dwLocale = dwLocales[index1];
+                    bvLocale = localeMap.get(dwLocale);
                     request.setLocale(dwLocale);
 
                     writeLocalizedElementCDATA('Name', bvLocale,
                         category.displayName);
                 }
-                _xmlStreamWriter.writeEndElement();
+                xmlStreamWriter.writeEndElement();
             }
 
             request.setLocale(defaultLocale);
 
-            _xmlStreamWriter.writeEndElement();
-        }break;
+            xmlStreamWriter.writeEndElement();
+            break;
 
-        case 'Products':{
-            let product = item.obj;
-            let enableProductFamilies = Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');
-            if (product.online && product.searchable
-				&& (enableProductFamilies || !product.variant)) {
-                _xmlStreamWriter.writeStartElement('Product');
+        case 'Products':
+            var product = item.obj;
+            var enableProductFamilies = Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');
+            if (product.online && product.searchable &&
+				(enableProductFamilies || !product.variant)) {
+                xmlStreamWriter.writeStartElement('Product');
 
                 writeElement('ExternalId', BVHelper
                     .replaceIllegalCharacters(product.ID));
-                let pname = product.name ? product.name : '';
+                var pname = product.name ? product.name : '';
                 writeElementCDATA('Name', pname);
                 writeElementCDATA('Description',
-                    (product.shortDescription == null ? pname
+                    (product.shortDescription === null ? pname
                         : product.shortDescription));
 
-                if (product.getBrand() != null && product.brand) {
+                if (product.getBrand() !== null && product.brand) {
                     writeElementCDATA('BrandExternalId', BVHelper.replaceIllegalCharacters(product.brand));
                 }
 
-                let categoryExternalId = BV_Constants.CATEGORY_NONE;
-                if (product.primaryCategory != null) {
+                var categoryExternalId = bvConstants.CATEGORY_NONE;
+                if (product.primaryCategory !== null) {
                     categoryExternalId = product.primaryCategory.ID;
                 } else {
-                    let allCategories = product.allCategories;
+                    var allCategories = product.allCategories;
                     if (allCategories.size() > 0) {
                         categoryExternalId = allCategories.iterator().next().ID;
                     }
@@ -225,181 +276,183 @@ function writeProductFeedItem(item, localeMap) {
                 writeElement('ProductPageUrl', URLUtils.https('Product-Show',
                     'pid', product.ID));
 
-                let prodImage = BVHelper.getImageURL(product, BV_Constants.PRODUCT);
-                let includeImages = false;
+                var prodImage = BVHelper.getImageURL(product, bvConstants.PRODUCT);
+                var includeImages = false;
                 if (prodImage) {
                     writeElement('ImageUrl', prodImage);
                     includeImages = true;
                 }
 
-                //Manufacturer Part Number
-                if (product.manufacturerSKU != null) {
-                    _xmlStreamWriter.writeStartElement('ManufacturerPartNumbers');
+                // Manufacturer Part Number
+                if (product.manufacturerSKU !== null) {
+                    xmlStreamWriter.writeStartElement('ManufacturerPartNumbers');
                     writeElement('ManufacturerPartNumber', product.manufacturerSKU);
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
                 }
 
-                //European Article Number
+                // European Article Number
                 if (product.EAN) {
-                    _xmlStreamWriter.writeStartElement('EANs');
+                    xmlStreamWriter.writeStartElement('EANs');
                     writeElement('EAN', product.EAN);
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
                 } else if (product.master) {
-                    let showEans = false;
-                    for (let i = 0; i < product.variants.length; i++) {
-                        if (product.variants[i].EAN) {
+                    var showEans = false;
+                    for (var k = 0; k < product.variants.length; k++) {
+                        if (product.variants[k].EAN) {
                             showEans = true;
                             break;
                         }
                     }
 
                     if (showEans) {
-                        _xmlStreamWriter.writeStartElement('EANs');
-                        for (let i = 0; i < product.variants.length; i++) {
-                            if (product.variants[i].EAN) {
-                                writeElement('EAN', product.variants[i].EAN);
+                        xmlStreamWriter.writeStartElement('EANs');
+                        for (var index3 = 0; index3 < product.variants.length; index3++) {
+                            if (product.variants[index3].EAN) {
+                                writeElement('EAN', product.variants[index3].EAN);
                             }
                         }
-                        _xmlStreamWriter.writeEndElement();
+                        xmlStreamWriter.writeEndElement();
                     }
                 }
 
-                //Universal Product Code
+                // Universal Product Code
                 if (product.UPC) {
-                    _xmlStreamWriter.writeStartElement('UPCs');
+                    xmlStreamWriter.writeStartElement('UPCs');
                     writeElement('UPC', product.UPC);
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
                 } else if (product.master) {
-                    let showUpcs = false;
-                    for (let i = 0; i < product.variants.length; i++) {
-                        if (product.variants[i].UPC) {
+                    var showUpcs = false;
+                    for (var j = 0; j < product.variants.length; j++) {
+                        if (product.variants[j].UPC) {
                             showUpcs = true;
                             break;
                         }
                     }
 
                     if (showUpcs) {
-                        _xmlStreamWriter.writeStartElement('UPCs');
-                        for (let i = 0; i < product.variants.length; i++) {
-                            if (product.variants[i].UPC) {
-                                writeElement('UPC', product.variants[i].UPC);
+                        xmlStreamWriter.writeStartElement('UPCs');
+                        for (var a = 0; a < product.variants.length; a++) {
+                            if (product.variants[a].UPC) {
+                                writeElement('UPC', product.variants[a].UPC);
                             }
                         }
-                        _xmlStreamWriter.writeEndElement();
+                        xmlStreamWriter.writeEndElement();
                     }
                 }
 
-                //add product family attributes here for variants and masters,
-                //only if Product Families are enabled in libConstants.js
-                if (BV_Constants.EnableProductFamilies
-					&& (product.master || product.variant)) {
-                    _xmlStreamWriter.writeStartElement('Attributes');
+                // add product family attributes here for variants and masters,
+                // only if Product Families are enabled in libConstants.js
+                if (bvConstants.EnableProductFamilies &&
+					(product.master || product.variant)) {
+                    xmlStreamWriter.writeStartElement('Attributes');
 
-                    //use the master ID plus '-family' as the family ID
-                    let familyId = product.master ? product.ID
+                    // use the master ID plus '-family' as the family ID
+                    var familyId = product.master ? product.ID
                         : product.letiationModel.master.ID;
-                    familyId = BVHelper.replaceIllegalCharacters(familyId
-						+ '-family');
+                    familyId = BVHelper.replaceIllegalCharacters(familyId +
+						'-family');
 
-                    //write family attribute
-                    _xmlStreamWriter.writeStartElement('Attribute');
-                    _xmlStreamWriter.writeAttribute('id', 'BV_FE_FAMILY');
+                    // write family attribute
+                    xmlStreamWriter.writeStartElement('Attribute');
+                    xmlStreamWriter.writeAttribute('id', 'BV_FE_FAMILY');
                     writeElement('Value', familyId);
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
 
-                    //write expand attribute
-                    _xmlStreamWriter.writeStartElement('Attribute');
-                    _xmlStreamWriter.writeAttribute('id', 'BV_FE_EXPAND');
+                    // write expand attribute
+                    xmlStreamWriter.writeStartElement('Attribute');
+                    xmlStreamWriter.writeAttribute('id', 'BV_FE_EXPAND');
                     writeElement('Value', 'BV_FE_FAMILY:' + familyId);
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
 
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
                 }
 
                 if (multiLocale) {
-                    let dwLocales = localeMap.keySet();
+                    dwLocales = localeMap.keySet();
 
-                    //Localized Names
-                    _xmlStreamWriter.writeStartElement('Names');
-                    for (let i = 0; i < dwLocales.length; i++) {
-                        let dwLocale = dwLocales[i];
-                        let bvLocale = localeMap.get(dwLocale);
+                    // Localized Names
+                    xmlStreamWriter.writeStartElement('Names');
+                    for (var count = 0; count < dwLocales.length; count++) {
+                        dwLocale = dwLocales[count];
+                        bvLocale = localeMap.get(dwLocale);
                         request.setLocale(dwLocale);
 
-                        let lpname = product.name ? product.name : '';
+                        var lpname = product.name ? product.name : '';
                         writeLocalizedElementCDATA('Name', bvLocale, lpname);
                     }
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
 
-                    //Localized Descriptions
-                    _xmlStreamWriter.writeStartElement('Descriptions');
-                    for (let i = 0; i < dwLocales.length; i++) {
-                        let dwLocale = dwLocales[i];
-                        let bvLocale = localeMap.get(dwLocale);
+                    // Localized Descriptions
+                    xmlStreamWriter.writeStartElement('Descriptions');
+                    for (var index4 = 0; index4 < dwLocales.length; index4++) {
+                        dwLocale = dwLocales[index4];
+                        bvLocale = localeMap.get(dwLocale);
                         request.setLocale(dwLocale);
 
-                        let lpname = product.name ? product.name : '';
+                        var prdname = product.name ? product.name : '';
                         writeLocalizedElementCDATA('Description', bvLocale,
                             product.shortDescription ? product.shortDescription
-                                : lpname);
+                                : prdname);
                     }
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
 
-                    //Localized PDP Urls
-                    _xmlStreamWriter.writeStartElement('ProductPageUrls');
-                    for (let i = 0; i < dwLocales.length; i++) {
-                        let dwLocale = dwLocales[i];
-                        let bvLocale = localeMap.get(dwLocale);
+                    // Localized PDP Urls
+                    xmlStreamWriter.writeStartElement('ProductPageUrls');
+                    for (var count1 = 0; count1 < dwLocales.length; count1++) {
+                        dwLocale = dwLocales[count1];
+                        bvLocale = localeMap.get(dwLocale);
                         request.setLocale(dwLocale);
 
                         writeLocalizedElement('ProductPageUrl', bvLocale, URLUtils
                             .https('Product-Show', 'pid', product.ID));
                     }
-                    _xmlStreamWriter.writeEndElement();
+                    xmlStreamWriter.writeEndElement();
 
-                    //Localized Image Urls
-                    //only attempt this if the default image url was found above.
+                    // Localized Image Urls
+                    // only attempt this if the default image url was found above.
                     if (includeImages) {
-                        _xmlStreamWriter.writeStartElement('ImageUrls');
-                        for (let i = 0; i < dwLocales.length; i++) {
-                            let dwLocale = dwLocales[i];
-                            let bvLocale = localeMap.get(dwLocale);
+                        xmlStreamWriter.writeStartElement('ImageUrls');
+                        for (var count2 = 0; count2 < dwLocales.length; count2++) {
+                            dwLocale = dwLocales[count2];
+                            bvLocale = localeMap.get(dwLocale);
                             request.setLocale(dwLocale);
 
-                            let _prodImage = BVHelper.getImageURL(product,
-                                BV_Constants.PRODUCT);
-                            if (_prodImage) {
-                                writeLocalizedElement('ImageUrl', bvLocale,_prodImage);
+                            var prdImage = BVHelper.getImageURL(product,
+                                bvConstants.PRODUCT);
+                            if (prdImage) {
+                                writeLocalizedElement('ImageUrl', bvLocale, prdImage);
                             }
                         }
-                        _xmlStreamWriter.writeEndElement();
+                        xmlStreamWriter.writeEndElement();
                     }
                 }
 
                 request.setLocale(defaultLocale);
 
-                _xmlStreamWriter.writeEndElement();
+                xmlStreamWriter.writeEndElement();
             }
-        }break;
+            break;
+
+        default : break;
     }
 }
 
 /**
  * Represents a transition function.
- * 
+ *
  * @param {string} order - order object.
  * @param {string} localeMap - set product locale.
  */
 function writePurchaseFeedItem(order, localeMap) {
-    let multiLocale = LocaleHelper.isMultiLocale(localeMap);
-    let bvLocale = null;
+    var multiLocale = LocaleHelper.isMultiLocale(localeMap);
+    var bvLocale = null;
 
     if (multiLocale) {
         bvLocale = localeMap.get(defaultLocale);
-        let orderLocale = order.getCustomerLocaleID();
+        var orderLocale = order.getCustomerLocaleID();
 
-        //if the order is not the default locale, and we have a mapped bv locale for it,
-        //then set the locale so we pass the correct product data
+        // if the order is not the default locale, and we have a mapped bv locale for it,
+        // then set the locale so we pass the correct product data
         if (!orderLocale.equals(defaultLocale) && bvLocale) {
             request.setLocale(orderLocale);
             Logger.debug(
@@ -408,13 +461,13 @@ function writePurchaseFeedItem(order, localeMap) {
         }
     }
 
-    let emailAddress = order.getCustomerEmail();
-    let userName = order.getCustomerName();
-    let userID = order.getCustomerNo();
-    let txnDate = PurchaseHelper.getTransactionDate(order);
-    let lineItems = order.getAllProductLineItems();
+    var emailAddress = order.getCustomerEmail();
+    var userName = order.getCustomerName();
+    var userID = order.getCustomerNo();
+    var txnDate = PurchaseHelper.getTransactionDate(order);
+    var lineItems = order.getAllProductLineItems();
 
-    _xmlStreamWriter.writeStartElement('Interaction');
+    xmlStreamWriter.writeStartElement('Interaction');
 
     writeElement('EmailAddress', emailAddress);
     if (bvLocale !== null) {
@@ -430,37 +483,35 @@ function writePurchaseFeedItem(order, localeMap) {
         writeElement('TransactionDate', txnDate.toISOString());
     }
 
-    _xmlStreamWriter.writeStartElement('Products');
-    for (let i = 0; i < lineItems.length; i++) {
-        let lineItem = lineItems[i];
-        let prod = lineItem.getProduct();
-        if (!prod) {
+    xmlStreamWriter.writeStartElement('Products');
+    for (var i = 0; i < lineItems.length; i++) {
+        var lineItem = lineItems[i];
+        var prod = lineItem.getProduct();
+        if (!empty(prod)) {
             // Must be a bonus item or something... We wouldn't have included it in the product feed, so no need in soliciting reviews for it
-            continue;
-        }
+            var externalID = BVHelper
+                .replaceIllegalCharacters((prod.variant && !bvConstants.UsevariantID) ? prod.letiationModel.master.ID
+                    : prod.ID);
+            var name = prod.name;
+            var price = lineItem.getPriceValue();
+            var prodImage = BVHelper.getImageURL(prod, bvConstants.PURCHASE);
 
-        let externalID = BVHelper
-            .replaceIllegalCharacters((prod.variant && !BV_Constants.UsevariantID) ? prod.letiationModel.master.ID
-                : prod.ID);
-        let name = prod.name;
-        let price = lineItem.getPriceValue();
-        let prodImage = BVHelper.getImageURL(prod, BV_Constants.PURCHASE);
-
-        _xmlStreamWriter.writeStartElement('Product');
-        writeElement('ExternalId', externalID);
-        if (name) {
-            writeElement('Name', name);
+            xmlStreamWriter.writeStartElement('Product');
+            writeElement('ExternalId', externalID);
+            if (name) {
+                writeElement('Name', name);
+            }
+            if (price) {
+                writeElement('Price', price);
+            }
+            if (prodImage) {
+                writeElement('ImageUrl', prodImage);
+            }
+            xmlStreamWriter.writeEndElement(); // </Product>;
         }
-        if (price) {
-            writeElement('Price', price);
-        }
-        if (prodImage) {
-            writeElement('ImageUrl', prodImage);
-        }
-        _xmlStreamWriter.writeEndElement(); // </Product>    
     }
-    _xmlStreamWriter.writeEndElement(); // </Products>
-    _xmlStreamWriter.writeEndElement(); // </Interaction>
+    xmlStreamWriter.writeEndElement(); // </Products>
+    xmlStreamWriter.writeEndElement(); // </Interaction>
 
     if (request.getLocale() !== defaultLocale) {
         request.setLocale(defaultLocale);
@@ -469,68 +520,14 @@ function writePurchaseFeedItem(order, localeMap) {
 }
 
 
-/**
- * Represents a transition function.
- * 
- * @param {string} elementName - product element.
- * @param {string} chars - characters.
- */
-function writeElement(elementName, chars) {
-    _xmlStreamWriter.writeStartElement(elementName);
-    _xmlStreamWriter.writeCharacters(chars);
-    _xmlStreamWriter.writeEndElement();
-}
-
-
-/**
- * Represents a writing localized  function.
- * 
- * @param {string} elementName - product element.
- * @param {string} locale - set product locale.
- * @param {string} chars - characters.
- */
-function writeLocalizedElement(elementName, locale, chars) {
-    _xmlStreamWriter.writeStartElement(elementName);
-    _xmlStreamWriter.writeAttribute('locale', locale);
-    _xmlStreamWriter.writeCharacters(chars);
-    _xmlStreamWriter.writeEndElement();
-}
-
-
-/**
- * Represents a writeElementCDATA function.
- * 
- * @param {string} elementName - product element.
- * @param {string} chars - characters.
- */
-function writeElementCDATA(elementName, chars) {
-    _xmlStreamWriter.writeStartElement(elementName);
-    _xmlStreamWriter.writeCData(chars != null ? chars : '');
-    _xmlStreamWriter.writeEndElement();
-}
-
-/**
- * Represents a writeLocalizedElementCDATA function.
- * 
- * @param {string} elementName - product element.
- * @param {string} locale - set product locale.
- * @param {string} chars - characters.
- */
-function writeLocalizedElementCDATA(elementName, locale, chars) {
-    _xmlStreamWriter.writeStartElement(elementName);
-    _xmlStreamWriter.writeAttribute('locale', locale);
-    _xmlStreamWriter.writeCData(chars != null ? chars : '');
-    _xmlStreamWriter.writeEndElement();
-}
-
 module.exports = {
-    getStreamWriter : getStreamWriter,
-    startProductFeed : startProductFeed,
-    finishProductFeed : finishProductFeed,
-    startPurchaseFeed : startPurchaseFeed,
-    finishPurchaseFeed : finishPurchaseFeed,
-    transition : transition,
-    writeProductFeedItem : writeProductFeedItem,
-    writePurchaseFeedItem : writePurchaseFeedItem,
-    closeWriter : closeWriter
+    getStreamWriter: getStreamWriter,
+    startProductFeed: startProductFeed,
+    finishProductFeed: finishProductFeed,
+    startPurchaseFeed: startPurchaseFeed,
+    finishPurchaseFeed: finishPurchaseFeed,
+    transition: transition,
+    writeProductFeedItem: writeProductFeedItem,
+    writePurchaseFeedItem: writePurchaseFeedItem,
+    closeWriter: closeWriter
 };

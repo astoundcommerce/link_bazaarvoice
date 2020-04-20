@@ -1,5 +1,5 @@
 <!--- TEMPLATENAME: inlineratings.isml --->
-<isif condition="${Product != null}">
+<isif condition="${Product !==null}">
 	<isscript>
 	var masterProduct = (Product.variant) ? Product.variationModel.master : Product;
 	var bvAvgRating = masterProduct.custom.bvAverageRating;

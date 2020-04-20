@@ -1,29 +1,31 @@
 'use strict';
 
 // API Objects
-const Calendar = require('dw/util/Calendar');
-const StringUtils = require('dw/util/StringUtils');
-const ProductMgr = require('dw/catalog/ProductMgr');
-const Site = require('dw/system/Site');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvProductExport.js');
-
+var Calendar = require('dw/util/Calendar');
+var StringUtils = require('dw/util/StringUtils');
+var ProductMgr = require('dw/catalog/ProductMgr');
+var Site = require('dw/system/Site');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvProductExport.js');
 
 // BV Helper Scripts
-const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-const CategoryHelper = require('./util/categoryHelper');
-const BrandHelper = require('./util/brandHelper');
-const LocaleHelper = require('./util/localeHelper');
-const XMLHelper = require('./util/xmlHelper');
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var CategoryHelper = require('./util/categoryHelper');
+var BrandHelper = require('./util/brandHelper');
+var LocaleHelper = require('./util/localeHelper');
+var XMLHelper = require('./util/xmlHelper');
 
-var localeMap, dwLocales;
-var brandIter, catIter, prodIter;
-var brandCount, catCount, prodCount;
+var localeMap; var
+    dwLocales;
+var brandIter; var catIter; var
+    prodIter;
+var brandCount; var catCount; var
+    prodCount;
 var xsw;
 
-//keep track of 
-var currentType, openType;
-
+// keep track of
+var currentType; var
+    openType;
 
 /**
  * Represents the before step before running the job.
@@ -32,7 +34,7 @@ var currentType, openType;
 function beforeStep(parameters) {
     Logger.debug('***** Before Step *****');
 
-    //var enabled = Site.current.getCustomPreferenceValue('bvEnableProductFeed_C2013');
+    // var enabled = Site.current.getCustomPreferenceValue('bvEnableProductFeed_C2013');
     var enabled = parameters.Enabled;
     if (!enabled) {
         Logger.error('Product Feed Enable Parameter is not true!');
@@ -44,8 +46,8 @@ function beforeStep(parameters) {
         throw new Error('Cannot retrieve customer name!');
     }
 
-    //prepare map of locales and determine if:
-    // - this will be a multilocale feed, or 
+    // prepare map of locales and determine if:
+    // - this will be a multilocale feed, or
     // - if we need to explicitly set a single locale because its not the default locale, or
     // - rely on default DW and BV locales, by building a nonlocalized feed.
     localeMap = LocaleHelper.getLocaleMap('product');
@@ -69,8 +71,8 @@ function beforeStep(parameters) {
     var cal = new Calendar();
     var stamp = StringUtils.formatCalendar(cal, 'yyyyMMddhhmmss');
     var sid = Site.current.ID;
-    var path = BV_Constants.ProductFeedLocalPath;
-    var prefix = BV_Constants.ProductFeedPrefix;
+    var path = bvConstants.ProductFeedLocalPath;
+    var prefix = bvConstants.ProductFeedPrefix;
     var filename = prefix + '_' + sid + '_' + stamp + '.xml';
 
     xsw = XMLHelper.getStreamWriter(filename, path);
@@ -80,7 +82,6 @@ function beforeStep(parameters) {
 
     XMLHelper.startProductFeed();
 }
-
 
 /**
  * Log total count of brand and category for products.
@@ -101,23 +102,24 @@ function getTotalCount() {
  */
 function read() {
     Logger.debug('***** Read *****');
-
+    var obj = {};
     if (brandIter.hasNext()) {
-        return {
+        obj = {
             type: 'Brands',
             obj: brandIter.next()
         };
     } else if (catIter.hasNext()) {
-        return {
+        obj = {
             type: 'Categories',
             obj: catIter.next()
         };
     } else if (prodIter.hasNext()) {
-        return {
+        obj = {
             type: 'Products',
             obj: prodIter.next()
         };
     }
+    return obj;
 }
 
 /**
@@ -133,7 +135,7 @@ function process(item) {
 /**
  * @param {string} lines - xml nodes.
  * write XML node for current product, brand, cat
- * 
+ *
  */
 function write(lines) {
     Logger.debug('***** Write *****');
@@ -158,7 +160,7 @@ function write(lines) {
 
 /**
  * write XML finish node and cleanup the finish node
- * 
+ *
  */
 function afterStep() {
     Logger.debug('***** After Step *****');

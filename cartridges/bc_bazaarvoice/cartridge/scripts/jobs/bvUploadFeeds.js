@@ -1,14 +1,13 @@
+/* eslint-disable consistent-return */
 'use strict';
 
-const File = require('dw/io/File');
-const Site = require('dw/system/Site');
-const Status = require('dw/system/Status');
-const ServiceRegistry = require('dw/svc/LocalServiceRegistry');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvUploadFeed.js');
+var File = require('dw/io/File');
+var Site = require('dw/system/Site');
+var Status = require('dw/system/Status');
+var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvUploadFeed.js');
 
-const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-
-
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 /**
  * Returns a status of okay
  * @param {Object} parameters - object of site parameters
@@ -23,20 +22,21 @@ function execute(parameters) {
 
     try {
         var type = parameters.FeedType;
-        var pattern, remotePath, localPath;
+        var pattern; var remotePath; var
+            localPath;
 
         switch (type) {
             case 'Purchase':
-                pattern = BV_Constants.PurchaseFeedPrefix + '_' + Site.current.ID;
-                remotePath = BV_Constants.PurchaseFeedPath;
-                localPath = BV_Constants.PurchaseFeedLocalPath;
+                pattern = bvConstants.PurchaseFeedPrefix + '_' + Site.current.ID;
+                remotePath = bvConstants.PurchaseFeedPath;
+                localPath = bvConstants.PurchaseFeedLocalPath;
                 break;
 
             case 'Product':
             default:
-                pattern = BV_Constants.ProductFeedPrefix + '_' + Site.current.ID;
-                remotePath = BV_Constants.ProductFeedPath;
-                localPath = BV_Constants.ProductFeedLocalPath;
+                pattern = bvConstants.ProductFeedPrefix + '_' + Site.current.ID;
+                remotePath = bvConstants.ProductFeedPath;
+                localPath = bvConstants.ProductFeedLocalPath;
                 break;
         }
 
@@ -48,15 +48,15 @@ function execute(parameters) {
         });
 
         var service = ServiceRegistry.createService('bazaarvoice.sftp.export.' +
-            Site.current.ID, {
-                createRequest: function () {
-                    return service;
-                },
+        Site.current.ID, {
+            createRequest: function () {
+                return service;
+            },
 
-                parseResponse: function (svc, res) {
-                    return res;
-                }
-            });
+            parseResponse: function (svc, res) {
+                return res;
+            }
+        });
 
         var result = service.setOperation('cd', remotePath).call();
         if (!result.isOk()) {
@@ -72,8 +72,8 @@ function execute(parameters) {
         }
 
         var allRemoteFiles = result.getObject();
-        for (let i = 0; i < allRemoteFiles.length; i++) {
-            var f = allRemoteFiles[i];
+        for (var count = 0; count < allRemoteFiles.length; count++) {
+            var f = allRemoteFiles[count];
             if (fileregex.test(f.name) === true) {
                 result = service.setOperation('del', remotePath + '/' + f.name)
                     .call();
@@ -84,19 +84,17 @@ function execute(parameters) {
             }
         }
 
-        for (let i = 0; i < localFiles.length; i++) {
-            let file = localFiles[i];
+        for (var index = 0; index < localFiles.length; index++) {
+            var file = localFiles[index];
 
             result = service.setOperation('putBinary',
                 remotePath + '/' + file.name, file).call();
             if (!result.isOk()) {
                 Logger.error('Problem uploading file: ' + result.msg);
                 return new Status(Status.ERROR);
-            } else {
-                file.remove();
             }
+            file.remove();
         }
-
     } catch (ex) {
         Logger.error('Exception caught during product feed upload: {0}',
             ex.message);

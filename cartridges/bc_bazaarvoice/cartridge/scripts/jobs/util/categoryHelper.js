@@ -1,9 +1,27 @@
 'use strict';
 
-const ArrayList = require('dw/util/ArrayList');
-const CatalogMgr = require('dw/catalog/CatalogMgr');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'CategoryHelper.js');
+var ArrayList = require('dw/util/ArrayList');
+var CatalogMgr = require('dw/catalog/CatalogMgr');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'CategoryHelper.js');
 var categoryList = new ArrayList();
+
+/**
+* Returns adds category object to the object list
+* @param {Object} cat - cat of an object
+*/
+function getCategory(cat) {
+    if (cat) {
+        categoryList.add1(cat);
+
+        var subCats = cat.getSubCategories();
+        if (subCats) {
+            for (var i = 0; i < subCats.length; i++) {
+                var subCat = subCats[i];
+                getCategory(subCat);
+            }
+        }
+    }
+}
 
 /**
  * Returns list of system categories
@@ -11,31 +29,13 @@ var categoryList = new ArrayList();
  */
 function getCategoryList() {
     Logger.debug('*** getCategoryList() ***');
-	
+
     var siteCatalog = CatalogMgr.getSiteCatalog();
     var root = siteCatalog.getRoot();
     getCategory(root);
-	
+
     Logger.debug(categoryList.length + ' categories found.');
     return categoryList;
-}
-
-/**
-* Returns adds category object to the object list
-* @param {Object} cat - cat of an object
-*/
-function getCategory(cat) {
-    if(cat) {
-        categoryList.add1(cat);
-		
-        var subCats = cat.getSubCategories();
-        if(subCats) {
-            for(var i = 0; i < subCats.length; i++) {
-                var subCat = subCats[i];
-                getCategory(subCat);
-            }
-        }
-    }
 }
 
 module.exports = {

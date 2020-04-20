@@ -1,7 +1,7 @@
 <!--- TEMPLATENAME: tracktransaction.isml --->
-<isif condition="${pdict.Order != null}">
+<isif condition="${pdict.Order !== null}">
 	<isscript>
-	var BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+	var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 	var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 	var pixelEnabled = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableBVPixel_C2013");
@@ -22,20 +22,20 @@
 				"state"		:	"${pdict.Order.billingAddress.stateCode}",
 				"country"	:	"${pdict.Order.billingAddress.countryCode}",
 				"currency"	:	"${pdict.Order.currencyCode}",
-				"partnerSource":"${BV_Constants.XML_GENERATOR}",
-				"source":"${BV_Constants.SOURCE}",
-				"sourceVersion":"${BV_Constants.SOURCE_VERSION}",
+				"partnerSource":"${bvConstants.XML_GENERATOR}",
+				"source":"${bvConstants.SOURCE}",
+				"sourceVersion":"${bvConstants.SOURCE_VERSION}",
 				"items"		:	[
 				<isscript>var plicounter = 0;</isscript>
 				<isloop items="${pdict.Order.allProductLineItems}" var="item" status="itemstat">
-					<isif condition="${item.product != null}">
+					<isif condition="${item.product !== null}">
 						<isif condition="${plicounter > 0}">,</isif>
 						{
-							"productId"	:	"${BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
+							"productId"	:	"${BVHelper.replaceIllegalCharacters((item.product.variant && !bvConstants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID)}",
 							"name"		:	"${item.product.name}",
 							"price"		:	"${item.basePrice.value}",
-							<isif condition="${!empty(BVHelper.getImageURL(item.product, BV_Constants.PURCHASE))}">
-							"imageURL"	:	"${BVHelper.getImageURL(item.product, BV_Constants.PURCHASE)}",
+							<isif condition="${!empty(BVHelper.getImageURL(item.product, bvConstants.PURCHASE))}">
+							"imageURL"	:	"${BVHelper.getImageURL(item.product, bvConstants.PURCHASE)}",
 							</isif>
 							"quantity"	:	"${item.quantity.value.toFixed()}"
 						}
@@ -48,7 +48,7 @@
 				</isif>
 				"email"			:	"${pdict.Order.customerEmail}",
 				"nickname"		:	"${pdict.Order.customerName}",
-				"partnerSource"	:	"${BV_Constants.XML_GENERATOR}",
+				"partnerSource"	:	"${bvConstants.XML_GENERATOR}",
 				"locale"		:	"${bvdata.locale}",
 				"deploymentZone" :	"${bvdata.zone.toLowerCase().replace(' ', '_', 'g')}"
 			});

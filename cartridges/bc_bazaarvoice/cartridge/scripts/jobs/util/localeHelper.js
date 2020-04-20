@@ -1,9 +1,9 @@
 'use strict';
 
-const Site = require('dw/system/Site');
-const HashMap = require('dw/util/HashMap');
-const Logger = require('dw/system/Logger').getLogger('Bazaarvoice','LocaleHelper.js');
-const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var Site = require('dw/system/Site');
+var HashMap = require('dw/util/HashMap');
+var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'LocaleHelper.js');
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 
 /**
  * Returns localeMap hashmap
@@ -13,54 +13,54 @@ const BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstant
 function getLocaleMap(type) {
     var localeMap = new HashMap();
     var context = type || '';
-
+    var arr;
     var allowedLocales = Site.getCurrent().allowedLocales;
     var defaultLocale = Site.getCurrent().getDefaultLocale();
     var prefMappings = Site.getCurrent().getCustomPreferenceValue(
         'bvLocaleMapping_C2013');
-
+    var item;
+    var dwlocale;
+    var bvlocale;
     if (prefMappings.length > 1) {
         Logger.debug('More than 1 locale mapped in site preference....');
-
         var dupArray = [];
-        for (let i = 0; i < prefMappings.length; i++) {
-            let item = prefMappings[i];
+        for (var index = 0; index < prefMappings.length; index++) {
+            item = prefMappings[index];
             item = item.replace(/^[\s]+|["]|[\s]+$/g, '');
 
             // if this is a BV locale only item, then apply it to the default DW
             // locale, but only once
-            if (BV_Constants.regFull.test(item)
-					&& dupArray.indexOf(defaultLocale) === -1) {
+            if (bvConstants.regFull.test(item) &&
+					dupArray.indexOf(defaultLocale) === -1) {
                 localeMap.put(defaultLocale, item);
                 dupArray.push(defaultLocale);
-                Logger.debug('Locale Mapping found: ' + defaultLocale
-						+ '(SFCC) ==> ' + item + '(BV)');
-
-            } else if (BV_Constants.regPair.test(item)) {
-                let a = item.split(':');
-                let dwlocale = a[0].replace(/^[\s]+|[\s]+$/g, '');
-                let bvlocale = a[1].replace(/^[\s]+|[\s]+$/g, '');
+                Logger.debug('Locale Mapping found: ' + defaultLocale +
+						'(SFCC) ==> ' + item + '(BV)');
+            } else if (bvConstants.regPair.test(item)) {
+                var a = item.split(':');
+                dwlocale = a[0].replace(/^[\s]+|[\s]+$/g, '');
+                bvlocale = a[1].replace(/^[\s]+|[\s]+$/g, '');
 
                 if (allowedLocales.indexOf(dwlocale) === -1) {
-                    Logger.debug('Skipping invalid mapping: ' + item
-							+ '.  SFCC locale is not allowed for this Site.');
+                    Logger.debug('Skipping invalid mapping: ' + item +
+							'.  SFCC locale is not allowed for this Site.');
                 } else if (dupArray.indexOf(dwlocale) !== -1) {
                     Logger
-                        .debug('Skipping invalid mapping: '
-									+ item
-									+ '.  SFCC locale is already mapped for this Site.');
-                } else if (localeMap.values().contains(bvlocale)
-						&& context === 'product') {
+                        .debug('Skipping invalid mapping: ' +
+									item +
+									'.  SFCC locale is already mapped for this Site.');
+                } else if (localeMap.values().contains(bvlocale) &&
+						context === 'product') {
                     // for the product feed, we have to remove duplicate BV
                     // locales, but for purchase feed, we need to be able to map
                     // any dw locale to its BV locale
-                    Logger.debug('Skipping invalid mapping: ' + item
-							+ '.  BV locale is already mapped for this Site.');
+                    Logger.debug('Skipping invalid mapping: ' + item +
+							'.  BV locale is already mapped for this Site.');
                 } else {
                     localeMap.put(dwlocale, bvlocale);
                     dupArray.push(dwlocale);
-                    Logger.debug('Locale Mapping found: ' + dwlocale
-							+ '(SFCC) ==> ' + bvlocale + '(BV)');
+                    Logger.debug('Locale Mapping found: ' + dwlocale +
+							'(SFCC) ==> ' + bvlocale + '(BV)');
                 }
             }
         }
@@ -69,44 +69,43 @@ function getLocaleMap(type) {
             if (localeMap.keySet()[0] === defaultLocale) {
                 localeMap.clear();
                 Logger
-                    .debug('Only 1 valid mapping found and its for the default SFCC locale: '
-								+ defaultLocale
-								+ '.  Assuming defaults for both systems.');
+                    .debug('Only 1 valid mapping found and its for the default SFCC locale: ' +
+								defaultLocale +
+								'.  Assuming defaults for both systems.');
             } else {
                 Logger
-                    .debug('Only 1 valid mapping defined, and it is not the default locale for this site. Assuming the default locale for BV and setting DW request locale to: '
-								+ localeMap.keySet()[0]);
+                    .debug('Only 1 valid mapping defined, and it is not the default locale for this site. Assuming the default locale for BV and setting DW request locale to: ' +
+								localeMap.keySet()[0]);
             }
         }
-
     } else if (prefMappings.length === 1) {
         Logger.debug('Exactly 1 locale mapped in site preference...');
 
-        let item = prefMappings[0];
+        item = prefMappings[0];
         item = item.replace(/^[\s]+|["]|[\s]+$/g, '');
 
-        if (BV_Constants.regFull.test(item)) {
+        if (bvConstants.regFull.test(item)) {
             Logger
                 .debug('Only 1 mapping for a BV locale only, so assuming defaults for both systems.');
-        } else if (BV_Constants.regPair.test(item)) {
-            let a = item.split(':');
-            a[0] = a[0].replace(/^[\s]+|[\s]+$/g, '');
-            a[1] = a[1].replace(/^[\s]+|[\s]+$/g, '');
+        } else if (bvConstants.regPair.test(item)) {
+            arr = item.split(':');
+            arr[0] = arr[0].replace(/^[\s]+|[\s]+$/g, '');
+            arr[1] = arr[1].replace(/^[\s]+|[\s]+$/g, '');
 
             // there is only one mapping, and it does not match the (radio
             // button) default DW locale
             // In this case, the job needs to explicitly set the locale to the
             // mapped DW locale
-            if (allowedLocales.indexOf(a[0]) !== -1
-					&& !(a[0].equals(defaultLocale))) {
-                let dwlocale = a[0];
-                let bvlocale = a[1];
+            if (allowedLocales.indexOf(arr[0]) !== -1 &&
+					!(arr[0].equals(defaultLocale))) {
+                dwlocale = arr[0];
+                bvlocale = arr[1];
                 if (bvlocale.indexOf('/') !== -1) {
                     bvlocale = bvlocale.split('/')[1];
                 }
                 Logger
-                    .debug('Only 1 mapping defined, and it is not the default locale for this site. Assuming the default locale for BV and setting DW request locale to: '
-								+ dwlocale);
+                    .debug('Only 1 mapping defined, and it is not the default locale for this site. Assuming the default locale for BV and setting DW request locale to: ' +
+								dwlocale);
                 localeMap.put(dwlocale, bvlocale);
             }
         } else {
@@ -131,7 +130,7 @@ function isMultiLocale(localeMap) {
 }
 
 /**
- * Returns bv locale map 
+ * Returns bv locale map
  * @param {array} localeMap returns which type of object the locale is associated with
  * @returns {array} return matching locale from the bv sitepref
  */
@@ -139,15 +138,15 @@ function getBVLocaleMap(localeMap) {
     var bvMap = new HashMap();
     var dwLocales = localeMap.keySet();
 
-    for (let i = 0; i < dwLocales.length; i++) {
-        let dwLocale = dwLocales[i];
-        let bvLocale = localeMap.get(dwLocale);
+    for (var i = 0; i < dwLocales.length; i++) {
+        var dwLocale = dwLocales[i];
+        var bvLocale = localeMap.get(dwLocale);
         if (bvMap.containsKey(bvLocale)) {
-            let currDWLocales = bvMap.get(bvLocale).toArray();
+            var currDWLocales = bvMap.get(bvLocale).toArray();
             currDWLocales.push(dwLocale);
             bvMap.put(bvLocale, currDWLocales);
         } else {
-            let arr = [];
+            var arr = [];
             arr.push(dwLocale);
             bvMap.put(bvLocale, arr);
         }
@@ -157,7 +156,7 @@ function getBVLocaleMap(localeMap) {
 }
 
 module.exports = {
-    getLocaleMap : getLocaleMap,
-    isMultiLocale : isMultiLocale,
-    getBVLocaleMap : getBVLocaleMap
+    getLocaleMap: getLocaleMap,
+    isMultiLocale: isMultiLocale,
+    getBVLocaleMap: getBVLocaleMap
 };

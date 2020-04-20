@@ -1,30 +1,32 @@
 {
-    "env": {
-        "browser": true,
-        "es6": true,
-        "node": true
-    },
-    "extends": "eslint:recommended",
-    "globals": {
-        "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly",
-        "request": true,
-        "response": true,
-        "session": true
-    },
-    "parserOptions": {
-        "ecmaVersion": 2018,
-        "sourceType": "module"
-    },
-     "rules": {
+    "root": true,
+    "extends": "airbnb-base/legacy",
+    "rules": {
         "import/no-unresolved": "off",
         "indent": ["error", 4, { "SwitchCase": 1, "VariableDeclarator": 1 }],
         "func-names": "off",
         "require-jsdoc": "error",
-        "valid-jsdoc": ["error", { "preferType": { "Boolean": "boolean", "Number": "number", "object": "Object", "String": "string" }, "requireReturn": false}],
+        "valid-jsdoc": [
+            "error",
+            {
+                "preferType": {
+                    "Boolean": "boolean",
+                    "Number": "number",
+                    "object": "Object",
+                    "String": "string"
+                },
+                "requireReturn": false
+            }
+        ],
         "vars-on-top": "off",
         "global-require": "off",
-        "no-shadow": ["error", { "allow": ["err", "callback"]}],
+        "no-shadow": ["error", { "allow": ["err", "callback"] }],
         "max-len": "off"
+    },
+    "globals": {
+        "request": true,
+        "session": true,
+        "dw": true,
+        "empty": true
     }
 }

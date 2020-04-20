@@ -7,7 +7,6 @@
   },
   "dependencies": {
     "chai": "^4.2.0",
-    "eslint-plugin-sitegenesis": "^1.0.0",
     "lint": "^0.7.0",
     "mocha": "^7.1.1",
     "npm": "^6.14.4",
@@ -17,8 +16,9 @@
   },
   "devDependencies": {
     "eslint": "^3.19.0",
-    "eslint-config-airbnb-base": "^5.0.1",
-    "eslint-plugin-import": "^1.12.0",
+    "eslint-config-airbnb-base": "^5.0.3",
+    "eslint-plugin-import": "^1.16.0",
+    "eslint-plugin-sitegenesis": "~1.0.0",
     "sgmf-scripts": "^2.4.0",
     "stylelint": "^7.1.0",
     "stylelint-config-standard": "^12.0.0",
@@ -30,6 +30,8 @@
     "lint:js:fix": "npx eslint cartridges/ --config .eslintrc.json --fix",
     "lint": "npm run lint:js",
     "lint:css": "sgmf-scripts --lint css",
-    "lint:js": "sgmf-scripts --lint js"
+    "lint:js": "sgmf-scripts --lint js",
+	"format": "prettier-eslint —eslint-config-path ./.eslintrc.json --write './cartridges/**’",
+    "lint": "eslint . —ext .js"
   }
 }

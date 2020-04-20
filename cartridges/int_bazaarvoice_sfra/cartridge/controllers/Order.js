@@ -5,9 +5,8 @@ server.extend(module.superModule);
 
 var OrderMgr = require('dw/order/OrderMgr');
 var Site = require('dw/system/Site');
-var BV_Constants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-
 
 server.append('Confirm', function (req, res, next) {
     var pixelEnabled = Site.getCurrent().getCustomPreferenceValue('bvEnableBVPixel_C2013');
@@ -30,12 +29,12 @@ server.append('Confirm', function (req, res, next) {
             currency: order.currencyCode,
             email: order.customerEmail,
             nickname: order.customerName,
-            partnerSource: BV_Constants.XML_GENERATOR,
+            partnerSource: bvConstants.XML_GENERATOR,
             locale: bvdata.locale,
             deploymentZone: bvdata.zone.toLowerCase().replace(' ', '_', 'g'),
             items: [],
-            source: BV_Constants.SOURCE,
-            sourceVersion: BV_Constants.SOURCE_VERSION
+            source: bvConstants.SOURCE,
+            sourceVersion: bvConstants.SOURCE_VERSION
         };
 
         if (order.customerNo) {
@@ -48,13 +47,13 @@ server.append('Confirm', function (req, res, next) {
 
             if (item.product) {
                 var itemObj = {
-                    productId: BVHelper.replaceIllegalCharacters((item.product.variant && !BV_Constants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID),
+                    productId: BVHelper.replaceIllegalCharacters((item.product.variant && !bvConstants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID),
                     name: item.product.name,
                     quantity: item.quantity.value.toFixed(),
                     price: item.price.value
                 };
 
-                var img = BVHelper.getImageURL(item.product, BV_Constants.PURCHASE);
+                var img = BVHelper.getImageURL(item.product, bvConstants.PURCHASE);
                 if (img) {
                     itemObj.imageURL = img;
                 }
@@ -69,6 +68,5 @@ server.append('Confirm', function (req, res, next) {
 
     next();
 });
-
 
 module.exports = server.exports();

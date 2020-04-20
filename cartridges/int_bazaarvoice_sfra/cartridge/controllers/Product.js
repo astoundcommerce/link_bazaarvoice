@@ -26,7 +26,7 @@ function appendBVData(req, res) {
         var pid = (apiProduct.variant && !bvConstants.UseVariantID) ? apiProduct.variationModel.master.ID : apiProduct.ID;
         pid = BVHelper.replaceIllegalCharacters(pid);
 
-        var seoData = BV_SEO.getBVSEO({ 'product_id': pid });
+        var seoData = BV_SEO.getBVSEO({ product_id: pid });
         var seoReviews = seoData.reviews();
         var seoQuestions = seoData.questions();
 
@@ -79,9 +79,9 @@ function appendBVQuickViewData(req, res) {
                 var bvAvgRating = masterProduct.custom.bvAverageRating;
                 var bvRatingRange = masterProduct.custom.bvRatingRange;
                 var bvReviewCount = masterProduct.custom.bvReviewCount;
-                var bvAvgRatingNum = new Number(bvAvgRating);
-                var bvRatingRangeNum = new Number(bvRatingRange);
-                var bvReviewCountNum = new Number(bvReviewCount);
+                var bvAvgRatingNum = Number(bvAvgRating);
+                var bvRatingRangeNum = Number(bvRatingRange);
+                var bvReviewCountNum = Number(bvReviewCount);
 
                 var starsFile = null;
                 if (isFinite(bvAvgRatingNum) && bvAvgRating && isFinite(bvRatingRangeNum) && bvRatingRange && isFinite(bvReviewCountNum) && bvReviewCount) {
@@ -125,7 +125,6 @@ server.append('Show', function (req, res, next) {
     next();
 });
 
-
 server.append('ShowInCategory', function (req, res, next) {
     appendBVData(req, res);
     next();
@@ -135,6 +134,5 @@ server.append('ShowQuickView', function (req, res, next) {
     appendBVQuickViewData(req, res);
     next();
 });
-
 
 module.exports = server.exports();
