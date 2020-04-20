@@ -182,16 +182,17 @@ function writeProductFeedItem(item, localeMap) {
     var dwLocale;
     var bvLocale;
     switch (item.type) {
-        case 'Brands':
+        case 'Brands': {
             var brand = item.obj;
             xmlStreamWriter.writeStartElement('Brand');
             writeElementCDATA('Name', brand.value);
             writeElementCDATA('ExternalId', BVHelper
                 .replaceIllegalCharacters(brand.value));
             xmlStreamWriter.writeEndElement();
-            break;
+            break; 
+        }
 
-        case 'Categories':
+        case 'Categories': {
             var category = item.obj;
             xmlStreamWriter.writeStartElement('Category');
             writeElement('ExternalId', BVHelper
@@ -241,8 +242,9 @@ function writeProductFeedItem(item, localeMap) {
 
             xmlStreamWriter.writeEndElement();
             break;
+        }
 
-        case 'Products':
+        case 'Products': {
             var product = item.obj;
             var enableProductFamilies = Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');
             if (product.online && product.searchable &&
@@ -432,8 +434,9 @@ function writeProductFeedItem(item, localeMap) {
                 xmlStreamWriter.writeEndElement();
             }
             break;
+        }
 
-        default : break;
+        default :
     }
 }
 
