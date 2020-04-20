@@ -189,7 +189,7 @@ function writeProductFeedItem(item, localeMap) {
             writeElementCDATA('ExternalId', BVHelper
                 .replaceIllegalCharacters(brand.value));
             xmlStreamWriter.writeEndElement();
-            break; 
+            break;
         }
 
         case 'Categories': {
