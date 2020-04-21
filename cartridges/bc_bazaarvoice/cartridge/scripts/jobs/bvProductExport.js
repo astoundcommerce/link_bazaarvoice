@@ -7,13 +7,14 @@ var ProductMgr = require('dw/catalog/ProductMgr');
 var Site = require('dw/system/Site');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvProductExport.js');
 
+
 // BV Helper Scripts
-var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-var CategoryHelper = require('./util/categoryHelper');
-var BrandHelper = require('./util/brandHelper');
-var LocaleHelper = require('./util/localeHelper');
-var XMLHelper = require('./util/xmlHelper');
+var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var bvHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var categoryHelper = require('./util/categoryHelper');
+var brandHelper = require('./util/brandHelper');
+var localeHelper = require('./util/localeHelper');
+var xmlHelper = require('./util/xmlHelper');
 
 var localeMap; var
     dwLocales;
@@ -26,10 +27,9 @@ var xsw;
 // keep track of
 var currentType; var
     openType;
-
 /**
- * Represents the before step before running the job.
- * @param {string} parameters - check to see if product feed is enabled.
+ *
+ * @param {*} parameters
  */
 function beforeStep(parameters) {
     Logger.debug('***** Before Step *****');
@@ -41,7 +41,7 @@ function beforeStep(parameters) {
         throw new Error('Product Feed Enable Parameter is not true!');
     }
 
-    if (!BVHelper.getCustomerName()) {
+    if (empty(bvHelper.getCustomerName())) {
         Logger.error('Cannot retrieve customer name!');
         throw new Error('Cannot retrieve customer name!');
     }
@@ -50,18 +50,18 @@ function beforeStep(parameters) {
     // - this will be a multilocale feed, or
     // - if we need to explicitly set a single locale because its not the default locale, or
     // - rely on default DW and BV locales, by building a nonlocalized feed.
-    localeMap = LocaleHelper.getLocaleMap('product');
+    localeMap = localeHelper.getLocaleMap('product');
     dwLocales = localeMap.keySet();
     if (dwLocales.length === 1) {
         Logger.debug('Setting job request locale to: ' + dwLocales[0]);
         request.setLocale(dwLocales[0]);
     }
 
-    var brands = BrandHelper.getBrandList();
+    var brands = brandHelper.getBrandList();
     brandIter = brands.iterator();
     brandCount = brands.length;
 
-    var categories = CategoryHelper.getCategoryList();
+    var categories = categoryHelper.getCategoryList();
     catIter = categories.iterator();
     catCount = categories.length;
 
@@ -75,17 +75,15 @@ function beforeStep(parameters) {
     var prefix = bvConstants.ProductFeedPrefix;
     var filename = prefix + '_' + sid + '_' + stamp + '.xml';
 
-    xsw = XMLHelper.getStreamWriter(filename, path);
+    xsw = xmlHelper.getStreamWriter(filename, path);
     if (!xsw) {
         throw new Error('Could not init the XMLStreamWriter.');
     }
 
-    XMLHelper.startProductFeed();
+    xmlHelper.startProductFeed();
 }
-
 /**
- * Log total count of brand and category for products.
- * @returns {number} Sum of brand and category and product
+ * function to get count of total products processed
  */
 function getTotalCount() {
     Logger.debug('***** Get Total Count *****');
@@ -95,81 +93,59 @@ function getTotalCount() {
     Logger.debug('Total Count: ' + total);
     return total;
 }
-
 /**
- * Interates through product, brand and categories.
- * @returns {Object} returns object of brand, cat, products
+ * Function to read
  */
+// eslint-disable-next-line consistent-return
 function read() {
     Logger.debug('***** Read *****');
-    var obj = {};
-    if (brandIter.hasNext()) {
-        obj = {
-            type: 'Brands',
-            obj: brandIter.next()
-        };
-    } else if (catIter.hasNext()) {
-        obj = {
-            type: 'Categories',
-            obj: catIter.next()
-        };
-    } else if (prodIter.hasNext()) {
-        obj = {
-            type: 'Products',
-            obj: prodIter.next()
-        };
-    }
-    return obj;
-}
 
+    if (brandIter.hasNext()) {
+        return { type: 'Brands', obj: brandIter.next() };
+    } else if (catIter.hasNext()) {
+        return { type: 'Categories', obj: catIter.next() };
+    } else if (prodIter.hasNext()) {
+        return { type: 'Products', obj: prodIter.next() };
+    }
+}
 /**
- * @param {Object} item - product item.
- * processing product, brand and categories.
- * @returns {Object} returns object of the process items
+ *
+ * @param {String} item item to Write
  */
 function process(item) {
     Logger.debug('***** Process *****');
     return item;
 }
-
 /**
- * @param {string} lines - xml nodes.
- * write XML node for current product, brand, cat
  *
+ * @param {Array} lines products needs to write in files
  */
 function write(lines) {
     Logger.debug('***** Write *****');
 
-    try {
-        [].forEach.call(lines, function (line) {
-            currentType = line.type;
-            if (!openType) {
-                XMLHelper.transition(false, currentType);
-                openType = currentType;
-            } else if (openType !== currentType) {
-                XMLHelper.transition(true, currentType);
-                openType = currentType;
-            }
+    [].forEach.call(lines, function (line) {
+        currentType = line.type;
+        if (!openType) {
+            xmlHelper.transition(false, currentType);
+            openType = currentType;
+        } else if (openType !== currentType) {
+            xmlHelper.transition(true, currentType);
+            openType = currentType;
+        }
 
-            XMLHelper.writeProductFeedItem(line, localeMap);
-        });
-    } catch (ex) {
-        XMLHelper.closeWriter();
-    }
+        xmlHelper.writeProductFeedItem(line, localeMap);
+    });
 }
-
 /**
- * write XML finish node and cleanup the finish node
- *
  */
 function afterStep() {
     Logger.debug('***** After Step *****');
     if (openType) {
-        XMLHelper.transition(true, null);
+        xmlHelper.transition(true, null);
         openType = null;
     }
 
-    XMLHelper.finishProductFeed();
+    xmlHelper.finishProductFeed();
     prodIter.close();
 }
 

@@ -2,10 +2,6 @@
 
 var Site = require('dw/system/Site');
 
-/**
-* This is a function fires off the product feed.
-* @returns {string} A color object
-*/
 function getTriggeringEvent() {
     var triggeringEvent = Site.getCurrent().getCustomPreferenceValue('bvPurchaseFeedTriggeringEvent_C2013');
     if (!triggeringEvent) {
@@ -16,11 +12,6 @@ function getTriggeringEvent() {
     return triggeringEvent;
 }
 
-/**
-* This is a function gets the last order shipment based on order
-* @param {string} order - get order object
-* @returns {date} shipment date
-*/
 function getLatestShipmentDate(order) {
     var latestShipment = 0; // initialize to epoch
 
@@ -33,11 +24,6 @@ function getLatestShipmentDate(order) {
     return new Date(latestShipment);
 }
 
-/**
-* This is a function gets the last order shipment based on order
-* @param {string} order - get order object
-* @returns {date} shipment date
- */
 function getTransactionDate(order) {
     var txnDate = order.getCreationDate();
 
