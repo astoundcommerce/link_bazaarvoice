@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 'use strict';
 
 // API Objects
@@ -28,8 +29,8 @@ var xsw;
 var currentType; var
     openType;
 /**
- *
- * @param {*} parameters
+ * Represents the before step before running the job.
+ * @param {string} parameters - check to see if product feed is enabled.
  */
 function beforeStep(parameters) {
     Logger.debug('***** Before Step *****');
@@ -83,7 +84,8 @@ function beforeStep(parameters) {
     xmlHelper.startProductFeed();
 }
 /**
- * function to get count of total products processed
+ * Log total count of brand and category for products.
+ * @returns {number} Sum of brand and category and product
  */
 function getTotalCount() {
     Logger.debug('***** Get Total Count *****');
@@ -93,10 +95,11 @@ function getTotalCount() {
     Logger.debug('Total Count: ' + total);
     return total;
 }
+
 /**
- * Function to read
+ * Interates through product, brand and categories.
+ * @returns {Object} returns object of brand, cat, products
  */
-// eslint-disable-next-line consistent-return
 function read() {
     Logger.debug('***** Read *****');
 
@@ -109,8 +112,9 @@ function read() {
     }
 }
 /**
- *
- * @param {String} item item to Write
+ * @param {Object} item - product item.
+ * processing product, brand and categories.
+ * @returns {Object} returns object of the process items
  */
 function process(item) {
     Logger.debug('***** Process *****');

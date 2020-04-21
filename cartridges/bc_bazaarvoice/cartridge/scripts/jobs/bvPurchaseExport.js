@@ -112,7 +112,11 @@ function process(item) {
     Logger.debug('***** Process *****');
     return item;
 }
-
+/**
+ * write order object to XML
+ * @param {Object} orders - order to be written to job
+ * @param {Object} parameters - config params for job
+ */
 function write(orders) {
     Logger.debug('***** Write *****');
 

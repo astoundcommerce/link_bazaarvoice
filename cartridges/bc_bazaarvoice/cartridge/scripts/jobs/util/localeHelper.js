@@ -6,8 +6,9 @@ var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'LocaleHelper.
 
 var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 /**
- *
- * @param {*} type
+ * Returns localeMap hashmap
+ * @param {string} type returns which type of object the locale is associated with
+ * @returns {string} locale
  */
 function getLocaleMap(type) {
     var localeMap = new HashMap();
@@ -93,15 +94,17 @@ function getLocaleMap(type) {
     return localeMap;
 }
 /**
- *
- * @param {*} localeMap
+ * Returns localeMap keyset
+ * @param {array} localeMap returns which type of object the locale is associated with
+ * @returns {array} localeMap
  */
 function isMultiLocale(localeMap) {
     return localeMap && localeMap.keySet() && localeMap.keySet().length > 1;
 }
 /**
- *
- * @param {*} localeMap
+ * Returns bv locale map
+ * @param {array} localeMap returns which type of object the locale is associated with
+ * @returns {array} return matching locale from the bv sitepref
  */
 function getbvLocaleMap(localeMap) {
     var bvMap = new HashMap();

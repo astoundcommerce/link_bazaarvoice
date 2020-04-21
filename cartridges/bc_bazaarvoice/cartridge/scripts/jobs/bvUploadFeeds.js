@@ -8,7 +8,11 @@ var ServiceRegistry = require('dw/svc/ServiceRegistry');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvUploadFeed.js');
 
 var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-
+/**
+ * Returns a status of okay
+ * @param {Object} parameters - object of site parameters
+ * @returns {string} the status results
+ */
 function execute(parameters) {
     var enabled = parameters.Enabled;
     if (!enabled) {

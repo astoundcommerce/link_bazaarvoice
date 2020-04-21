@@ -4,7 +4,10 @@ var ArrayList = require('dw/util/ArrayList');
 var ProductSearchModel = require('dw/catalog/ProductSearchModel');
 var CatalogMgr = require('dw/catalog/CatalogMgr');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'BrandHelper.js');
-
+/**
+ * returns the list of brands
+ * @returns {Object} returns a list of brands
+ */
 function getBrandList() {
     var brands = new ArrayList();
 

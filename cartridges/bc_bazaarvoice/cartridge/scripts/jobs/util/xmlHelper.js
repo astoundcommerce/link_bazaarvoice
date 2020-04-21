@@ -19,9 +19,10 @@ var xmlStreamWriter;
 
 var defaultLocale = request.getLocale();
 /**
- *
- * @param {*} filename
- * @param {*} localPath
+ *Function to write file
+ * @param {string} filename file name
+ * @param {string} localPath path to write file
+ * @returns {boolean} flag
  */
 function getStreamWriter(filename, localPath) {
     if (xmlStreamWriter) {
@@ -43,9 +44,7 @@ function getStreamWriter(filename, localPath) {
 
     return true;
 }
-/**
- *
- */
+/** This function serves to set data for the start of the feed */
 function startProductFeed() {
     var cal = new Calendar();
     var extract = StringUtils.formatCalendar(cal, 'yyyy-MM-dd') + 'T00:00:00.000000';
@@ -59,9 +58,7 @@ function startProductFeed() {
     xmlStreamWriter.writeAttribute('extractDate', extract);
     xmlStreamWriter.writeAttribute('generator', bvConstants.XML_GENERATOR);
 }
-/**
- *
- */
+/** This function closes and flushes the feed */
 function finishProductFeed() {
     xmlStreamWriter.writeEndElement(); // </Feed>
     xmlStreamWriter.writeEndDocument();
@@ -71,18 +68,14 @@ function finishProductFeed() {
 
     xmlStreamWriter = null;
 }
-/**
- *
- */
+/** This function start purschase feed */
 function startPurchaseFeed() {
     xmlStreamWriter.writeStartDocument('UTF-8', '1.0');
     xmlStreamWriter.writeCharacters('\n');
     xmlStreamWriter.writeStartElement('Feed');
     xmlStreamWriter.writeAttribute('xmlns', bvConstants.XML_NAMESPACE_PURCHASE);
 }
-/**
- *
- */
+/** This function finish purschase feed */
 function finishPurchaseFeed() {
     xmlStreamWriter.writeEndElement(); // </Feed>
     xmlStreamWriter.writeEndDocument();
@@ -93,9 +86,10 @@ function finishPurchaseFeed() {
     xmlStreamWriter = null;
 }
 /**
+ * Represents a transition function.
  *
- * @param {*} endNode
- * @param {*} startNode
+ * @param {string} endNode - end node from one product.
+ * @param {string} startNode - start node for another product.
  */
 function transition(endNode, startNode) {
     if (endNode) {
@@ -118,10 +112,11 @@ function writeElement(elementName, chars) {
     xmlStreamWriter.writeEndElement();
 }
 /**
+ * Represents a writing localized  function.
  *
- * @param {*} elementName
- * @param {*} locale
- * @param {*} chars
+ * @param {string} elementName - product element.
+ * @param {string} locale - set product locale.
+ * @param {string} chars - characters.
  */
 function writeLocalizedElement(elementName, locale, chars) {
     xmlStreamWriter.writeStartElement(elementName);
@@ -130,9 +125,10 @@ function writeLocalizedElement(elementName, locale, chars) {
     xmlStreamWriter.writeEndElement();
 }
 /**
+ * Represents a writeElementCDATA function.
  *
- * @param {*} elementName
- * @param {*} chars
+ * @param {string} elementName - product element.
+ * @param {string} chars - characters.
  */
 function writeElementCDATA(elementName, chars) {
     xmlStreamWriter.writeStartElement(elementName);
@@ -140,10 +136,11 @@ function writeElementCDATA(elementName, chars) {
     xmlStreamWriter.writeEndElement();
 }
 /**
+ * Represents a writeLocalizedElementCDATA function.
  *
- * @param {*} elementName
- * @param {*} locale
- * @param {*} chars
+ * @param {string} elementName - product element.
+ * @param {string} locale - set product locale.
+ * @param {string} chars - characters.
  */
 function writeLocalizedElementCDATA(elementName, locale, chars) {
     xmlStreamWriter.writeStartElement(elementName);
@@ -152,7 +149,10 @@ function writeLocalizedElementCDATA(elementName, locale, chars) {
     xmlStreamWriter.writeEndElement();
 }
 /**
+ * Represents a transition function.
  *
+ * @param {string} item - product item.
+ * @param {string} localeMap - set product locale.
  */
 function writeProductFeedItem(item, localeMap) {
     var multiLocale = LocaleHelper.isMultiLocale(localeMap);
@@ -402,7 +402,7 @@ function writeProductFeedItem(item, localeMap) {
 /**
  * Represents a transition function.
  *
- * @param {string} item - product item.
+ * @param {string} order - order object.
  * @param {string} localeMap - set product locale.
  */
 function writePurchaseFeedItem(order, localeMap) {
