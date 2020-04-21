@@ -65,7 +65,7 @@ function finishProductFeed() {
 
     xmlStreamWriter.flush();
     xmlStreamWriter.close();
-
+    fileWriter.close();
     xmlStreamWriter = null;
 }
 /** This function start purschase feed */
@@ -82,6 +82,7 @@ function finishPurchaseFeed() {
 
     xmlStreamWriter.flush();
     xmlStreamWriter.close();
+    fileWriter.close();
 
     xmlStreamWriter = null;
 }
