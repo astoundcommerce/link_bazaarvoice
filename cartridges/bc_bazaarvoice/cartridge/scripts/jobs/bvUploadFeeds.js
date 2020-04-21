@@ -4,10 +4,10 @@
 var File = require('dw/io/File');
 var Site = require('dw/system/Site');
 var Status = require('dw/system/Status');
-var ServiceRegistry = require('dw/svc/ServiceRegistry');
+var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvUploadFeed.js');
 
-var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 /**
  * Returns a status of okay
  * @param {Object} parameters - object of site parameters
@@ -46,7 +46,16 @@ function execute(parameters) {
             return fileregex.test(f.name);
         });
 
-        var service = ServiceRegistry.get('bazaarvoice.sftp.export.' + Site.current.ID);
+        var service = ServiceRegistry.createService('bazaarvoice.sftp.export.' +
+        Site.current.ID, {
+            createRequest: function () {
+                return service;
+            },
+
+            parseResponse: function (svc, res) {
+                return res;
+            }
+        });
         var result = service.setOperation('cd', remotePath).call();
         if (!result.isOk()) {
             Logger.error('Problem testing sftp server. path: {0}, result: {1}', remotePath, result.msg);

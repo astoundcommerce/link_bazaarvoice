@@ -9,20 +9,20 @@ var XMLStreamConstants = require('dw/io/XMLStreamConstants');
 var XMLStreamReader = require('dw/io/XMLStreamReader');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvRatingImport.js');
 
-var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-var LocaleHelper = require('./util/LocaleHelper');
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var localeHelper = require('./util/localeHelper');
 
 module.exports.execute = function() {
     try {
         //generate a locale map
         //also generate a reverse map of:
-        //   BV locale ==> Array of DW locales
+        //   BV locale ===> Array of DW locales
         //maps to an Array because multiple DW locales can map to a single BV locale
-        var localeMap = LocaleHelper.getLocaleMap('rating');
-        var multiLocale = LocaleHelper.isMultiLocale(localeMap);
+        var localeMap = localeHelper.getLocaleMap('rating');
+        var multiLocale = localeHelper.isMultiLocale(localeMap);
         var bvLocaleMap = new HashMap();
         if(multiLocale) {
-            bvLocaleMap = LocaleHelper.getBVLocaleMap(localeMap);
+            bvLocaleMap = localeHelper.getBVLocaleMap(localeMap);
         }
         
         //get the rating feed we just downloaded
@@ -38,19 +38,19 @@ module.exports.execute = function() {
         
         while(xmlReader.hasNext()) {
             xmlReader.next();
-            if (xmlReader.getEventType() == XMLStreamConstants.START_ELEMENT && xmlReader.getLocalName() == 'Product') {
+            if (xmlReader.getEventType() === XMLStreamConstants.START_ELEMENT && xmlReader.getLocalName() === 'Product') {
                 var productXML = xmlReader.readXMLObject();
                 var bvAverageRating = '';
                 var bvReviewCount = '';
                 var bvRatingRange = '';
-                
+                var ns = productXML.namespace();
                 var id = productXML.ns::ExternalId.toString();
                 var product = id ? ProductMgr.getProduct(BVHelper.decodeId(id)) : null;
                 if(product) {
                     if(multiLocale) {
                         
                         var localeItemList = productXML.ns::ReviewStatistics.ns::LocaleDistribution.ns::LocaleDistributionItem;
-                        if(localeItemList.length() > 0) {
+                        if(localeItemList && localeItemList.length() > 0) {
                             for(var i = 0; i < localeItemList.length(); i++) {
                                 var localeItem = localeItemList[i];
                                 
@@ -68,14 +68,15 @@ module.exports.execute = function() {
                                     }
                                     
                                     var dwLocales = bvLocaleMap.get(bvLocale);
-                                    for(var j = 0; j < dwLocales.length; j++) {
-                                        var dwLocale = dwLocales[j];
-                                        request.setLocale(dwLocale);
-                                        product.custom.bvAverageRating = bvAverageRating;
-                                        product.custom.bvReviewCount = bvReviewCount;
-                                        product.custom.bvRatingRange = bvRatingRange;
+                                    if(dwLocales && dwLocales != null){
+                                        for(var j = 0; j < dwLocales.length; j++) {
+                                            var dwLocale = dwLocales[j];
+                                            request.setLocale(dwLocale);
+                                            product.custom.bvAverageRating = bvAverageRating;
+                                            product.custom.bvReviewCount = bvReviewCount;
+                                            product.custom.bvRatingRange = bvRatingRange;
+                                        }
                                     }
-                                    
                                 }
                             }
                         }

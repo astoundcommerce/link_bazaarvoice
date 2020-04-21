@@ -9,10 +9,10 @@ var Site = require('dw/system/Site');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvPurchaseExport.js');
 
 // BV Helper Scripts
-var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-var LocaleHelper = require('./util/LocaleHelper');
-var XMLHelper = require('./util/XMLHelper');
-var PurchaseHelper = require('./util/PurchaseHelper');
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var LocaleHelper = require('./util/localeHelper');
+var XMLHelper = require('./util/xmlHelper');
+var PurchaseHelper = require('./util/purchaseHelper');
 
 // local variables
 var localeMap; var

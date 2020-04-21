@@ -3,16 +3,24 @@
 var File = require('dw/io/File');
 var Site = require('dw/system/Site');
 var Status = require('dw/system/Status');
-var ServiceRegistry = require('dw/svc/ServiceRegistry');
+var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvDownloadFeeds.js');
 
-var bvConstants = require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
 
 module.exports.execute = function () {
     try {
-        var service = ServiceRegistry.get('bazaarvoice.sftp.import.' + Site.current.ID);
+        var service = ServiceRegistry.createService('bazaarvoice.sftp.import.' +
+        Site.current.ID, {
+            createRequest: function () {
+                return service;
+            },
+            parseResponse: function (svc, res) {
+                return res;
+            }
+        });
         var result;
 
         var fpath = bvConstants.RatingsFeedPath;

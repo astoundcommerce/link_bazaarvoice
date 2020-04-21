@@ -10,8 +10,8 @@ var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'XMLHelper.js'
 
 var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-var PurchaseHelper = require('./PurchaseHelper');
-var LocaleHelper = require('./LocaleHelper');
+var PurchaseHelper = require('./purchaseHelper');
+var LocaleHelper = require('./localeHelper');
 
 var file;
 var fileWriter;
