@@ -1,7 +1,6 @@
 'use strict';
 
 var Site = require('dw/system/Site');
-
 /**
 * This is a function fires off the product feed.
 * @returns {string} A color object
@@ -32,6 +31,7 @@ function getLatestShipmentDate(order) {
 
     return new Date(latestShipment);
 }
+
 
 /**
 * This is a function gets the last order shipment based on order

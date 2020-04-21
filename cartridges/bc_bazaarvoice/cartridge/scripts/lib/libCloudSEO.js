@@ -662,7 +662,7 @@ exports.getBVSEO = function (config) {
     var bvdisplay = BVHelper.getDisplayData();
 
     /*
-	* If the SEODisplayCode constant is empty, then try to use the Deployment Zone.
+	* If the SEODisplayCode varant is empty, then try to use the Deployment Zone.
 	*/
     configuration.deployment_zone_id = bvConstants.SEODisplayCode;
     if (empty(config.deployment_zone_id)) {

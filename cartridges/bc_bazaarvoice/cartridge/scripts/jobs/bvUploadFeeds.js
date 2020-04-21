@@ -41,8 +41,7 @@ function execute(parameters) {
         }
 
         var fileregex = new RegExp('^' + pattern + '_\\d{14}\\.xml$');
-        var localPathFile = new File([File.TEMP, localPath]
-            .join(File.SEPARATOR));
+        var localPathFile = new File([File.TEMP, localPath].join(File.SEPARATOR));
         var localFiles = localPathFile.listFiles(function (f) {
             return fileregex.test(f.name);
         });
@@ -57,11 +56,9 @@ function execute(parameters) {
                 return res;
             }
         });
-
         var result = service.setOperation('cd', remotePath).call();
         if (!result.isOk()) {
-            Logger.error('Problem testing sftp server. path: {0}, result: {1}',
-                remotePath, result.msg);
+            Logger.error('Problem testing sftp server. path: {0}, result: {1}', remotePath, result.msg);
             return new Status(Status.ERROR);
         }
 
@@ -72,23 +69,20 @@ function execute(parameters) {
         }
 
         var allRemoteFiles = result.getObject();
-        for (var count = 0; count < allRemoteFiles.length; count++) {
-            var f = allRemoteFiles[count];
+        for (var i = 0; i < allRemoteFiles.length; i++) {
+            var f = allRemoteFiles[i];
             if (fileregex.test(f.name) === true) {
-                result = service.setOperation('del', remotePath + '/' + f.name)
-                    .call();
+                result = service.setOperation('del', remotePath + '/' + f.name).call();
                 if (!result.isOk()) {
-                    Logger.error('Problem deleting existing file: ' +
-                        result.msg);
+                    Logger.error('Problem deleting existing file: ' + result.msg);
                 }
             }
         }
 
-        for (var index = 0; index < localFiles.length; index++) {
-            var file = localFiles[index];
+        for (var j = 0; j < localFiles.length; j++) {
+            var file = localFiles[j];
 
-            result = service.setOperation('putBinary',
-                remotePath + '/' + file.name, file).call();
+            result = service.setOperation('putBinary', remotePath + '/' + file.name, file).call();
             if (!result.isOk()) {
                 Logger.error('Problem uploading file: ' + result.msg);
                 return new Status(Status.ERROR);
@@ -96,8 +90,7 @@ function execute(parameters) {
             file.remove();
         }
     } catch (ex) {
-        Logger.error('Exception caught during product feed upload: {0}',
-            ex.message);
+        Logger.error('Exception caught during product feed upload: {0}', ex.message);
         return new Status(Status.ERROR);
     }
 

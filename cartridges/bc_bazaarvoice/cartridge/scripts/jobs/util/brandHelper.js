@@ -23,6 +23,7 @@ function getBrandList() {
         brands = new ArrayList(brandVals);
         Logger.debug('Brand refinement values found: ' + brands.length);
     }
+
     return brands;
 }
 
