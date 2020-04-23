@@ -34,9 +34,6 @@ var createService = function (serviceId) {
         },
         getResponseLogMessage: function (response) {
             return !empty(response.getText()) ? response.getText().substr(0, 100) + '\n\n...[no need to log all the content]\n\n' : 'Response is empty.';
-        },
-        getRequestLogMessage: function(request) {
-            return;
         }
     });
 };
