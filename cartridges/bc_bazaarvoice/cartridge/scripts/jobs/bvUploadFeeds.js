@@ -54,6 +54,9 @@ function execute(parameters) {
 
             parseResponse: function (svc, res) {
                 return res;
+            },
+            filterLogMessage: function(msg) {
+                return msg.replace("headers", "OFFWITHTHEHEADERS");
             }
         });
         var result = service.setOperation('cd', remotePath).call();

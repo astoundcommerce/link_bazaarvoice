@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: pdpsummary.isml --->
+<!--- TEMPLATENAME: pdpSummary.isml --->
 <isscript>
 var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 BVHelper.setBvReveal();

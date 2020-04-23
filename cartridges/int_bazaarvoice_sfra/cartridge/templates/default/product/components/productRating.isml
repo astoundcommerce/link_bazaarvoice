@@ -6,4 +6,4 @@ if(pdict.bvScout) {
 }
 </isscript>
 
-<isinclude template="bv/display/pdpsummary"/>
+<isinclude template="bv/display/pdpSummary"/>

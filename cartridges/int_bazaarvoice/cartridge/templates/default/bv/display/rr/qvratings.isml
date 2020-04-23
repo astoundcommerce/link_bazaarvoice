@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: qvratings.isml --->
+<!--- TEMPLATENAME: qvRatings.isml --->
 <isscript>
 //honor the Quickview Rating Type Preference (and possibly also the inline rating type):
 //	- none
@@ -16,7 +16,7 @@ if(quickviewPref && quickviewPref.value && !quickviewPref.value.equals('none')) 
 		var Product = pdict.Product;
 		ratingTemplate = 'bv/display/rr/ratings';
 	} else if(quickviewPref.value.equals('pdpsummary')) {
-		ratingTemplate = 'bv/display/pdpsummary';
+		ratingTemplate = 'bv/display/pdpSummary';
 	}
 }
 </isscript>

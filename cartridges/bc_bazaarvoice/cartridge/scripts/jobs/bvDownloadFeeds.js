@@ -19,6 +19,9 @@ module.exports.execute = function () {
             },
             parseResponse: function (svc, res) {
                 return res;
+            },
+            filterLogMessage: function(msg) {
+                return msg.replace("headers", "OFFWITHTHEHEADERS");
             }
         });
         var result;

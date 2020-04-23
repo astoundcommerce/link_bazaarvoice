@@ -39,5 +39,5 @@
         </div>
     </div>
     
-    <isinclude template="bv/bvpixel/tracktransaction"/>
+    <isinclude template="bv/bvpixel/trackTransaction"/>
 </isdecorate>

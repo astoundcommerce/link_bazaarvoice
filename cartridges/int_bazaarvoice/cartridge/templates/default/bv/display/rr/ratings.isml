@@ -7,11 +7,11 @@ var ratingPref = dw.system.Site.current.getCustomPreferenceValue('bvEnableInline
 
 	<isif condition="${ratingPref.value.equals('hosted')}">
 	
-		<isinclude template="bv/display/rr/inlineratings-hosted"/>
+		<isinclude template="bv/display/rr/inLineRatingsHosted"/>
 
 	<iselseif condition="${ratingPref.value.equals('native')}"/>
 	
-		<isinclude template="bv/display/rr/inlineratings"/>
+		<isinclude template="bv/display/rr/inLineRatingsHosted"/>
 	
 	</isif>
 

@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: inlineratings.isml --->
+<!--- TEMPLATENAME: inLineRatingsHosted.isml --->
 <isif condition="${Product !==null}">
 	<isscript>
 	var masterProduct = (Product.variant) ? Product.variationModel.master : Product;

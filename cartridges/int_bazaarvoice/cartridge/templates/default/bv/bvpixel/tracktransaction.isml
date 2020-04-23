@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: tracktransaction.isml --->
+<!--- TEMPLATENAME: trackTransaction.isml --->
 <isif condition="${pdict.Order !== null}">
 	<isscript>
 	var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();

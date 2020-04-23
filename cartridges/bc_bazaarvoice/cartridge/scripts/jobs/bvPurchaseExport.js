@@ -60,7 +60,7 @@ function beforeStep(parameters) {
     endDate = endCalendar.getTime();
 
     var queryString = 'exportStatus = {0} AND creationDate >= {1} AND creationDate <= {2}';
-    orderItr = OrderMgr.queryOrders(queryString, 'orderNo ASC', Order.EXPORT_STATUS_EXPORTED, startDate, endDate, true);
+    orderItr = OrderMgr.searchOrders(queryString, 'orderNo ASC', Order.EXPORT_STATUS_EXPORTED, startDate, endDate, true);
     orderCount = orderItr.count;
 
 

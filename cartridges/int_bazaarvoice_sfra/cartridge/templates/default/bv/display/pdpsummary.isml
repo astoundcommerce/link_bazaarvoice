@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: pdpsummary.isml --->
+<!--- TEMPLATENAME: pdpSummary.isml --->
 <isif condition="${pdict.bvDisplay.showSummary}">
 	<!-- Reviews Summary -->
 	

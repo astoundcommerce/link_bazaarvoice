@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: inlineratings-hosted.isml --->
+<!--- TEMPLATENAME: inLineRatingsHosted.isml --->
 
 <isif condition="${pdict.bvDisplay && pdict.bvDisplay.rating && pdict.bvDisplay.rating.enabled && pdict.bvDisplay.rating.type.equals('hosted')}">
 	<isif condition="${pdict.bvDisplay.bvPid}">	

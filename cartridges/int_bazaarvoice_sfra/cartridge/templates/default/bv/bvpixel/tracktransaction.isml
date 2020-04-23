@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: tracktransaction.isml --->
+<!--- TEMPLATENAME: trackTransaction.isml --->
 <isif condition="${pdict.bvpixel}">
 	<script type="text/javascript">
 	window.bvCallback = function (BV) {

@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: headerincludes.isml --->
+<!--- TEMPLATENAME: headerIncludes.isml --->
 <isset name="BVHelper" value="${require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
 <isset name="bvConstants" value="${require('*/cartridge/scripts/lib/libConstants').getConstants()}" scope="page" />
 

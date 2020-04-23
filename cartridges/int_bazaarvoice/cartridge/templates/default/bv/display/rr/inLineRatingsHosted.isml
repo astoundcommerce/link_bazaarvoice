@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: inlineratings-hosted.isml --->
+<!--- TEMPLATENAME: inLineRatingsHosted.isml --->
 <isif condition="${Product !== null}">
 	<isscript>
 	var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
