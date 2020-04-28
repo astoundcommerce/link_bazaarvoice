@@ -1,0 +1,16 @@
+<!--- TEMPLATENAME: headerIncludes.isml --->
+<isset name="BVHelper" value="${require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
+<isset name="bvConstants" value="${require('*/cartridge/scripts/lib/libConstants').getConstants()}" scope="page" />
+
+<iscomment>
+DWP-448: Display the current LINK version for CSR debugging
+</iscomment>
+<isif condition="${!empty(bvConstants) && !empty(bvConstants.XML_GENERATOR)}">
+	<!-- ${bvConstants.XML_GENERATOR} -->
+</isif>
+
+<isif condition="${!empty(BVHelper) && !empty(BVHelper.getBvLoaderUrl())}">
+	<script async type="text/javascript" src="${BVHelper.getBvLoaderUrl()}"></script>
+<iselse/>
+	<!-- Cannot load BV Loader -->
+</isif>

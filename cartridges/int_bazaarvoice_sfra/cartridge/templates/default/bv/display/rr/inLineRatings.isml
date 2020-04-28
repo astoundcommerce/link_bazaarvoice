@@ -1,0 +1,6 @@
+<!--- TEMPLATENAME: inLineRatingsHosted.isml --->
+<isif condition="${pdict.bvDisplay && pdict.bvDisplay.rating && pdict.bvDisplay.rating.enabled && pdict.bvDisplay.rating.type.equals('native')}">
+    <div class="BVInlineRatings">
+        <img alt="" src="${pdict.bvDisplay.rating.stars}"/> ${pdict.bvDisplay.rating.rating}/${pdict.bvDisplay.rating.range} (${pdict.bvDisplay.rating.count})
+    </div>
+</isif>
