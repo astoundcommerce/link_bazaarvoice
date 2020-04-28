@@ -7,8 +7,12 @@
 	<meta name="bv:pageType" content="container">
 </head>
 <body>
+
 	<isif condition="${!empty(pdict.bvScout)}">
-		<script async type="text/javascript" src="${pdict.bvScout}"></script>
+	<isscript>
+		var assets = require('*/cartridge/scripts/assets');
+		assets.addJs('${pdict.bvScout}');
+	</isscript>
 	<iselse/>
 		<!-- Cannot load BV Loader -->
 	</isif>
