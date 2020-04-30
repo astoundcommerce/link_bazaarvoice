@@ -10,9 +10,11 @@ var Cartridge = require('dw/system/Site').getCurrent().getCustomPreferenceValue(
 var app = require(Cartridge + '/cartridge/scripts/app');
 var guard = require(Cartridge + '/cartridge/scripts/guard');
 
-
+/**
+ * Renders the home page and includes container template
+ */
 function container() {
-	app.getView().render('bv/container/container');
+    app.getView().render('bv/container/container');
 }
 
 /*

@@ -1,4 +1,4 @@
-<!--- TEMPLATENAME: productdetailparameters.isml --->
+<!--- TEMPLATENAME: productDetailParameters.isml --->
 <isscript>
 if(!empty(productDetailUrl)) {
 	if(request.httpParameters.containsKey('bvstate')) {

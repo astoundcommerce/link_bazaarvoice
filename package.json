@@ -1,5 +1,37 @@
 {
-	"paths": {
-		"base": "../../link-sfra-bazaarvoice/cartridges/app_storefront_base/"
-	}
+  "name": "bazaarvoice-link-cartridge",
+  "version": "20.1.0",
+  "description": "Salesforce Commerce Cloud LINK Cartridge For Bazaarvoice LINK Cartridge",
+  "paths": {
+    "base": "../../link-sfra-bazaarvoice/cartridges/app_storefront_base/"
+  },
+  "dependencies": {
+    "chai": "^4.2.0",
+    "lint": "^0.7.0",
+    "mocha": "^7.1.1",
+    "npm": "^6.14.4",
+    "proxyquire": "^2.1.3",
+    "scss": "^0.2.4",
+    "sinon": "^9.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^5.0.3",
+    "eslint-plugin-import": "^1.16.0",
+    "eslint-plugin-sitegenesis": "~1.0.0",
+    "sgmf-scripts": "^2.4.0",
+    "stylelint": "^7.1.0",
+    "stylelint-config-standard": "^12.0.0",
+    "stylelint-scss": "^1.3.4"
+  },
+  "scripts": {
+    "test": "mocha test/unit/**/*.js",
+    "test:integration": "sgmf-scripts --integration 'test/integration/**/*.js'",
+    "lint:js:fix": "npx eslint cartridges/ --config .eslintrc.json --fix",
+    "lint": "npm run lint:js",
+    "lint:css": "sgmf-scripts --lint css",
+    "lint:js": "sgmf-scripts --lint js",
+	"format": "prettier-eslint —eslint-config-path ./.eslintrc.json --write './cartridges/**’",
+    "lint": "eslint . —ext .js"
+  }
 }

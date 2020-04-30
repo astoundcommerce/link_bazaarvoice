@@ -4,7 +4,6 @@
         var assets = require('*/cartridge/scripts/assets.js');
         assets.addCss('/css/checkout/checkout.css');
         assets.addJs('/js/checkoutRegistration.js');
-        
         if(pdict.bvScout) {
         	assets.addJs(pdict.bvScout);
         }
@@ -39,5 +38,5 @@
         </div>
     </div>
     
-    <isinclude template="bv/bvpixel/tracktransaction"/>
+    <isinclude template="bv/bvpixel/trackTransaction"/>
 </isdecorate>

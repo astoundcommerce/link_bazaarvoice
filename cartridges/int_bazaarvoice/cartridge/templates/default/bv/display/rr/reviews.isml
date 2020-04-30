@@ -2,21 +2,21 @@
 Embeds the container that reviews are injected to and the javascript that accesses the review content.
  --->
 <isscript>
-var BVHelper = require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 var bvPid = BVHelper.getProductId();
 
 // Obtain Cloud SEO content
 var CSEO = null;
 if(!empty(bvPid)) {
-	CSEO = require('bc_bazaarvoice/cartridge/scripts/lib/libCloudSEO.ds').getBVSEO({"product_id" : bvPid});
+	CSEO = require('*/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({"product_id" : bvPid});
 }
 </isscript>
 
 <isif condition="${BVHelper.isRREnabled()}">
 	<!-- Reviews -->
 	<div data-bv-show="reviews" data-bv-productId="${bvPid}">
-		<isif condition="${CSEO != null}">
-	    	<isprint value="${CSEO.reviews().getReviews()}" />
+		<isif condition="${CSEO !== null}">
+	    	<isprint value="${CSEO.reviews().getReviews()}" encoding="off"/>
 	    </isif>
 	</div>
 	<!-- End Reviews -->

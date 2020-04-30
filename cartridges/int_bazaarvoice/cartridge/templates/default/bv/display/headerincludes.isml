@@ -1,12 +1,12 @@
-<!--- TEMPLATENAME: headerincludes.isml --->
-<isset name="BVHelper" value="${require('bc_bazaarvoice/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
-<isset name="BV_Constants" value="${require('bc_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants()}" scope="page" />
+<!--- TEMPLATENAME: headerIncludes.isml --->
+<isset name="BVHelper" value="${require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()}" scope="page" />
+<isset name="bvConstants" value="${require('*/cartridge/scripts/lib/libConstants').getConstants()}" scope="page" />
 
 <iscomment>
 DWP-448: Display the current LINK version for CSR debugging
 </iscomment>
-<isif condition="${!empty(BV_Constants) && !empty(BV_Constants.XML_GENERATOR)}">
-	<!-- ${BV_Constants.XML_GENERATOR} -->
+<isif condition="${!empty(bvConstants) && !empty(bvConstants.XML_GENERATOR)}">
+	<!-- ${bvConstants.XML_GENERATOR} -->
 </isif>
 
 <isif condition="${!empty(BVHelper) && !empty(BVHelper.getBvLoaderUrl())}">
