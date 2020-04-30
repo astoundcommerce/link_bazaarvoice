@@ -3,7 +3,7 @@
   "version": "20.1.0",
   "description": "Salesforce Commerce Cloud LINK Cartridge For Bazaarvoice LINK Cartridge",
   "paths": {
-    "base": "../../link-sfra-bazaarvoice/cartridges/app_storefront_base/"
+    "base": "../storefront-reference-architecture/cartridges/app_storefront_base/"
   },
   "dependencies": {
     "chai": "^4.2.0",
