@@ -17,37 +17,68 @@ var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceH
  */
 function appendBVData(req, res) {
     var BV_SEO = require('*/cartridge/scripts/lib/libCloudSEO.js');
+    var viewData = res.getViewData();
+    var apiProduct = ProductMgr.getProduct(viewData.product.id);
+
+    // if (BVHelper.isDynamicPixelEnabled()) {
+    //     viewData.bvScout = BVHelper.getBvLoaderUrl();
+
+    //     var productData = BVHelper.getProductsData(apiProduct);
+
+    //     viewData.bvDynamicpixel = {
+    //         locale: req.locale.id,
+    //         productData: productData
+    //     };
+    //     res.setViewData(viewData);
+    // }
 
     if (BVHelper.isRREnabled() || BVHelper.isQAEnabled()) {
-        var viewData = res.getViewData();
         viewData.bvScout = BVHelper.getBvLoaderUrl();
-
-        var apiProduct = ProductMgr.getProduct(viewData.product.id);
         var pid = (apiProduct.variant && !bvConstants.UseVariantID) ? apiProduct.variationModel.master.ID : apiProduct.ID;
+        var entityId = BVHelper.getEntityId();
+        if (entityId === 'master' && apiProduct.variant) {
+            pid = apiProduct.variationModel.master.ID;
+        }
         pid = BVHelper.replaceIllegalCharacters(pid);
 
-        var seoData = BV_SEO.getBVSEO({ product_id: pid });
-        var seoReviews = seoData.reviews();
-        var seoQuestions = seoData.questions();
+        pid = BVHelper.addPrefixPid(pid);
 
-        viewData.bvDisplay = {
-            rr: {
-                enabled: BVHelper.isRREnabled(),
-                seo: {
-                    aggregateRating: seoReviews.getAggregateRating(),
-                    reviews: seoReviews.getReviews(),
-                    content: seoReviews.getContent()
-                }
-            },
-            qa: {
-                enabled: BVHelper.isQAEnabled(),
-                seo: {
-                    content: seoQuestions.getContent()
-                }
-            },
-            bvPid: pid,
-            showSummary: true
-        };
+        var seoData = BV_SEO.getBVSEO({ product_id: pid });
+        if (seoData !== null) {
+            var seoReviews = seoData.reviews();
+            var seoQuestions = seoData.questions();
+
+            viewData.bvDisplay = {
+                rr: {
+                    enabled: BVHelper.isRREnabled(),
+                    seo: {
+                        aggregateRating: seoReviews.getAggregateRating(),
+                        reviews: seoReviews.getReviews(),
+                        content: seoReviews.getContent()
+                    }
+                },
+                qa: {
+                    enabled: BVHelper.isQAEnabled(),
+                    seo: {
+                        content: seoQuestions.getContent()
+                    }
+                },
+                bvPid: pid,
+                showSummary: true
+            };
+        } else {
+            viewData.bvDisplay = {
+                rr: {
+                    enabled: BVHelper.isRREnabled()
+                },
+                qa: {
+                    enabled: BVHelper.isQAEnabled()
+                },
+                bvPid: pid,
+                showSummary: true
+            };
+        }
+
         res.setViewData(viewData);
     }
 }
@@ -58,19 +89,23 @@ function appendBVData(req, res) {
  * @param {Object} res - json response from BV
  */
 function appendBVQuickViewData(req, res) {
-    var ratingPref = Site.current.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
-    var quickviewPref = Site.current.getCustomPreferenceValue('bvQuickViewRatingsType_C2013');
+    var ratingPref = Site.current.getCustomPreferenceValue('bvEnableInlineRatings');
+    var quickviewPref = Site.current.getCustomPreferenceValue('bvQuickViewRatingsType');
 
     if (quickviewPref && quickviewPref.value && !quickviewPref.value.equals('none')) {
         var viewData = res.getViewData();
 
         var apiProduct = ProductMgr.getProduct(viewData.product.id);
         var pid = (apiProduct.variant && !bvConstants.UseVariantID) ? apiProduct.variationModel.master.ID : apiProduct.ID;
+        var productUrl = URLUtils.url('Product-Show', 'pid', pid);
+
         pid = BVHelper.replaceIllegalCharacters(pid);
+        pid = BVHelper.addPrefixPid(pid);
 
         viewData.bvDisplay = {
             bvPid: pid,
-            qvType: quickviewPref.value
+            qvType: quickviewPref.value,
+            productUrl: productUrl
         };
 
         if (quickviewPref.value.equals('inlineratings')) {

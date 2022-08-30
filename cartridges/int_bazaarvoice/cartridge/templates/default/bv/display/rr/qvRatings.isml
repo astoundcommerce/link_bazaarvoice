@@ -8,21 +8,21 @@
 //		- native
 //	- PDP summary
 
-var quickviewPref = dw.system.Site.current.getCustomPreferenceValue('bvQuickViewRatingsType_C2013');
+var quickviewPref = dw.system.Site.current.getCustomPreferenceValue('bvQuickViewRatingsType');
 var ratingTemplate = '';
 
 if(quickviewPref && quickviewPref.value && !quickviewPref.value.equals('none')) {
-	if(quickviewPref.value.equals('inlineratings')) {
-		var Product = pdict.Product;
-		ratingTemplate = 'bv/display/rr/ratings';
-	} else if(quickviewPref.value.equals('pdpsummary')) {
-		ratingTemplate = 'bv/display/pdpSummary';
-	}
+    if(quickviewPref.value.equals('inlineratings')) {
+        var Product = pdict.Product;
+        ratingTemplate = 'bv/display/rr/ratings';
+    } else if(quickviewPref.value.equals('pdpsummary')) {
+        ratingTemplate = 'bv/display/pdpSummary';
+    }
 }
 </isscript>
 
 <isif condition="${!empty(ratingTemplate)}">
-	<isinclude template="${ratingTemplate}"/>
+    <isinclude template="${ratingTemplate}"/>
 <iselse/>
-	<!-- BV Quickview Rating Type is off  -->
+    <iscomment> BV Quickview Rating Type is off  </iscomment>
 </isif>

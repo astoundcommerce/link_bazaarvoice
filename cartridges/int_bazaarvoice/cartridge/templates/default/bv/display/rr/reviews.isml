@@ -8,16 +8,14 @@ var bvPid = BVHelper.getProductId();
 // Obtain Cloud SEO content
 var CSEO = null;
 if(!empty(bvPid)) {
-	CSEO = require('*/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({"product_id" : bvPid});
+    CSEO = require('*/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({"product_id" : bvPid});
 }
 </isscript>
 
 <isif condition="${BVHelper.isRREnabled()}">
-	<!-- Reviews -->
-	<div data-bv-show="reviews" data-bv-productId="${bvPid}">
-		<isif condition="${CSEO !== null}">
-	    	<isprint value="${CSEO.reviews().getReviews()}" encoding="off"/>
-	    </isif>
-	</div>
-	<!-- End Reviews -->
+    <div data-bv-show="reviews" data-bv-product-id="${bvPid}">
+        <isif condition="${CSEO !== null}">
+            <isprint value="${CSEO.reviews().getReviews()}" encoding="off"/>
+        </isif>
+    </div>
 </isif>

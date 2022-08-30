@@ -1,7 +1,7 @@
 <!--- TEMPLATENAME: inLineRatingsHosted.isml --->
 
 <isif condition="${pdict.bvDisplay && pdict.bvDisplay.rating && pdict.bvDisplay.rating.enabled && pdict.bvDisplay.rating.type.equals('hosted')}">
-	<isif condition="${pdict.bvDisplay.bvPid}">	
-		<div data-bv-show="inline_rating" data-bv-productId="${pdict.bvDisplay.bvPid}" data-bv-redirect-url="${pdict.urls.product}"></div>
-	</isif>
+    <isif condition="${pdict.bvDisplay.bvPid}">	
+        <div data-bv-show="inline_rating" data-bv-product-id="${pdict.bvDisplay.bvPid}" data-bv-redirect-url="${pdict.bvDisplay.productUrl}" data-bv-seo="false"></div>
+    </isif>
 </isif>

@@ -7,42 +7,42 @@ var bvPid = BVHelper.setProductId(pdict.Product);
 // Obtain Cloud SEO content
 var CSEO = null;
 if(!empty(bvPid)) {
-	CSEO = require('*/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({'product_id' : bvPid});
+    CSEO = require('*/cartridge/scripts/lib/libCloudSEO.js').getBVSEO({'product_id' : bvPid});
 }
 </isscript>
 
 <isif condition="${BVHelper.isRREnabled() || BVHelper.isQAEnabled()}">
-	<!-- Reviews Summary -->
-	
-	<div data-bv-show="rating_summary" data-bv-productId="${bvPid}" id="data-bv-show" style="display:none" >
-		<isif condition="${CSEO !== null}">
-	    	<isprint value="${CSEO.reviews().getAggregateRating()}" encoding="off"/>
-	    </isif>
-	</div>
-	
-	<script type="text/javascript" language="javascript">
-	window.bvCallback = function() {
-		
-		if (typeof BV !=="undefined") {
-		BV.reviews.on('show', function () {	
-			//This line assumes Site Genesis tabs and is called when clicking on the review summary
-			jQuery('.tab.reviews .tab-switch').click();
-			
+    <iscomment> Reviews Summary </iscomment>
+    
+    <div data-bv-show="rating_summary" data-bv-product-id="${bvPid}" id="data-bv-show" class="bv-hidden">
+        <isif condition="${CSEO !== null}">
+            <isprint value="${CSEO.reviews().getAggregateRating()}" encoding="off"/>
+        </isif>
+    </div>
+    
+    <script type="text/javascript" language="javascript">
+    window.bvCallback = function() {
+        
+        if (typeof BV !=="undefined") {
+        BV.reviews.on('show', function () {	
+            //This line assumes Site Genesis tabs and is called when clicking on the review summary
+            jQuery('.tab.reviews .tab-switch').click();
+            
         });
-		
-	    BV.questions.on('show', function () {   	
-	    	//This line assumes Site Genesis tabs and is called when clicking on the Q&A summary
-	    	jQuery('.tab.questions .tab-switch').click();
-	    	
-        	});
-		}
-	  };
+        
+        BV.questions.on('show', function () {   	
+            //This line assumes Site Genesis tabs and is called when clicking on the Q&A summary
+            jQuery('.tab.questions .tab-switch').click();
+            
+            });
+        }
+      };
 
-	  setTimeout(function(){ 
-		  document.getElementById("data-bv-show").style.display = 'block';
-	  }, 1000);
-		
-		
-	</script>       
-	<!-- End Reviews Summary -->
+      setTimeout(function(){ 
+          document.getElementById("data-bv-show").classList.remove('bv-hidden');
+      }, 1000);
+        
+        
+    </script>       
+    <iscomment> End Reviews Summary </iscomment>
 </isif>

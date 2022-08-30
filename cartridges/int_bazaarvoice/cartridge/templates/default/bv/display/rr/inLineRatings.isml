@@ -1,30 +1,30 @@
-<!--- TEMPLATENAME: inLineRatingsHosted.isml --->
+<!--- TEMPLATENAME: inLineRatings.isml --->
 <isif condition="${Product !==null}">
-	<isscript>
-	var masterProduct = (Product.variant) ? Product.variationModel.master : Product;
-	var bvAvgRating = masterProduct.custom.bvAverageRating;
-	var bvRatingRange = masterProduct.custom.bvRatingRange;
-	var bvReviewCount = masterProduct.custom.bvReviewCount;
-	<!-- Try to parse the strings into numbers -->
-	var bvAvgRatingNum = new Number(bvAvgRating);
-	var bvRatingRangeNum = new Number(bvRatingRange);
-	var bvReviewCountNum = new Number(bvReviewCount);
-	var starsFile = null;
-	<!-- Don't display anything if any of our numbers won't parse into finite legal values -->
-	if (isFinite(bvAvgRatingNum) && bvAvgRating 
-	    && isFinite(bvRatingRangeNum) && bvRatingRange 
-	    && isFinite(bvReviewCountNum) && bvReviewCount) {
-	    
-	    starsFile = 'rating-' + bvAvgRatingNum.toFixed(1).toString().replace('.','_') + '.gif';
-	} else {
-	    starsFile = 'rating-0_0.gif';
-	    bvReviewCount = 0;
-	}
-	</isscript>
-	
-	<isif condition="${starsFile && bvReviewCount}">
-	    <div class="BVInlineRatings">
-	        <img alt="" src="${URLUtils.absStatic('/images/stars/' + starsFile)}"/> ${bvAvgRatingNum.toFixed(1).toString()}/${bvRatingRange.toString()} (${bvReviewCount})
-	    </div>
-	</isif>
+    <isscript>
+    var masterProduct = (Product.variant) ? Product.variationModel.master : Product;
+    var bvAvgRating = masterProduct.custom.bvAverageRating;
+    var bvRatingRange = masterProduct.custom.bvRatingRange;
+    var bvReviewCount = masterProduct.custom.bvReviewCount;
+    // Try to parse the strings into numbers
+    var bvAvgRatingNum = new Number(bvAvgRating);
+    var bvRatingRangeNum = new Number(bvRatingRange);
+    var bvReviewCountNum = new Number(bvReviewCount);
+    var starsFile = null;
+    // Don't display anything if any of our numbers won't parse into finite legal values
+    if (isFinite(bvAvgRatingNum) && bvAvgRating 
+        && isFinite(bvRatingRangeNum) && bvRatingRange 
+        && isFinite(bvReviewCountNum) && bvReviewCount) {
+        
+        starsFile = 'rating-' + bvAvgRatingNum.toFixed(1).toString().replace('.','_') + '.gif';
+    } else {
+        starsFile = 'rating-0_0.gif';
+        bvReviewCount = 0;
+    }
+    </isscript>
+    
+    <isif condition="${starsFile && bvReviewCount}">
+        <div class="BVInlineRatings">
+            <img alt="" src="${URLUtils.absStatic('/images/stars/' + starsFile)}"/> ${bvAvgRatingNum.toFixed(1).toString()}/${bvRatingRange.toString()} (${bvReviewCount})
+        </div>
+    </isif>
 </isif>

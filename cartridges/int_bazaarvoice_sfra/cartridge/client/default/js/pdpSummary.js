@@ -12,6 +12,11 @@ $(document).ready(function () {
         }
     };
     setTimeout(function () {
-        document.getElementById('data-bv-show').style.display = 'block';
+        document.getElementById('data-bv-show').classList.remove('bv-hidden');
     }, 1500);
+
+
+    $('body').on('product:afterAttributeSelect', function (e, response) {
+        $('div[data-bv-product-id]').attr('data-bv-product-id', response.data.product.id);
+    });
 });

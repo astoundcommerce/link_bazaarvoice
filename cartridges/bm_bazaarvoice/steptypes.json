@@ -1,0 +1,196 @@
+{
+    "step-types": {
+    	"script-module-step": [{
+		 	"@type-id":"custom.Bazaarvoice-Upload",
+		    "@supports-parallel-execution":"false",
+		    "@supports-site-context":"true",
+		    "@supports-organization-context":"true",
+		    "description":"Uploads feeds to the Bazaarvoice SFTP server.  Used for both product feeds and purchase feeds.",
+		    "module":"bm_bazaarvoice/cartridge/scripts/jobs/bvUploadFeeds.js",
+		    "function":"execute",
+		    "transactional":"false",
+		    "timeout-in-seconds":"10000",
+		    "parameters":
+		    {
+		    	"parameter": [{
+		          	"@name":"Enabled",
+		          	"@type":"boolean",
+		          	"@required":"false",
+		          	"@trim":"false",
+		          	"description":"Enable Upload of Product or Purchase Feed."
+		          	}, {
+		          	"@name":"FeedType",
+		          	"@type":"string",
+		          	"@required":"true",
+		          	"@trim":"false",
+		          	"description":"Product or Purchase Feed",
+		          	"enum-values": {
+		            	"value": [
+		              		"Product",
+		              		"Purchase"
+		            	]
+		          	}
+		        }]
+		    },
+		    "status-codes": {
+		    	"status":  [{
+		        	"@code": "ERROR",
+		            "description": "Used when the step failed with an error."
+		        }, {
+					"@code": "OK",
+					"description": "Used when the step finished successfully."
+				}]
+			}
+		}, {
+		 	"@type-id":"custom.Bazaarvoice-Download",
+		    "@supports-parallel-execution":"false",
+		    "@supports-site-context":"true",
+		    "@supports-organization-context":"true",
+		    "description":"Downloads inline rating feeds to the Bazaarvoice SFTP server.",
+		    "module":"bm_bazaarvoice/cartridge/scripts/jobs/bvDownloadFeeds.js",
+		    "function":"execute",
+		    "transactional":"false",
+		    "timeout-in-seconds":"10000",
+		    "parameters":
+		    {
+		    	"parameter": [{
+		          	"@name":"Enabled",
+		          	"@type":"boolean",
+		          	"@required":"false",
+		          	"@trim":"false",
+		          	"description":"Enable Download of Rating Feed."
+		          	}]
+		    },
+		    "status-codes": {
+		    	"status":  [{
+		        	"@code": "ERROR",
+		            "description": "Used when the step failed with an error."
+		        }, {
+					"@code": "OK",
+					"description": "Used when the step finished successfully."
+				}]
+			}
+		}, {
+		 	"@type-id":"custom.Bazaarvoice-Rating-Import",
+		    "@supports-parallel-execution":"false",
+		    "@supports-site-context":"true",
+		    "@supports-organization-context":"false",
+		    "description":"Import the inline rating data from Bazaarvoice.",
+		    "module":"bm_bazaarvoice/cartridge/scripts/jobs/bvRatingImport.js",
+		    "function":"execute",
+		    "transactional":"true",
+		    "timeout-in-seconds":"3600000",
+		    "parameters":
+		    {
+		    	"parameter": [{
+		          	"@name":"Enabled",
+		          	"@type":"boolean",
+		          	"@required":"false",
+		          	"@trim":"false",
+		          	"description":"Enable Import of Rating Feed."
+		          	}]
+		    },
+		    "status-codes": {
+		    	"status":  [{
+		        	"@code": "ERROR",
+		            "description": "Used when the step failed with an error."
+		        }, {
+					"@code": "OK",
+					"description": "Used when the step finished successfully."
+				}]
+			}
+		}],
+		
+        "chunk-script-module-step": [
+            {
+                "@type-id": "custom.Bazaarvoice-Product-Feed-Export",
+                "@supports-parallel-execution": "false",
+                "@supports-site-context": "true",
+                "@supports-organization-context": "false",
+                "description": "Generates and uploads a Bazaarvoice Product Feed that contains Brands, Categories, and Products for the current site.  A separate feed is created for each site.  Supports single locale and multiple locales based on the locale mapping site preference.",
+                "module": "bm_bazaarvoice/cartridge/scripts/jobs/bvProductExport.js",
+                "before-step-function": "beforeStep",
+                "total-count-function": "getTotalCount",
+                "before-chunk-function": "",
+                "read-function": "read",
+                "process-function": "process",
+                "write-function": "write",
+                "after-chunk-function": "",
+                "after-step-function": "afterStep",
+                "chunk-size": 100,
+                "transactional": "false",
+                "parameters": {
+                    "parameter": [{
+			          	"@name":"Enabled",
+			          	"@type":"boolean",
+			          	"@required":"false",
+			          	"@trim":"false",
+			          	"description":"Enable Generation of Product Feed. Can be used to turn of feed export without disabling the entire job."
+		          	}]
+                },
+                "status-codes": {
+                    "status": [
+                        {
+                            "@code": "ERROR",
+                            "description": "Used when the step failed with an error."
+                        },
+                        {
+                            "@code": "OK",
+                            "description": "Used when the step finished successfully."
+                        }
+                    ]
+                }
+            }, {
+                "@type-id": "custom.Bazaarvoice-Purchase-Feed-Export",
+                "@supports-parallel-execution": "false",
+                "@supports-site-context": "true",
+                "@supports-organization-context": "false",
+                "description": "Generates and uploads a Bazaarvoice Purchase (PIE) Feed that contains Order data for the current site.  A separate feed is created for each site.  Supports single locale and multiple locales based on the locale mapping site preference.",
+                "module": "bm_bazaarvoice/cartridge/scripts/jobs/bvPurchaseExport.js",
+                "before-step-function": "beforeStep",
+                "total-count-function": "getTotalCount",
+                "before-chunk-function": "",
+                "read-function": "read",
+                "process-function": "process",
+                "write-function": "write",
+                "after-chunk-function": "",
+                "after-step-function": "afterStep",
+                "chunk-size": 100,
+                "transactional": "true",
+                "parameters": {
+                    "parameter": [{
+			          	"@name":"Enabled",
+			          	"@type":"boolean",
+			          	"@required":"false",
+			          	"@trim":"false",
+			          	"description":"Enable Generation of Purchase Feed. Can be used to turn of feed export without disabling the entire job."
+		          	}, {
+			          	"@name":"PurchaseFeedWaitDays",
+			          	"@type":"string",
+			          	"@required":"true",
+			          	"@trim":"false",
+			          	"description":"The number of days to wait after the order is placed before exporting to BV.  Defaults to 0."
+		          	}, {
+			          	"@name":"PurchaseFeedNumDays",
+			          	"@type":"string",
+			          	"@required":"true",
+			          	"@trim":"false",
+			          	"description":"The number of days previous to now to look for orders that have not been exported. Defaults to 14."
+		          	}]
+                },
+                "status-codes": {
+                    "status": [
+                        {
+                            "@code": "ERROR",
+                            "description": "Used when the step failed with an error."
+                        },
+                        {
+                            "@code": "OK",
+                            "description": "Used when the step finished successfully."
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
