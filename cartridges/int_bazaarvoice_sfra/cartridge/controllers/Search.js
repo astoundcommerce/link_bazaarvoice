@@ -8,8 +8,8 @@ server.append('Show', function (req, res, next) {
     var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
     var Site = require('dw/system/Site').getCurrent();
 
-    var ratingPref = Site.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
-    var quickviewPref = Site.current.getCustomPreferenceValue('bvQuickViewRatingsType_C2013');
+    var ratingPref = Site.getCustomPreferenceValue('bvEnableInlineRatings');
+    var quickviewPref = Site.current.getCustomPreferenceValue('bvQuickViewRatingsType');
     var addScout = false;
     if ((ratingPref && ratingPref.value && ratingPref.value.equals('hosted')) || (quickviewPref && quickviewPref.value && quickviewPref.value.equals('pdpsummary'))) {
         addScout = true;

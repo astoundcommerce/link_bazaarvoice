@@ -1,18 +1,18 @@
 <!--- TEMPLATENAME: ratings.isml --->
 <isscript>
-var ratingPref = dw.system.Site.current.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
+var ratingPref = dw.system.Site.current.getCustomPreferenceValue('bvEnableInlineRatings');
 </isscript>
 
 <isif condition="${ratingPref && ratingPref.value}">
 
-	<isif condition="${ratingPref.value.equals('hosted')}">
-	
-		<isinclude template="bv/display/rr/inLineRatingsHosted"/>
+    <isif condition="${ratingPref.value.equals('hosted')}">
+    
+        <isinclude template="bv/display/rr/inLineRatingsHosted"/>
 
-	<iselseif condition="${ratingPref.value.equals('native')}"/>
-	
-		<isinclude template="bv/display/rr/inLineRatingsHosted"/>
-	
-	</isif>
+    <iselseif condition="${ratingPref.value.equals('native')}"/>
+    
+        <isinclude template="bv/display/rr/inLineRatings"/>
+    
+    </isif>
 
 </isif>

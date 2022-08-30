@@ -6,11 +6,11 @@
 DWP-448: Display the current LINK version for CSR debugging
 </iscomment>
 <isif condition="${!empty(bvConstants) && !empty(bvConstants.XML_GENERATOR)}">
-	<!-- ${bvConstants.XML_GENERATOR} -->
+    <iscomment> ${bvConstants.XML_GENERATOR} </iscomment>
 </isif>
 
 <isif condition="${!empty(BVHelper) && !empty(BVHelper.getBvLoaderUrl())}">
-	<script async type="text/javascript" src="${BVHelper.getBvLoaderUrl()}"></script>
+    <script async type="text/javascript" src="${BVHelper.getBvLoaderUrl()}"></script>
 <iselse/>
-	<!-- Cannot load BV Loader -->
+    <iscomment> Cannot load BV Loader </iscomment>
 </isif>

@@ -1,9 +1,7 @@
-<!--- TEMPLATENAME: productRating.isml --->
 <isscript>
-var assets = require('*/cartridge/scripts/assets');
-if(pdict.bvScout) {
-	assets.addJs(pdict.bvScout);
-}
+    var assets = require('*/cartridge/scripts/assets');
+    if(pdict.bvScout) {
+        assets.addJs(pdict.bvScout);
+    }
 </isscript>
-
 <isinclude template="bv/display/pdpSummary"/>

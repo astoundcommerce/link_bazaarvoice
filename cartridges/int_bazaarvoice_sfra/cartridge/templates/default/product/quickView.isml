@@ -4,66 +4,73 @@
 <isset name="isBundle" value="${false}" scope="page"/>
 <isset name="isQuickView" value="${true}" scope="page"/>
 <isset name="isProductSet" value="${false}" scope="page" />
+<isset name="loopState" value="${{count: 1}}" scope="page" />
 <div class="product-quickview product-${product.productType} col product-wrapper product-detail" data-pid="${product.id}">
     <div class="row">
-        <!-- Product Images Carousel -->
+        <iscomment> Product Images Carousel </iscomment>
         <isinclude template="product/components/imageCarousel" />
 
-        <!-- Product Name and Number -->
+        <iscomment> Product Name and Number </iscomment>
         <div class="col-sm-6">
-            <section>
-                <h1 class="product-name">${product.productName}</h1>
-            </section>
+            <div class="row">
+                <div class="col">
+                    <section>
+                        <h1 class="product-name">${product.productName}</h1>
+                    </section>
+                </div>
+            </div>
             
             <isif condition="${pdict.bvDisplay && pdict.bvDisplay.qvType}">
-            	<isif condition="${pdict.bvDisplay.qvType.equals('pdpsummary')}">
-            		<isinclude template="product/components/productRating" />
-            	<iselseif condition="${pdict.bvDisplay.qvType.equals('inlineratings')}" />
-            		<isinclude template="product/components/ratings" />
-            	</isif>
-			</isif>
-			
-			
+                <isif condition="${pdict.bvDisplay.qvType.equals('pdpsummary')}">
+                    <isinclude template="product/components/productRating" />
+                <iselseif condition="${pdict.bvDisplay.qvType.equals('inlineratings')}" />
+                    <isinclude template="product/components/ratings" />
+                </isif>
+            </isif>
+            
             <div class="detail-panel">
-                <!-- Attributes -->
+                <iscomment> Attributes </iscomment>
                 <section class="attributes">
-                    <div class="col-12">
-                        <isinclude template="product/components/mainAttributes" />
+
+                    <isinclude template="product/components/mainAttributes" />
 
                         <isloop items="${product.variationAttributes}" var="attr" status="attributeStatus">
-                            <div data-attr="${attr.id}" class="swatch">
+                            <div data-attr="${attr.id}" class="swatch row">
+                                <div class="col-8">
+                                    <isinclude template="product/components/variationAttribute" />
+                                </div>
+
                                 <isif condition="${attributeStatus.last}">
-                                    <!-- Quantity Drop Down Menu -->
-                                    <div class="quantity col-sm-6 d-sm-none">
+                                    <iscomment> Quantity Drop Down Menu </iscomment>
+                                    <div class="attribute quantity col-4 d-sm-none">
                                         <isif condition="${pdict.addToCartUrl || pdict.updateCartUrl}">
                                             <isinclude template="product/components/quantity" />
                                         </isif>
                                     </div>
                                 </isif>
-                                <isinclude template="product/components/variationAttribute" />
                             </div>
                         </isloop>
 
-                        <div class="d-sm-none col availability align-self-end " data-ready-to-order="${product.readyToOrder}" data-available="${product.available}">
+                        <div class="d-sm-none row availability align-self-end " data-ready-to-order="${product.readyToOrder}" data-available="${product.available}">
                             <isinclude template="product/components/availability" />
                         </div>
 
-                    </div>
-
                     <hr>
 
-                    <!-- Applicable Promotions -->
-                    <div class="row promotions">
-                        <div class="col-12 align-self-center">
-                            <isinclude template="product/components/promotions" />
+                    <iscomment> Applicable Promotions </iscomment>
+                    <div class="row">
+                        <div class="col-12 promotions">
+                            <div class="align-self-center">
+                                <isinclude template="product/components/promotions" />
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <isif condition="${product.productType  !== 'bundle'}">
-                    <!-- Options -->
+                <isif condition="${product.productType !== 'bundle'}">
+                    <iscomment> Options </iscomment>
                     <isif condition="${product.options && product.options.length > 0}">
-                        <isinclude template="product/components/options" />
+                            <isinclude template="product/components/options" />
                     </isif>
                 </isif>
             </div>
@@ -78,14 +85,14 @@
 
         <hr>
 
-        <!-- Quantity Drop Down Menu -->
+        <iscomment> Quantity Drop Down Menu </iscomment>
         <div class="row d-sm-none">
             <div class="quantity col-10 mx-auto">
                 <isinclude template="product/components/quantity" />
             </div>
         </div>
 
-        <!-- Availability -->
+        <iscomment> Availability </iscomment>
         <div class="row d-sm-none">
             <div class="col-11 mx-auto availability" data-ready-to-order="${product.readyToOrder}" data-available="${product.available}">
                 <isinclude template="product/components/availability" />
@@ -96,12 +103,17 @@
     <isset name="product" value="${productCopy}" scope="page"/>
 </div>
 <div class="modal-footer row align-items-end">
+    <isset name="loopState" value="${{count: 1}}" scope="page" />
+
     <div class="hidden-xs-down col availability align-self-end global-availability" data-ready-to-order="${product.readyToOrder}" data-available="${product.available}">
-        <isinclude template="product/components/availability" />
+        <div class="row">
+            <isinclude template="product/components/availability" />
+        </div>
     </div>
+    
     <div class="col">
         <div class="row align-items-end">
-            <!-- Quantity -->
+            <iscomment> Quantity </iscomment>
             <div class="hidden-xs-down col-4">
                 <isif condition="${pdict.addToCartUrl || pdict.updateCartUrl}">
                     <isinclude template="product/components/quantity" />
@@ -109,13 +121,13 @@
             </div>
 
             <div class="col-8 mx-auto">
-                <!-- Prices -->
+                <iscomment> Prices </iscomment>
                 <div class="prices">
                     <isset name="price" value="${product.price}" scope="page" />
                     <isinclude template="product/components/pricing/main" />
                 </div>
 
-                <!-- Cart and [Optionally] Apple Pay -->
+                <iscomment> Cart and [Optionally] Apple Pay </iscomment>
                 <isif condition="${pdict.addToCartUrl}">
                     <isinclude template="product/components/addToCartGlobal" />
                 <iselse>

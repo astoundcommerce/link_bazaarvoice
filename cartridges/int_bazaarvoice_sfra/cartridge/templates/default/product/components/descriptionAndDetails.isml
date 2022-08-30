@@ -9,9 +9,15 @@
     </isif>
 
     <div class="row description collapsible-xs <isif condition="${!product.shortDescription}">hidden-xl-down</isif>">
-        <h2 class="col-sm-12 col-md-4 col-lg-3">
-          <a class="title" href="${'#'}">${Resource.msg('label.description', 'product', null)}</a>
-        </h2>
+        <div class="col-sm-12 col-md-4 col-lg-3">
+            <button class="title btn text-left btn-block d-sm-none"
+                    aria-expanded="false" aria-controls="collapsible-description-${loopState && loopState.count ? loopState.count : '1' }"
+            >
+                ${Resource.msg('label.description', 'product', null)}
+            </button>
+            <h2 class="title d-none d-sm-block">${Resource.msg('label.description', 'product', null)}</h2>
+        </div>
+
         <isinclude template="product/components/description" />
     </div>
 
@@ -20,9 +26,17 @@
     </isif>
 
     <div class="row details collapsible-xs <isif condition="${!product.longDescription}">hidden-xl-down</isif>">
-        <h2 class="col-sm-12 col-md-4 col-lg-3">
-          <a class="title" href="${'#'}">${Resource.msg('label.details', 'product', null)}</a>
-        </h2>
+        <div class="col-sm-12 col-md-4 col-lg-3">
+            <button class="title btn text-left btn-block d-sm-none"
+                    aria-expanded="false" aria-controls="collapsible-details-${loopState && loopState.count ? loopState.count : '1' }"
+            >
+                ${Resource.msg('label.details', 'product', null)}
+            </button>
+            <h2 class="title d-none d-sm-block">
+                ${Resource.msg('label.details', 'product', null)}
+            </h2>
+        </div>
+        
         <isinclude template="product/components/details" />
     </div>
     
@@ -31,9 +45,17 @@
     </isif>
     
     <div class="row reviews collapsible-xs <isif condition="${!pdict.bvDisplay.rr.enabled}">hidden-xl-down</isif>">
-        <h2 class="col-sm-12 col-md-4 col-lg-3">
-          <a class="title" href="${'#'}">${Resource.msg('label.rr', 'product', null)}</a>
-        </h2>
+        <div class="col-sm-12 col-md-4 col-lg-3">
+            <button class="title btn text-left btn-block d-sm-none"
+                    aria-expanded="false" aria-controls="collapsible-description-${loopState && loopState.count ? loopState.count : '1' }"
+            >
+                ${Resource.msg('label.rr', 'product', null)}
+            </button>
+            <h2 class="title d-none d-sm-block">
+                ${Resource.msg('label.rr', 'product', null)}
+            </h2>
+        </div>
+
         <isinclude template="bv/display/rr/reviews" />
     </div>
     
@@ -42,9 +64,19 @@
     </isif>
     
     <div class="row questions collapsible-xs <isif condition="${!pdict.bvDisplay.qa.enabled}">hidden-xl-down</isif>">
-        <h2 class="col-sm-12 col-md-4 col-lg-3">
-          <a class="title" href="${'#'}">${Resource.msg('label.qa', 'product', null)}</a>
-        </h2>
+        <div class="col-sm-12 col-md-4 col-lg-3">
+            <button class="title btn text-left btn-block d-sm-none"
+                    aria-expanded="false" aria-controls="collapsible-description-${loopState && loopState.count ? loopState.count : '1' }"
+            >
+                ${Resource.msg('label.qa', 'product', null)}
+            </button>
+            <h2 class="title d-none d-sm-block">
+                ${Resource.msg('label.qa', 'product', null)}
+            </h2>
+        </div>
+
         <isinclude template="bv/display/qa/questions" />
     </div>
+    
+    
 </div>

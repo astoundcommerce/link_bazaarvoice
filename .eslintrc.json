@@ -2,6 +2,11 @@
     "root": true,
     "extends": "airbnb-base/legacy",
     "rules": {
+        "linebreak-style": 0,
+        "no-restricted-syntax": "off",
+        "guard-for-in": "off",
+        "no-lonely-if": "off",
+        "block-scoped-var": "off",
         "import/no-unresolved": "off",
         "indent": ["error", 4, { "SwitchCase": 1, "VariableDeclarator": 1 }],
         "func-names": "off",
@@ -28,5 +33,8 @@
         "session": true,
         "dw": true,
         "empty": true
-    }
+    },
+    "env": {
+        "jquery": true
+    }   
 }

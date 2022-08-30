@@ -17,12 +17,14 @@ server.append('Show', function (req, res, next) {
 
     var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
     var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-    var ratingPref = Site.current.getCustomPreferenceValue('bvEnableInlineRatings_C2013');
+    var ratingPref = Site.current.getCustomPreferenceValue('bvEnableInlineRatings');
     var ProductMgr = require('dw/catalog/ProductMgr');
 
     var apiProduct = ProductMgr.getProduct(viewData.product.id);
     var pid = (apiProduct.variant && !bvConstants.UseVariantID) ? apiProduct.variationModel.master.ID : apiProduct.ID;
     pid = BVHelper.replaceIllegalCharacters(pid);
+
+    pid = BVHelper.addPrefixPid(pid);
 
     viewData.bvDisplay = {
         bvPid: pid,

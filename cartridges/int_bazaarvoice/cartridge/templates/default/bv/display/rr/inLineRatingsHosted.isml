@@ -1,27 +1,28 @@
 <!--- TEMPLATENAME: inLineRatingsHosted.isml --->
 <isif condition="${Product !== null}">
-	<isscript>
-	var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-	var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+    <isscript>
+    var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+    var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+    var productUrl = require('dw/web/URLUtils').url('Product-Show', 'pid', Product.ID);
 
-	var bvPID = '';
-	 var enableProductFamilies = dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies_C2013');
+    var bvPID = '';
+     var enableProductFamilies = dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableProductFamilies');
 
-	if(enableProductFamilies) {
-		if(pdict.FirstProduct) {
-			bvPID = pdict.FirstProduct.ID.toLowerCase();
-		}
-		else {
-			bvPID = Product.ID.toLowerCase();
-		}
-	}
-	else {
-		bvPID = (Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase();
-	}
-	bvPID = BVHelper.replaceIllegalCharacters(bvPID);
-	</isscript>
-		
-	<isif condition="${!empty(bvPID)}">	
-		<div data-bv-show="inline_rating" data-bv-productId="${bvPID}" data-bv-redirect-url="${productUrl}"></div>
-	</isif>
+    if(enableProductFamilies) {
+        if(pdict.FirstProduct) {
+            bvPID = pdict.FirstProduct.ID.toLowerCase();
+        }
+        else {
+            bvPID = Product.ID.toLowerCase();
+        }
+    }
+    else {
+        bvPID = (Product.variant) ? Product.variationModel.master.ID.toLowerCase() : Product.ID.toLowerCase();
+    }
+    bvPID = BVHelper.addPrefixPid(BVHelper.replaceIllegalCharacters(bvPID));
+    </isscript>
+        
+    <isif condition="${!empty(bvPID)}">
+        <div data-bv-show="inline_rating" data-bv-product-id="${bvPID}" data-bv-redirect-url="${productUrl}" data-bv-seo="false"></div>
+    </isif>
 </isif>

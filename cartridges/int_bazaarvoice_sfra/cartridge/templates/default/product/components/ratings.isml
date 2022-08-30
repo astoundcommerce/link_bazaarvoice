@@ -1,11 +1,11 @@
 <isif condition="${pdict.bvDisplay && pdict.bvDisplay.rating && pdict.bvDisplay.rating.enabled}">
-	
-	<isif condition="${pdict.bvDisplay.rating.type.equals('native')}">
-	    <isinclude template="bv/display/rr/inLineRatingsHosted" />
-	  
-	<iselseif condition="${pdict.bvDisplay.rating.type.equals('hosted')}">
-	    <isinclude template="bv/display/rr/inLineRatingsHosted" />
-	
-	</isif>
-	
+    
+    <isif condition="${pdict.bvDisplay.rating.type.equals('native')}">
+        <isinclude template="bv/display/rr/inLineRatings" />
+      
+    <iselseif condition="${pdict.bvDisplay.rating.type.equals('hosted')}">
+        <isinclude template="bv/display/rr/inLineRatingsHosted" />
+    
+    </isif>
+    
 </isif>
