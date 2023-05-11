@@ -16,8 +16,8 @@
                 "orderId"	:	"${pdict.Order.orderNo}",
                 "tax"		:	"${pdict.Order.totalTax.value.toFixed(2)}",
                 "shipping"	:	"${pdict.Order.adjustedShippingTotalNetPrice.value.toFixed(2)}",
-                "total"		:	"${dw.order.TaxMgr.taxationPolicy == dw.order.TaxMgr.TAX_POLICY_NET ? pdict.Order.adjustedMerchandizeTotalNetPrice.value.toFixed(2) : pdict.Order.adjustedMerchandizeTotalGrossPrice.value.toFixed(2)}",
-                "discount"	:	"${dw.order.TaxMgr.taxationPolicy == dw.order.TaxMgr.TAX_POLICY_NET ? pdict.Order.merchandizeTotalNetPrice.subtract(pdict.Order.adjustedMerchandizeTotalNetPrice).value.toFixed(2) : pdict.Order.merchandizeTotalGrossPrice.subtract(pdict.Order.adjustedMerchandizeTotalGrossPrice).value.toFixed(2)}",
+                "total"		:	"${pdict.Order.adjustedMerchandizeTotalNetPrice.value.toFixed(2)}",
+                "discount"	:	"${pdict.Order.merchandizeTotalNetPrice.subtract(pdict.Order.adjustedMerchandizeTotalNetPrice).value.toFixed(2)}",
                 "city"		:	"${pdict.Order.billingAddress.city}",
                 "state"		:	"${pdict.Order.billingAddress.stateCode}",
                 "country"	:	"${pdict.Order.billingAddress.countryCode}",
@@ -36,7 +36,7 @@
                         {
                             "productId"	:	"${BVHelper.addPrefixPid(BVHelper.replaceIllegalCharacters((item.product.variant && !bvConstants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID))}",
                             "name"		:	"${item.product.name}",
-                            "price"		:	"${item.basePrice.value.toFixed(2)}",
+                            "price"		:	"${((item.quantityValue && item.netPrice) ? item.netPrice.divide(item.quantityValue) : item.basePrice).value.toFixed(2)}",
                             <isif condition="${!empty(BVHelper.getImageURL(item.product, bvConstants.PURCHASE))}">
                             "imageURL"	:	"${BVHelper.getImageURL(item.product, bvConstants.PURCHASE)}",
                             </isif>

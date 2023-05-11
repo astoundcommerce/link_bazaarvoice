@@ -5,7 +5,6 @@ server.extend(module.superModule);
 
 var OrderMgr = require('dw/order/OrderMgr');
 var Site = require('dw/system/Site');
-var TaxMgr = require('dw/order/TaxMgr');
 var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
 var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
 
@@ -24,8 +23,8 @@ server.append('Confirm', function (req, res, next) {
                 orderId: order.orderNo,
                 tax: order.totalTax.value.toFixed(2),
                 shipping: order.adjustedShippingTotalNetPrice.value.toFixed(2),
-                total: TaxMgr.taxationPolicy === TaxMgr.TAX_POLICY_NET ? order.adjustedMerchandizeTotalNetPrice.value.toFixed(2) : order.adjustedMerchandizeTotalGrossPrice.value.toFixed(2),
-                discount: TaxMgr.taxationPolicy === TaxMgr.TAX_POLICY_NET ? order.merchandizeTotalNetPrice.subtract(order.adjustedMerchandizeTotalNetPrice).value.toFixed(2) : order.merchandizeTotalGrossPrice.subtract(order.adjustedMerchandizeTotalGrossPrice).value.toFixed(2),
+                total: order.adjustedMerchandizeTotalNetPrice.value.toFixed(2),
+                discount: order.merchandizeTotalNetPrice.subtract(order.adjustedMerchandizeTotalNetPrice).value.toFixed(2),
                 city: order.billingAddress.city,
                 state: order.billingAddress.stateCode,
                 country: order.billingAddress.countryCode.value,
@@ -50,11 +49,12 @@ server.append('Confirm', function (req, res, next) {
                 var item = lineItems[i];
 
                 if (item.product && !BVHelper.isProductTypeExcluded(item.product)) {
+                    var priceItem = (item.quantityValue && item.netPrice) ? item.netPrice.divide(item.quantityValue) : item.basePrice;
                     var itemObj = {
                         productId: BVHelper.addPrefixPid(BVHelper.replaceIllegalCharacters((item.product.variant && entityId === 'master') ? item.product.variationModel.master.ID : item.product.ID)),
                         name: item.product.name,
                         quantity: item.quantity.value.toFixed(),
-                        price: item.basePrice.value.toFixed(2)
+                        price: priceItem.value.toFixed(2)
                     };
 
                     var img = BVHelper.getImageURL(item.product, bvConstants.PURCHASE);
