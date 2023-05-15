@@ -84,7 +84,7 @@ var supportedSubjectTypes = {
 function SEOContent(config, seoProduct) {
     var configMap;
     if (config === null || config.empty) {
-        Logger.error('Cannot create SEOContent object.  Config parameter is null or empty.');
+        Logger.warn('Cannot create SEOContent object.  Config parameter is null or empty.');
         return null;
     }
     configMap = config.clone();
@@ -154,7 +154,7 @@ function SEOContent(config, seoProduct) {
         configMap.execution_timeout_bot = createService('bazaarvoice.http.bot').getConfiguration().getProfile().getTimeoutMillis();
         configMap.execution_timeout = createService('bazaarvoice.http').getConfiguration().getProfile().getTimeoutMillis();
     } catch (te) {
-        Logger.error('isBot() Unable to pull the timeout values from the service profiles, using defaults instead.');
+        Logger.warn('isBot() Unable to pull the timeout values from the service profiles, using defaults instead.');
     }
     configMap.latency_timeout = isBot() ? configMap.execution_timeout_bot : configMap.execution_timeout;
 
@@ -214,7 +214,7 @@ function SEOContent(config, seoProduct) {
                 var matches = request.httpQueryString.match(regex);
                 pageNumber = matches[1];
             } catch (e) {
-                Logger.error('getPageNumber() Exception caught: ' + e.message);
+                Logger.warn('getPageNumber() Exception caught: ' + e.message);
             }
 
             Logger.debug('getPageNumber() URL after param check: ' + configMap.current_page_url);
@@ -277,7 +277,7 @@ function SEOContent(config, seoProduct) {
             isContentNotFound = false;
             return result.object;
         } catch (ex) {
-            Logger.error('fetchSeoContent() Exception while retrieving cloud content from ' + url + ': ' + ex.message);
+            Logger.warn('fetchSeoContent() Exception while retrieving cloud content from ' + url + ': ' + ex.message);
             setBuildMessage(ex.message);
             return '';
         }
@@ -558,14 +558,14 @@ function BVSEO() {
             }
             if (!empty(bvsMap.ct)) {
                 if (empty(supportedContentTypes[bvsMap.ct])) {
-                    Logger.error('[libCloudSEO.ds][getBVStateParams()] Unsupported Content Type: ' + bvsMap.ct);
+                    Logger.warn('[libCloudSEO.ds][getBVStateParams()] Unsupported Content Type: ' + bvsMap.ct);
                 } else {
                     params.put('content_type', supportedContentTypes[bvsMap.ct]);
                 }
             }
             if (!empty(bvsMap.st)) {
                 if (empty(supportedSubjectTypes[bvsMap.st])) {
-                    Logger.error('[libCloudSEO.ds][getBVStateParams()] Unsupported Subject Type: ' + bvsMap.st);
+                    Logger.warn('[libCloudSEO.ds][getBVStateParams()] Unsupported Subject Type: ' + bvsMap.st);
                 } else {
                     params.put('subject_type', supportedSubjectTypes[bvsMap.st]);
                 }
@@ -656,12 +656,12 @@ exports.getBVSEO = function (config) {
 
     var bvEnableCloudSEO = dw.system.Site.getCurrent().getCustomPreferenceValue('bvEnableCloudSEO');
     if (!bvEnableCloudSEO) {
-        Logger.error('Error initializing cloud SEO object. Cloud seo is not enabled.');
+        Logger.warn('Error initializing cloud SEO object. Cloud seo is not enabled.');
         return null;
     }
     // test for required parameters before we begin
     if (empty(config.product_id)) {
-        Logger.error('Error initializing cloud SEO object.  Missing product_id.');
+        Logger.warn('Error initializing cloud SEO object.  Missing product_id.');
         return null;
     }
 
@@ -672,7 +672,7 @@ exports.getBVSEO = function (config) {
     */
     configuration.cloud_key = dw.system.Site.getCurrent().getCustomPreferenceValue('bvCloudSEOKey');
     if (empty(config.cloud_key)) {
-        Logger.error('Error initializing cloud SEO object.  Missing cloud_key.');
+        Logger.warn('Error initializing cloud SEO object.  Missing cloud_key.');
         return null;
     }
 
@@ -685,7 +685,7 @@ exports.getBVSEO = function (config) {
     if (empty(config.deployment_zone_id)) {
         configuration.deployment_zone_id = bvdisplay.zone;
         if (empty(config.deployment_zone_id)) {
-            Logger.error('Error initializing cloud SEO object.  Missing deployment_zone_id.  You must supply either bvCloudSEODisplayCode or bvDeploymentZone');
+            Logger.warn('Error initializing cloud SEO object.  Missing deployment_zone_id.  You must supply either bvCloudSEODisplayCode or bvDeploymentZone');
             return null;
         }
     }

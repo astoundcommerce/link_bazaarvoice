@@ -27,7 +27,7 @@ function getConstants() {
         SEODisplayCode: '',
 
         RatingsFeedPath: 'feeds',
-        RatingsFeedFilename: 'ratings.xml.gz',
+        RatingsFeedFilename: 'bv_simpleenergy_ratings.xml.gz',
         RatingsFeedPrefix: 'bv',
 
         PurchaseFeedPath: '/ppe/inbox',

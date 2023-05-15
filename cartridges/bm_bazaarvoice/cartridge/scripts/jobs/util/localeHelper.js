@@ -4,7 +4,7 @@ var Site = require('dw/system/Site');
 var HashMap = require('dw/util/HashMap');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'localeHelper.js');
 
-var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var bvConstants = require('bm_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 /**
  * Returns localeMap hashmap
  * @param {string} type returns which type of object the locale is associated with

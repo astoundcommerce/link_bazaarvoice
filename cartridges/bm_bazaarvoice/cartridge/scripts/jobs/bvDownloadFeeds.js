@@ -1,13 +1,11 @@
 'use strict';
 
 var File = require('dw/io/File');
-var Site = require('dw/system/Site');
 var Status = require('dw/system/Status');
 var ServiceRegistry = require('dw/svc/LocalServiceRegistry');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvDownloadFeeds.js');
 
-var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+var bvConstants = require('bm_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
 /**
  * Connects to BAzaarvoice's ftp server and attempts to
@@ -16,8 +14,7 @@ var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceH
  */
 module.exports.execute = function () {
     try {
-        var service = ServiceRegistry.createService('bazaarvoice.sftp.import.' +
-        Site.current.ID, {
+        var service = ServiceRegistry.createService('bazaarvoice.sftp.import', {
             createRequest: function () {
                 return service;
             },
@@ -34,7 +31,7 @@ module.exports.execute = function () {
         if (empty(fpath)) {
             throw new Error('bvConstants.RatingsFeedPath is null or empty! Verify the configuration in libConstants.js');
         }
-        var fname = BVHelper.getRatingsFeedName();
+        var fname = bvConstants.RatingsFeedFilename;
         if (empty(fname)) {
             throw new Error('bvConstants.RatingsFeedFilename is null or empty! Verify the configuration in libConstants.js');
         }

@@ -7,7 +7,7 @@
 var Site = require('dw/system/Site');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'libBazaarvoice');
 
-var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+var bvConstants = require('bm_bazaarvoice/cartridge/scripts/lib/libConstants').getConstants();
 
 exports.getBazaarVoiceHelper = function () {
     /** *****************************************************************************************************************
@@ -50,7 +50,7 @@ exports.getBazaarVoiceHelper = function () {
     var getEnvironment = function () {
         var env = Site.getCurrent().getCustomPreferenceValue('bvEnvironment');
         if (!env || !env.value) {
-            Logger.error('bvEnvironment is null or empty!');
+            Logger.warn('bvEnvironment is null or empty!');
             return '';
         }
         return env.value;
@@ -176,7 +176,7 @@ exports.getBazaarVoiceHelper = function () {
                 Logger.warn('Site Preference bvLocaleMapping has invalid format for' + currentLocale);
             }
         } else {
-            Logger.error('Site Preference bvLocaleMapping requires at least one setting');
+            Logger.warn('Site Preference bvLocaleMapping requires at least one setting');
         }
 
         // Deployment Zone was not overridden in the locale mapping, so grab it from the preference
@@ -199,7 +199,7 @@ exports.getBazaarVoiceHelper = function () {
     var getBvLoaderUrl = function () {
         var client = Site.getCurrent().getCustomPreferenceValue('bvCustomerName');
         if (!client) {
-            Logger.error('Site Preference bvCustomerName is null or empty!');
+            Logger.warn('Site Preference bvCustomerName is null or empty!');
         }
         var bvdisplay = getDisplayData();
         var zoneId = bvdisplay.zone.toLowerCase().replace(' ', '_', 'g');
@@ -216,7 +216,7 @@ exports.getBazaarVoiceHelper = function () {
     var getBvApiHostUrl = function () {
         var client = Site.getCurrent().getCustomPreferenceValue('bvCustomerName');
         if (!client) {
-            Logger.error('Site Preference bvCustomerName is null or empty!');
+            Logger.warn('Site Preference bvCustomerName is null or empty!');
             client = 'CLIENTNAME';
         }
 
