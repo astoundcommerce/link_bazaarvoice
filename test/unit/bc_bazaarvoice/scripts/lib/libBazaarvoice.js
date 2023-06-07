@@ -19,7 +19,7 @@ describe('libBazaarvoice', function () {
         'dw/system/Logger': {
             getLogger: function () {}
         },
-        'bm_bazaarvoice/cartridge/scripts/lib/libConstants':
+        '*/cartridge/scripts/lib/libConstants':
             require('../../../../../cartridges/bm_bazaarvoice/cartridge/scripts/lib/libConstants')
     });
     it('replaceIllegalCharacters function testing', function () {

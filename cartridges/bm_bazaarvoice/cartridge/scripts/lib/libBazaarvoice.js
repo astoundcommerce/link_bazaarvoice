@@ -435,7 +435,7 @@ exports.getBazaarVoiceHelper = function () {
         var category = product.variant
                 ? product.masterProduct.primaryCategory
                 : product.primaryCategory;
-        return addPrefixCategoryName(category.displayName);
+        return addPrefixCategoryName(category ? category.displayName : '');
     };
 
     /*
@@ -448,7 +448,8 @@ exports.getBazaarVoiceHelper = function () {
         productData.productId = addPrefixPid(product.ID);
         productData.productName = product.name;
         productData.productDescription = getDescription(product);
-        productData.productImageURL = product.getImage(bvConstants.BV_DEFAULTIMAGETYPE).getHttpsURL().toString();
+        var productImage = product.getImage(bvConstants.BV_DEFAULTIMAGETYPE);
+        productData.productImageURL = productImage ? productImage.getHttpsURL().toString() : '';
         productData.productPageURL = dw.web.URLUtils.http('Product-Show', 'pid', product.ID).toString();
         if (product.brand) {
             productData.brandName = product.brand;
