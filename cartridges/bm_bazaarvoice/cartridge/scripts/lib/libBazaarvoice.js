@@ -674,6 +674,11 @@ exports.getBazaarVoiceHelper = function () {
         return '';
     };
 
+    // Use case insensitive product ID for Inline Ratings Import,
+    var useCaseInsensitivePid = function () {
+        return Site.getCurrent().getCustomPreferenceValue('bvEnableCaseInsensitivePID');
+    };
+
     return {
         getImageURL: getImageURL,
         getCustomerName: getCustomerName,
@@ -702,6 +707,7 @@ exports.getBazaarVoiceHelper = function () {
         addPrefixCgid: addPrefixCgid,
         getEntityId: getEntityId,
         getAdditionalProductFamily: getAdditionalProductFamily,
-        getDeploymentZone: getDeploymentZone
+        getDeploymentZone: getDeploymentZone,
+        useCaseInsensitivePid: useCaseInsensitivePid
     };
 };
