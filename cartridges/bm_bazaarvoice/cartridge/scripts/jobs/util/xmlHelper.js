@@ -151,6 +151,25 @@ function writeLocalizedElementCDATA(elementName, locale, chars) {
 }
 
 /**
+ * Validate a product - it's a simple product
+ * @param {dw.catalog.Product} product - Demandware product object
+ * @returns {boolean} returns status of validation
+ */
+function isSimpleProduct(product) {
+    // Do not include Master product
+    if (product.master) return false;
+    // Do not include Variant products
+    if (product.variant) return false;
+    // Do not include Set products
+    if (product.productSet) return false;
+    // Do not include Option products
+    // if (product.optionProduct) return false;
+    // Do not include Bundle product
+    if (product.bundle) return false;
+    return true;
+}
+
+/**
  * Validate product wrt to entityID and entityFamily
  * @param {Object} product Demandware product object
  * @returns {boolean} returns status of validation
@@ -159,10 +178,10 @@ function validateProduct(product) {
     var validateStatus = false;
     switch (BVHelper.getEntityId().value) {
         case 'master':
-            validateStatus = product.master;
+            validateStatus = product.master || isSimpleProduct(product);
             break;
         case 'variantID':
-            validateStatus = product.master || product.variant;
+            validateStatus = product.master || product.variant || isSimpleProduct(product);
             break;
         default:
             validateStatus = false;
