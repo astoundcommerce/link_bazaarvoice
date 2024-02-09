@@ -14,7 +14,14 @@ var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceH
  * download and unzip the product ratings feed
  * @returns {Status} Status of "OK if successful, or "Error"
  */
-module.exports.execute = function () {
+module.exports.execute = function (parameters) {
+    var enabled = parameters.Enabled;
+
+    if (!enabled) {
+        Logger.info('Download Rating Feed Enable Parameter is not true!');
+        return new Status(Status.OK);
+    }
+
     try {
         var service = ServiceRegistry.createService('bazaarvoice.sftp.import.' +
         Site.current.ID, {
