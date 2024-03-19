@@ -1,6 +1,6 @@
 {
   "name": "int_bazaarvoice_sfra",
-  "version": "23.1.0",
+  "version": "23.2.0",
   "description": "Bazaarvoice LINK Cartridge For Salesforce Commerce Cloud",
   "paths": {
     "base": "../storefront-reference-architecture/cartridges/app_storefront_base/"
