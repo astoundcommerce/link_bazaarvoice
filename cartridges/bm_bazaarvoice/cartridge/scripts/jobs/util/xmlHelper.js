@@ -202,7 +202,9 @@ function getProductEntityId(product) {
             id = product.variationModel.master == null ? product.ID : product.variationModel.master.ID;
             break;
         case 'variantID':
-            id = product.variant ? product.ID : product.variationModel.master.ID;
+            var masterID = product.variationModel && product.variationModel.master
+                ? product.variationModel.master.ID : product.ID;
+            id = product.variant ? product.ID : masterID;
             break;
         default:
             break;

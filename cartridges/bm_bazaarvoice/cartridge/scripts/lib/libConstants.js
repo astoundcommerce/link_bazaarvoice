@@ -87,6 +87,8 @@ function getConstants() {
         PURCHASE: 'PURCHASE',
         PRODUCT: 'PRODUCT',
 
+        ALWAYS_USE_LOCALE_ATTR: true,
+
         BV_DEFAULTLOCALE: 'default',
         DEFAULT_ZONE: 'Main Site',
         BV_DISPLAY_PATH: 'bv/display/',

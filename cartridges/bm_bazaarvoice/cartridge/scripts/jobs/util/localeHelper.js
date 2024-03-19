@@ -5,6 +5,8 @@ var HashMap = require('dw/util/HashMap');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'localeHelper.js');
 
 var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+const { ALWAYS_USE_LOCALE_ATTR } = bvConstants;
+
 /**
  * Returns localeMap hashmap
  * @param {string} type returns which type of object the locale is associated with
@@ -52,7 +54,7 @@ function getLocaleMap(type) {
             }
         }
 
-        if (localeMap.size() === 1) {
+        if (!ALWAYS_USE_LOCALE_ATTR && localeMap.size() === 1) {
             if (localeMap.keySet()[0] === defaultLocale) {
                 localeMap.clear();
                 Logger.debug('Only 1 valid mapping found and its for the default SFCC locale: ' + defaultLocale + '.  Assuming defaults for both systems.');
@@ -70,14 +72,23 @@ function getLocaleMap(type) {
             Logger.debug('Only 1 mapping for a BV locale only, so assuming defaults for both systems.');
         } else if (bvConstants.regPair.test(item)) {
             var a = item.split(':');
-            a[0] = a[0].replace(/^[\s]+|[\s]+$/g, '');
-            a[1] = a[1].replace(/^[\s]+|[\s]+$/g, '');
+            dwLocale = a[0].replace(/^[\s]+|[\s]+$/g, '');
+            bvLocale = a[1].replace(/^[\s]+|[\s]+$/g, '');
 
-            // there is only one mapping, and it does not match the (radio button) default DW locale
-            // In this case, the job needs to explicitly set the locale to the mapped DW locale
-            if (allowedLocales.indexOf(a[0]) !== -1 && !(a[0].equals(defaultLocale))) {
-                dwLocale = a[0];
-                bvLocale = a[1];
+            if (ALWAYS_USE_LOCALE_ATTR) {
+                if (allowedLocales.indexOf(dwLocale) === -1) {
+                    Logger.debug('Skipping invalid mapping: ' + item + '.  SFCC locale is not allowed for this Site.');
+                } else if (localeMap.values().contains(bvLocale) && context === 'product') {
+                    // for the product feed, we have to remove duplicate BV locales, but for purchase feed, we need to be able to map
+                    // any dw locale to its BV locale
+                    Logger.debug('Skipping invalid mapping: ' + item + '.  BV locale is already mapped for this Site.');
+                } else {
+                    localeMap.put(dwLocale, bvLocale);
+                    Logger.debug('Locale Mapping found: ' + dwLocale + '(SFCC) ==> ' + bvLocale + '(BV)');
+                }
+            } else if (allowedLocales.indexOf(dwLocale) !== -1 && !(dwLocale.equals(defaultLocale))) {
+                // there is only one mapping, and it does not match the (radio button) default DW locale
+                // In this case, the job needs to explicitly set the locale to the mapped DW locale
                 if (bvLocale.indexOf('/') !== -1) {
                     bvLocale = bvLocale.split('/')[1];
                 }
@@ -99,7 +110,7 @@ function getLocaleMap(type) {
  * @returns {array} localeMap
  */
 function isMultiLocale(localeMap) {
-    return localeMap && localeMap.keySet() && localeMap.keySet().length > 1;
+    return ALWAYS_USE_LOCALE_ATTR || (localeMap && localeMap.keySet() && localeMap.keySet().length > 1);
 }
 /**
  * Returns bv locale map
