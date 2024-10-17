@@ -63,7 +63,6 @@ function beforeStep(parameters) {
     orderItr = OrderMgr.searchOrders(queryString, 'orderNo ASC', startDate, endDate, true);
     orderCount = orderItr.count;
 
-
     triggeringEvent = PurchaseHelper.getTriggeringEvent();
 
     var cal = new Calendar();
@@ -124,8 +123,8 @@ function write(orders) {
         // make sure we havent sent this order yet
         // we cannot query against this custom boolean if the value was never set, aka legacy orders
         // if(order.custom[CUSTOM_FLAG] === true) {
-        //	Logger.debug('Skipping Order:' + order.getOrderNo() + '. Order was already sent to BV.');
-        //	return;
+        // Logger.debug('Skipping Order:' + order.getOrderNo() + '. Order was already sent to BV.');
+        // return;
         // }
 
         // Our original order query pulled orders that were created before the end date. (same as purchase triggering event)
@@ -162,8 +161,8 @@ function write(orders) {
         // We need to find out if the order is placed with the current locale
         // we have already verified that we have a matching bv locale in the mappings
         // if(!order.getCustomerLocaleID().equals(currentLocale) && (!localeMap || !localeMap.get(order.getCustomerLocaleID()))) {
-        //	Logger.debug('Skipping order: order locale {1} does not have a mapped BV locale.', order.getCustomerLocaleID());
-        //	return;
+        // Logger.debug('Skipping order: order locale {1} does not have a mapped BV locale.', order.getCustomerLocaleID());
+        // return;
         // }
 
         XMLHelper.writePurchaseFeedItem(order, localeMap);

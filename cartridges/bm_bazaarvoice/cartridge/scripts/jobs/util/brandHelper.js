@@ -18,10 +18,20 @@ function getBrandList() {
     psm.search();
 
     var refinements = psm.getRefinements();
-    var brandVals = refinements.getAllRefinementValues('brand');
-    if (!brandVals.empty) {
+    var brandVals = null;
+
+    try {
+        brandVals = refinements.getAllRefinementValues('brand');
+    } catch (error) {
+        Logger.error('Brand refinement not found');
+        return brands;
+    }
+
+    if (brandVals && !brandVals.empty) {
         brands = new ArrayList(brandVals);
         Logger.debug('Brand refinement values found: ' + brands.length);
+    } else {
+        Logger.debug('Brand refinement values not found');
     }
 
     return brands;

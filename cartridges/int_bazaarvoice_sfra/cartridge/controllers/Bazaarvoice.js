@@ -13,7 +13,8 @@ var server = require('server');
 /**
 * Container
 *
-* Simply loads the bv.js scout file on a blank page.  Used by Bazaarvoice as a review submission container for mobile
+* Simply loads the bv.js scout file on a blank page.
+* Used by Bazaarvoice as a review submission container for mobile
 * reviews and non-mobile reviews from emails.
 *
 * @return {String} The string 'myFunction'

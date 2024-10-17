@@ -1,5 +1,6 @@
-/* eslint-disable consistent-return */
 'use strict';
+
+/* eslint-disable consistent-return */
 
 var File = require('dw/io/File');
 var Site = require('dw/system/Site');
@@ -46,8 +47,8 @@ function execute(parameters) {
             return fileregex.test(f.name);
         });
 
-        var service = ServiceRegistry.createService('bazaarvoice.sftp.export.' +
-        Site.current.ID, {
+        var service = ServiceRegistry.createService('bazaarvoice.sftp.export.'
+        + Site.current.ID, {
             createRequest: function () {
                 return service;
             },

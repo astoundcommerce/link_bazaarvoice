@@ -1,4 +1,5 @@
 'use strict';
+
 /**
  *
  * A library file for BazaarVoice communication.
@@ -11,18 +12,19 @@ var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants()
 
 exports.getBazaarVoiceHelper = function () {
     /** *****************************************************************************************************************
-    *  getImageURL()
-    * @param {Object} product  product object
-    * @param {string} feed type of feed
-    * @returns {string} imgUrl
-    *    Returns a product image url for use in the product and purchase feeds.  By default,
-    *    the custom site preferences for image type is used to get the url: e.g. large, medium, small.
-    *    If no image is found, the medium image is used.  If no medium image is found, an empty string is returned.
-    *
-    *    feed parameter is either "PRODUCT" or "PURCHASE", defaults to PRODUCT.
-    *
-    *    If you do not use the standard DW product images (scene7, SITS, etc.), you must customize this function!
-    *******************************************************************************************************************/
+     *
+     *  getImageURL()
+     * @param {Object} product  product object
+     * @param {string} feed type of feed
+     * @returns {string} imgUrl
+     *    Returns a product image url for use in the product and purchase feeds.  By default,
+     *    the custom site preferences for image type is used to get the url: e.g. large, medium, small.
+     *    If no image is found, the medium image is used.  If no medium image is found, an empty string is returned.
+     *
+     *    feed parameter is either "PRODUCT" or "PURCHASE", defaults to PRODUCT.
+     *
+     *    If you do not use the standard DW product images (scene7, SITS, etc.), you must customize this function!
+     ****************************************************************************************************************** */
     var getImageURL = function (product, feed) {
         var IMAGE_SIZE = '';
         var imgURL = '';
@@ -433,8 +435,8 @@ exports.getBazaarVoiceHelper = function () {
      */
     var getProductCategoryName = function (product) {
         var category = product.variant
-                ? product.masterProduct.primaryCategory
-                : product.primaryCategory;
+            ? product.masterProduct.primaryCategory
+            : product.primaryCategory;
         return addPrefixCategoryName(category ? category.displayName : '');
     };
 
@@ -473,6 +475,7 @@ exports.getBazaarVoiceHelper = function () {
             if (!isFormattingFamiliesEnabled()) {
                 productData.family = product.isVariant() ? addFamilyPrefix(product.getMasterProduct().ID) : addFamilyPrefix(product.ID);
             } else {
+                // eslint-disable-next-line no-lonely-if
                 if (product.master || product.variationGroup) {
                     productData.families = {
                         id: addPrefixPid(product.ID),
@@ -522,34 +525,34 @@ exports.getBazaarVoiceHelper = function () {
         } else if (isAggregateAttrEnabled() && isProductFamiliesEnabled()) {
             if (product.productSet) {
                 showEans = false;
-                for (a = 0; a < product.productSetProducts.length; a++) {
-                    if (!empty(product.productSetProducts[a].EAN)) {
+                for (var a1 = 0; a1 < product.productSetProducts.length; a1++) {
+                    if (!empty(product.productSetProducts[a1].EAN)) {
                         showEans = true;
                         break;
                     }
                 }
 
                 if (showEans) {
-                    for (b = 0; b < product.productSetProducts.length; b++) {
-                        if (!empty(product.productSetProducts[b].EAN)) {
-                            eans.push(product.productSetProducts[b].EAN);
+                    for (var b1 = 0; b1 < product.productSetProducts.length; b1++) {
+                        if (!empty(product.productSetProducts[b1].EAN)) {
+                            eans.push(product.productSetProducts[b1].EAN);
                         }
                     }
                 }
             } else {
                 masterProduct = !product.master && product.variant ? product.masterProduct : product;
                 showEans = false;
-                for (a = 0; a < masterProduct.variants.length; a++) {
-                    if (!empty(masterProduct.variants[a].EAN)) {
+                for (var a2 = 0; a2 < masterProduct.variants.length; a2++) {
+                    if (!empty(masterProduct.variants[a2].EAN)) {
                         showEans = true;
                         break;
                     }
                 }
 
                 if (showEans) {
-                    for (b = 0; b < masterProduct.variants.length; b++) {
-                        if (!empty(masterProduct.variants[b].EAN)) {
-                            eans.push(masterProduct.variants[b].EAN);
+                    for (var b2 = 0; b2 < masterProduct.variants.length; b2++) {
+                        if (!empty(masterProduct.variants[b2].EAN)) {
+                            eans.push(masterProduct.variants[b2].EAN);
                         }
                     }
                 }
@@ -586,34 +589,34 @@ exports.getBazaarVoiceHelper = function () {
         } else if (isAggregateAttrEnabled() && isProductFamiliesEnabled()) {
             if (product.productSet) {
                 showUpcs = false;
-                for (k = 0; k < product.productSetProducts.length; k++) {
-                    if (!empty(product.productSetProducts[k].UPC)) {
+                for (var k1 = 0; k1 < product.productSetProducts.length; k1++) {
+                    if (!empty(product.productSetProducts[k1].UPC)) {
                         showUpcs = true;
                         break;
                     }
                 }
 
                 if (showUpcs) {
-                    for (c = 0; c < product.productSetProducts.length; c++) {
-                        if (!empty(product.productSetProducts[c].UPC)) {
-                            upcs.push(product.productSetProducts[c].UPC);
+                    for (var c1 = 0; c1 < product.productSetProducts.length; c1++) {
+                        if (!empty(product.productSetProducts[c1].UPC)) {
+                            upcs.push(product.productSetProducts[c1].UPC);
                         }
                     }
                 }
             } else {
                 masterProduct = !product.master && product.variant ? product.masterProduct : product;
                 showUpcs = false;
-                for (k = 0; k < masterProduct.variants.length; k++) {
-                    if (!empty(masterProduct.variants[k].UPC)) {
+                for (var k2 = 0; k2 < masterProduct.variants.length; k2++) {
+                    if (!empty(masterProduct.variants[k2].UPC)) {
                         showUpcs = true;
                         break;
                     }
                 }
 
                 if (showUpcs) {
-                    for (c = 0; c < masterProduct.variants.length; c++) {
-                        if (!empty(masterProduct.variants[c].UPC)) {
-                            upcs.push(masterProduct.variants[c].UPC);
+                    for (var c2 = 0; c2 < masterProduct.variants.length; c2++) {
+                        if (!empty(masterProduct.variants[c2].UPC)) {
+                            upcs.push(masterProduct.variants[c2].UPC);
                         }
                     }
                 }

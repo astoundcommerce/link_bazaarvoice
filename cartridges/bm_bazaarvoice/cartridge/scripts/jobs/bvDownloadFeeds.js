@@ -12,6 +12,7 @@ var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceH
 /**
  * Connects to BAzaarvoice's ftp server and attempts to
  * download and unzip the product ratings feed
+ * @param {Object} parameters - job parameters
  * @returns {Status} Status of "OK if successful, or "Error"
  */
 module.exports.execute = function (parameters) {
@@ -23,8 +24,8 @@ module.exports.execute = function (parameters) {
     }
 
     try {
-        var service = ServiceRegistry.createService('bazaarvoice.sftp.import.' +
-        Site.current.ID, {
+        var service = ServiceRegistry.createService('bazaarvoice.sftp.import.'
+        + Site.current.ID, {
             createRequest: function () {
                 return service;
             },
