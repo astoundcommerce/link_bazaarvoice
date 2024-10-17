@@ -119,6 +119,7 @@ function appendBVQuickViewData(req, res) {
                 var bvReviewCountNum = Number(bvReviewCount);
 
                 var starsFile = null;
+                // eslint-disable-next-line no-restricted-globals
                 if (isFinite(bvAvgRatingNum) && bvAvgRating && isFinite(bvRatingRangeNum) && bvRatingRange && isFinite(bvReviewCountNum) && bvReviewCount) {
                     starsFile = 'rating-' + bvAvgRatingNum.toFixed(1).toString().replace('.', '_') + '.gif';
                 } else {

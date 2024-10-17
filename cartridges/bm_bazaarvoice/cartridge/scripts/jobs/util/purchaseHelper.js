@@ -32,7 +32,6 @@ function getLatestShipmentDate(order) {
     return new Date(latestShipment);
 }
 
-
 /**
 * This is a function gets the last order shipment based on order
 * @param {string} order - get order object

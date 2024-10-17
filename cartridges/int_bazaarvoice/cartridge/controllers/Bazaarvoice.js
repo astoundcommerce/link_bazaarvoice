@@ -17,9 +17,9 @@ function container() {
     app.getView().render('bv/container/container');
 }
 
-/*
+/**
  * Export the publicly available controller methods
+ * Renders the home page.
+ * @see module:controllers/Bazaarvoice-Container
  */
-/** Renders the home page.
- * @see module:controllers/Bazaarvoice-Container */
 exports.Container = guard.ensure(['get'], container);

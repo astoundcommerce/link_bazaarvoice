@@ -1,9 +1,11 @@
+'use strict';
+
 /**
 * libCloudSEO.js
 *
-*	Library code to render the Cloud SEO content.
-*	Based on the PHP SDK found at
-*	https://github.com/bazaarvoice/seo_sdk_php
+* Library code to render the Cloud SEO content.
+* Based on the PHP SDK found at
+* https://github.com/bazaarvoice/seo_sdk_php
 *
 */
 var Calendar = require('dw/util/Calendar');
@@ -41,24 +43,24 @@ var createService = function (serviceId) {
 /**
 * BVSEO class
 *
-*	Usage:
-*		var bvSeo = getBVSEO({
-*			"product_id" : "123456789",
-*		});
-*		bvSeo.reviews().getContent();
-*		bvSeo.questions().getContent();
+* Usage:
+*   var bvSeo = getBVSEO({
+*       "product_id" : "123456789",
+*   });
+*   bvSeo.reviews().getContent();
+*   bvSeo.questions().getContent();
 *
 *   Required fields:
 *      product_id (string)
 *
-*	Optional fields
-*      	current_page_url (string) (defaults to detecting the current_page automtically)
-*      	staging (boolean) (defaults to true, need to put false when go to production)
-*      	subject_type (string) (defaults to product, for questions you can pass in categories here if needed)
-*      	latency_timeout (int) (in millseconds) (defaults to 1000ms)
-*		content_type (string) (defaults to reviews which is the only supported product right now)
-*   	bot_list (string) (defualts to msnbot|googlebot|teoma|bingbot|yandexbot|yahoo)
-*		bot_detection (boolean) (defaults to true, only rendering content if a bot is detected, or bvreveal is a uri parameter)
+*   Optional fields
+*       current_page_url (string) (defaults to detecting the current_page automtically)
+*       staging (boolean) (defaults to true, need to put false when go to production)
+*       subject_type (string) (defaults to product, for questions you can pass in categories here if needed)
+*       latency_timeout (int) (in millseconds) (defaults to 1000ms)
+*       content_type (string) (defaults to reviews which is the only supported product right now)
+*       bot_list (string) (defualts to msnbot|googlebot|teoma|bingbot|yandexbot|yahoo)
+*       bot_detection (boolean) (defaults to true, only rendering content if a bot is detected, or bvreveal is a uri parameter)
 */
 var supportedContentTypes = {
     r: 'reviews',
@@ -98,9 +100,9 @@ function SEOContent(config, seoProduct) {
     var seoUrl = '';
     var responseTime = 0;
 
-    /** ****************
-    * PRIVATE METHODS *
-    ******************/
+    // *******************
+    // * PRIVATE METHODS *
+    // *******************
 
     /**
     * setBuildMessage
@@ -316,40 +318,40 @@ function SEOContent(config, seoProduct) {
         if (isContentNotFound) {
             var contentTypeErrorMessage = configMap.content_type.includes('reviews') ? 'RR' : 'QA';
             contentTypeErrorMessage += ' Not Found';
-            footer += '\n	<li data-bvseo="ct_st">' + configMap.content_type + ', ' + configMap.subject_type + '</li>';
-            footer += '\n	<li data-bvseo="ms">' + StringUtils.stringToHtml('BV SEO Enabled: ' + contentTypeErrorMessage) + '</li>';
+            footer += '\n   <li data-bvseo="ct_st">' + configMap.content_type + ', ' + configMap.subject_type + '</li>';
+            footer += '\n   <li data-bvseo="ms">' + StringUtils.stringToHtml('BV SEO Enabled: ' + contentTypeErrorMessage) + '</li>';
         } else {
-            footer += '\n	<li data-bvseo="sdk">bvseo_sdk, ' + bvConstants.CLOUD_SEO_VERSION + ', p_sdk_3.2.0</li>';
-            footer += '\n	<li data-bvseo="sp_mt">CLOUD, ' + method + ', ' + responseTime + 'ms</li>';
-            footer += '\n	<li data-bvseo="ct_st">' + configMap.content_type + ', ' + configMap.subject_type + '</li>';
+            footer += '\n   <li data-bvseo="sdk">bvseo_sdk, ' + bvConstants.CLOUD_SEO_VERSION + ', p_sdk_3.2.0</li>';
+            footer += '\n   <li data-bvseo="sp_mt">CLOUD, ' + method + ', ' + responseTime + 'ms</li>';
+            footer += '\n   <li data-bvseo="ct_st">' + configMap.content_type + ', ' + configMap.subject_type + '</li>';
             if (!empty(msg)) {
-                footer += '\n	<li data-bvseo="ms">bvseo-msg: ' + StringUtils.stringToHtml(msg) + '</li>';
+                footer += '\n   <li data-bvseo="ms">bvseo-msg: ' + StringUtils.stringToHtml(msg) + '</li>';
             }
         }
 
         footer += '\n</ul>';
         if (getBVReveal()) {
             footer += '\n<ul id="BVSEOSDK_DEBUG" style="display:none;">';
-            footer += '\n	<li data-bvseo="staging">' + configMap.staging + '</li>';
-            footer += '\n	<li data-bvseo="seo.sdk.enabled">' + configMap.seo_sdk_enabled + '</li>';
-            footer += '\n	<li data-bvseo="seo.sdk.execution.timeout.bot">' + configMap.execution_timeout_bot + '</li>';
-            footer += '\n	<li data-bvseo="seo.sdk.execution.timeout">' + configMap.execution_timeout + '</li>';
-            footer += '\n	<li data-bvseo="cloudKey">' + configMap.cloud_key + '</li>';
-            footer += '\n	<li data-bvseo="bv.root.folder">' + encodeURI(configMap.deployment_zone_id.replace(' ', '_', 'g')) + '</li>';
-            footer += '\n	<li data-bvseo="seo.sdk.charset">' + configMap.charset + '</li>';
-            footer += '\n	<li data-bvseo="seo.sdk.ssl.enabled">' + configMap.ssl_enabled + '</li>';
-            footer += '\n	<li data-bvseo="crawlerAgentPattern">' + configMap.bot_list + '</li>';
-            footer += '\n	<li data-bvseo="subjectID">' + encodeURI(configMap.product_id) + '</li>';
+            footer += '\n   <li data-bvseo="staging">' + configMap.staging + '</li>';
+            footer += '\n   <li data-bvseo="seo.sdk.enabled">' + configMap.seo_sdk_enabled + '</li>';
+            footer += '\n   <li data-bvseo="seo.sdk.execution.timeout.bot">' + configMap.execution_timeout_bot + '</li>';
+            footer += '\n   <li data-bvseo="seo.sdk.execution.timeout">' + configMap.execution_timeout + '</li>';
+            footer += '\n   <li data-bvseo="cloudKey">' + configMap.cloud_key + '</li>';
+            footer += '\n   <li data-bvseo="bv.root.folder">' + encodeURI(configMap.deployment_zone_id.replace(' ', '_', 'g')) + '</li>';
+            footer += '\n   <li data-bvseo="seo.sdk.charset">' + configMap.charset + '</li>';
+            footer += '\n   <li data-bvseo="seo.sdk.ssl.enabled">' + configMap.ssl_enabled + '</li>';
+            footer += '\n   <li data-bvseo="crawlerAgentPattern">' + configMap.bot_list + '</li>';
+            footer += '\n   <li data-bvseo="subjectID">' + encodeURI(configMap.product_id) + '</li>';
 
-            footer += '\n	<li data-bvseo="en">' + configMap.sdk_enabled + '</li>';
-            footer += '\n	<li data-bvseo="pn">' + configMap.page + '</li>';
-            footer += '\n	<li data-bvseo="userAgent">' + (request.httpUserAgent ? request.httpUserAgent.toLowerCase() : '') + '</li>';
-            footer += '\n	<li data-bvseo="pageURI">' + configMap.current_page_url + '</li>';
-            footer += '\n	<li data-bvseo="contentType">' + configMap.content_type + '</li>';
-            footer += '\n	<li data-bvseo="subjectType">' + configMap.subject_type + '</li>';
+            footer += '\n   <li data-bvseo="en">' + configMap.sdk_enabled + '</li>';
+            footer += '\n   <li data-bvseo="pn">' + configMap.page + '</li>';
+            footer += '\n   <li data-bvseo="userAgent">' + (request.httpUserAgent ? request.httpUserAgent.toLowerCase() : '') + '</li>';
+            footer += '\n   <li data-bvseo="pageURI">' + configMap.current_page_url + '</li>';
+            footer += '\n   <li data-bvseo="contentType">' + configMap.content_type + '</li>';
+            footer += '\n   <li data-bvseo="subjectType">' + configMap.subject_type + '</li>';
 
             if (!empty(seoUrl)) {
-                footer += '\n	<li data-bvseo="contentURL">' + seoUrl + '</li>';
+                footer += '\n   <li data-bvseo="contentURL">' + seoUrl + '</li>';
             }
             footer += '\n</ul>';
         }
@@ -465,10 +467,9 @@ function SEOContent(config, seoProduct) {
         return payload;
     };
 
-
-    /** ****************
-    * PUBLIC METHODS  *
-    ******************/
+    // *******************
+    // * PUBLIC METHODS  *
+    // *******************
     return {
         getContent: function () {
             var payload = renderSEO('getContent');
@@ -508,10 +509,10 @@ function SEOContent(config, seoProduct) {
  */
 function BVSEO() {
     // put this first so it can initialize the current_page_url paramter
-    /** ****************
-    * @returns {string} url string value
-    * PRIVATE METHODS *
-    ******************/
+    // *******************
+    // * @returns {string} url string value
+    // * PRIVATE METHODS *
+    // *******************
     var getCurrentUrl = function () {
         var url;
         if (request.isHttpSecure()) {
@@ -588,9 +589,9 @@ function BVSEO() {
         return params;
     };
 
-    /** ****************
-    * PRIVATE MEMBERS *
-    ******************/
+    // *******************
+    // * PRIVATE MEMBERS *
+    // *******************
     var reviews; var
         questions;
     var configMap = new HashMap();
@@ -619,9 +620,9 @@ function BVSEO() {
     configMap.bvreveal = request.httpParameters.containsKey('bvreveal') ? request.httpParameters.bvreveal[0] : '';
     configMap.ssl_enabled = true;
 
-    /** ****************
-    * PUBLIC METHODS  *
-    ******************/
+    // *******************
+    // * PUBLIC METHODS  *
+    // *******************
     return {
         init: function (config) {
             Object.keys(config).forEach(
@@ -631,7 +632,8 @@ function BVSEO() {
                     } else {
                         Logger.debug('init() Incorrect parameter passed to BVSEO: ' + param);
                     }
-                });
+                }
+            );
             // we may need to pull the bvreveal parameter from the session
             if (empty(configMap.bvreveal) && !empty(session.privacy.bvreveal)) {
                 configMap.bvreveal = session.privacy.bvreveal;
