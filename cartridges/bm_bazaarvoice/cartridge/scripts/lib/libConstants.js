@@ -6,11 +6,11 @@
  */
 function getConstants() {
     return {
-    /** ***************************************************************
-		**  CONFIGURATION VARIABLES:
-		**    Most of these settings were removed from Site Preferences.
-		**    If customization is needed, change their values here.
-		******************************************************************/
+    // ******************************************************************
+    // **  CONFIGURATION VARIABLES:
+    // **    Most of these settings were removed from Site Preferences.
+    // **    If customization is needed, change their values here.
+    // ******************************************************************
         FTPHostStaging: 'sftp-stg.bazaarvoice.com',
         FTPHostProduction: 'sftp.bazaarvoice.com',
 
@@ -57,9 +57,9 @@ function getConstants() {
         EnableProductFamilies: false,
         // If the above setting is set to true, then this will collect content at the variant level
         UseVariantID: true,
-        /** ***************************************************************
-		*    END CONFIGURATION VARIABLES
-		******************************************************************/
+        // *****************************************************************
+        // *    END CONFIGURATION VARIABLES
+        // *****************************************************************
 
         // regFull is just a BV locale
         // e.g. en_US, de_DE, etc

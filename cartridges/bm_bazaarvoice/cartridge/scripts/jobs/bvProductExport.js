@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 'use strict';
 
 // API Objects
@@ -7,7 +6,6 @@ var StringUtils = require('dw/util/StringUtils');
 var ProductMgr = require('dw/catalog/ProductMgr');
 var Site = require('dw/system/Site');
 var Logger = require('dw/system/Logger').getLogger('Bazaarvoice', 'bvProductExport.js');
-
 
 // BV Helper Scripts
 var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
@@ -116,18 +114,24 @@ function read() {
     Logger.debug('***** Read *****');
 
     // if DCC Dynamic Pixel feature is enabled return
-   /* if (bvHelper.isDynamicPixelEnabled()) {
-        Logger.info('DCC Dynamic Pixel feature is enabled.');
-        return;
-    } */
+    // if (bvHelper.isDynamicPixelEnabled()) {
+    //     Logger.info('DCC Dynamic Pixel feature is enabled.');
+    //     return;
+    // }
 
     if (brandIter.hasNext()) {
         return { type: 'Brands', obj: brandIter.next() };
-    } else if (catIter.hasNext()) {
+    }
+
+    if (catIter.hasNext()) {
         return { type: 'Categories', obj: catIter.next() };
-    } else if (prodIter.hasNext()) {
+    }
+
+    if (prodIter.hasNext()) {
         return { type: 'Products', obj: prodIter.next() };
     }
+
+    return null;
 }
 /**
  * @param {Object} item - product item.
@@ -150,10 +154,10 @@ function process(item) {
 function write(lines) {
     Logger.debug('***** Write *****');
     // if DCC Dynamic Pixel feature is enabled return
-    /* if (bvHelper.isDynamicPixelEnabled()) {
-        Logger.info('DCC Dynamic Pixel feature is enabled.');
-        return;
-    }*/
+    // if (bvHelper.isDynamicPixelEnabled()) {
+    //     Logger.info('DCC Dynamic Pixel feature is enabled.');
+    //     return;
+    // }
     [].forEach.call(lines, function (line) {
         currentType = line.type;
         if (!openType) {
@@ -172,10 +176,10 @@ function write(lines) {
 function afterStep() {
     Logger.debug('***** After Step *****');
     // if DCC Dynamic Pixel feature is enabled return
-   /* if (bvHelper.isDynamicPixelEnabled()) {
-        Logger.info('DCC Dynamic Pixel feature is enabled.');
-        return;
-    }*/
+    // if (bvHelper.isDynamicPixelEnabled()) {
+    //     Logger.info('DCC Dynamic Pixel feature is enabled.');
+    //     return;
+    // }
     if (openType) {
         xmlHelper.transition(true, null);
         openType = null;

@@ -274,7 +274,6 @@ function writeProductFeedItem(item, localeMap) {
             xmlStreamWriter.writeEndElement();
             break;
 
-
         case 'Categories':
             var category = item.obj;
             xmlStreamWriter.writeStartElement('Category');
@@ -320,7 +319,6 @@ function writeProductFeedItem(item, localeMap) {
 
             xmlStreamWriter.writeEndElement();
             break;
-
 
         case 'Products':
             var product = item.obj;
@@ -392,8 +390,8 @@ function writeProductFeedItem(item, localeMap) {
                 } else if (BVHelper.isAggregateAttrEnabled() && !BVHelper.isProductFamiliesEnabled()) {
                     if (product.master) {
                         showEans = false;
-                        for (var a = 0; a < product.variants.length; a++) {
-                            if (!empty(product.variants[a].EAN)) {
+                        for (var a1 = 0; a1 < product.variants.length; a1++) {
+                            if (!empty(product.variants[a1].EAN)) {
                                 showEans = true;
                                 break;
                             }
@@ -401,9 +399,9 @@ function writeProductFeedItem(item, localeMap) {
 
                         if (showEans) {
                             xmlStreamWriter.writeStartElement('EANs');
-                            for (var b = 0; b < product.variants.length; b++) {
-                                if (!empty(product.variants[b].EAN)) {
-                                    writeElement('EAN', product.variants[b].EAN);
+                            for (var b1 = 0; b1 < product.variants.length; b1++) {
+                                if (!empty(product.variants[b1].EAN)) {
+                                    writeElement('EAN', product.variants[b1].EAN);
                                 }
                             }
                             xmlStreamWriter.writeEndElement();
@@ -411,8 +409,8 @@ function writeProductFeedItem(item, localeMap) {
                     }
                 } else if (BVHelper.isAggregateAttrEnabled() && BVHelper.isProductFamiliesEnabled()) {
                     showEans = false;
-                    for (a = 0; a < masterProduct.variants.length; a++) {
-                        if (!empty(masterProduct.variants[a].EAN)) {
+                    for (var a2 = 0; a2 < masterProduct.variants.length; a2++) {
+                        if (!empty(masterProduct.variants[a2].EAN)) {
                             showEans = true;
                             break;
                         }
@@ -420,10 +418,10 @@ function writeProductFeedItem(item, localeMap) {
 
                     if (showEans) {
                         xmlStreamWriter.writeStartElement('EANs');
-                        for (b = 0; b < masterProduct.variants.length; b++) {
-                            if (!empty(masterProduct.variants[b].EAN)) {
-                                eans.push(masterProduct.variants[b].EAN);
-                                writeElement('EAN', masterProduct.variants[b].EAN);
+                        for (var b2 = 0; b2 < masterProduct.variants.length; b2++) {
+                            if (!empty(masterProduct.variants[b2].EAN)) {
+                                eans.push(masterProduct.variants[b2].EAN);
+                                writeElement('EAN', masterProduct.variants[b2].EAN);
                             }
                         }
                         xmlStreamWriter.writeEndElement();
@@ -459,8 +457,8 @@ function writeProductFeedItem(item, localeMap) {
                     }
                 } else if (BVHelper.isAggregateAttrEnabled() && BVHelper.isProductFamiliesEnabled()) {
                     showUpcs = false;
-                    for (k = 0; k < masterProduct.variants.length; k++) {
-                        if (!empty(masterProduct.variants[k].UPC)) {
+                    for (var k1 = 0; k1 < masterProduct.variants.length; k1++) {
+                        if (!empty(masterProduct.variants[k1].UPC)) {
                             showUpcs = true;
                             break;
                         }
@@ -468,10 +466,10 @@ function writeProductFeedItem(item, localeMap) {
 
                     if (showUpcs) {
                         xmlStreamWriter.writeStartElement('UPCs');
-                        for (c = 0; c < masterProduct.variants.length; c++) {
-                            if (!empty(masterProduct.variants[c].UPC)) {
-                                upcs.push(masterProduct.variants[c].UPC);
-                                writeElement('UPC', masterProduct.variants[c].UPC);
+                        for (var c1 = 0; c1 < masterProduct.variants.length; c1++) {
+                            if (!empty(masterProduct.variants[c1].UPC)) {
+                                upcs.push(masterProduct.variants[c1].UPC);
+                                writeElement('UPC', masterProduct.variants[c1].UPC);
                             }
                         }
                         xmlStreamWriter.writeEndElement();
@@ -530,7 +528,6 @@ function writeProductFeedItem(item, localeMap) {
 
                     xmlStreamWriter.writeEndElement();
                 }
-
 
                 if (multiLocale) {
                     dwLocales = localeMap.keySet();
@@ -681,7 +678,6 @@ function writePurchaseFeedItem(order, localeMap) {
         Logger.debug('restoring locale: ' + defaultLocale);
     }
 }
-
 
 module.exports = {
     getStreamWriter: getStreamWriter,

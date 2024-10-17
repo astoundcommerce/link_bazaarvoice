@@ -23,8 +23,8 @@ function generateProductFeed() {
     var fileConfig = {};
 
     // iterate over all product feed configs
-    for (var i in configs) {
-        var config = configs[i];
+    Object.keys(configs).forEach(function (key) {
+        var config = configs[key];
         var dirPath = config.baseDir + config.dirName;
         var baseDir = new File(dirPath);
         if (!baseDir.exists()) {
@@ -42,13 +42,13 @@ function generateProductFeed() {
         csvWriter.writeNext(config.header);
 
         // save writer and mappings
-        fileConfig[i] = {
-            id: i,
+        fileConfig[key] = {
+            id: key,
             attributeMapping: config.attributeMapping,
             fileWriter: fileWriter,
             csvWriter: csvWriter
         };
-    }
+    });
 
     var products = ProductMgr.queryAllSiteProducts();
     try {
@@ -64,7 +64,7 @@ function generateProductFeed() {
 
                 productData.ean = '';
                 if (productData.eans) {
-                    for (i = 0; i < productData.eans.length; i++) {
+                    for (var i = 0; i < productData.eans.length; i++) {
                         productData.ean += productData.eans[i];
                         if (i !== (productData.eans.length - 1)) {
                             productData.ean += ',';
@@ -74,26 +74,27 @@ function generateProductFeed() {
 
                 productData.upc = '';
                 if (productData.upcs) {
-                    for (i = 0; i < productData.upcs.length; i++) {
-                        productData.upc += productData.upcs[i];
-                        if (i !== (productData.upcs.length - 1)) {
+                    for (var k = 0; k < productData.upcs.length; k++) {
+                        productData.upc += productData.upcs[k];
+                        if (k !== (productData.upcs.length - 1)) {
                             productData.upc += ',';
                         }
                     }
                 }
 
                 // iterate over file configs
-                for (i in fileConfig) {
-                    var feedConfig = fileConfig[i];
+                // eslint-disable-next-line no-loop-func
+                Object.keys(fileConfig).forEach(function (key) {
+                    var feedConfig = fileConfig[key];
                     var writer = feedConfig.csvWriter;
                     var lineArray = [];
                     // get the required data
-                    for (var j in feedConfig.attributeMapping) {
-                        var data = productData[feedConfig.attributeMapping[j]];
+                    Object.keys(feedConfig.attributeMapping).forEach(function (attr) {
+                        var data = productData[feedConfig.attributeMapping[attr]];
                         lineArray.push(data || '');
-                    }
+                    });
                     writer.writeNext(lineArray);
-                }
+                });
                 counter++;
             }
         }
@@ -102,14 +103,14 @@ function generateProductFeed() {
         result = false;
     } finally {
         products.close();
-        for (i in fileConfig) {
-            if (fileConfig[i].csvWriter) {
-                fileConfig[i].csvWriter.close();
+        Object.keys(fileConfig).forEach(function (key) {
+            if (fileConfig[key].csvWriter) {
+                fileConfig[key].csvWriter.close();
             }
-            if (fileConfig[i].fileWriter) {
-                fileConfig[i].fileWriter.close();
+            if (fileConfig[key].fileWriter) {
+                fileConfig[key].fileWriter.close();
             }
-        }
+        });
     }
 
     return result;

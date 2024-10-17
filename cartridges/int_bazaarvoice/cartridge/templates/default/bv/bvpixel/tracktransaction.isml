@@ -1,60 +1,16 @@
 <isif condition="${pdict.Order !== null}">
     <isscript>
-    var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
-    var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
-
-    var pixelEnabled = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableBVPixel");
-    var cust = pdict.Order.customer;
-    var bvdata = BVHelper.getDisplayData();
+        var bvConstants = require('*/cartridge/scripts/lib/libConstants').getConstants();
+        var BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper();
+        var pixelObj = BVHelper.getOrderPixel(pdict.Order);
+        var pixelEnabled = dw.system.Site.getCurrent().getCustomPreferenceValue("bvEnableBVPixel");
     </isscript>
 
     <isif condition="${pixelEnabled}">
     
         <script>
         window.bvCallback = function (BV) {
-            BV.pixel.trackTransaction({
-                "orderId"	:	"${pdict.Order.orderNo}",
-                "tax"		:	"${pdict.Order.totalTax.value.toFixed(2)}",
-                "shipping"	:	"${pdict.Order.adjustedShippingTotalNetPrice.value.toFixed(2)}",
-                "total"		:	"${pdict.Order.adjustedMerchandizeTotalNetPrice.value.toFixed(2)}",
-                "discount"	:	"${pdict.Order.merchandizeTotalNetPrice.subtract(pdict.Order.adjustedMerchandizeTotalNetPrice).value.toFixed(2)}",
-                "city"		:	"${pdict.Order.billingAddress.city}",
-                "state"		:	"${pdict.Order.billingAddress.stateCode}",
-                "country"	:	"${pdict.Order.billingAddress.countryCode}",
-                "currency"	:	"${pdict.Order.currencyCode}",
-                "partnerSource":"${bvConstants.XML_GENERATOR}",
-                "source":"${bvConstants.SOURCE}",
-                "sourceVersion":"${bvConstants.SOURCE_VERSION}",
-                "items"		:	[
-                <isscript>var plicounter = 0;</isscript>
-                <isloop items="${pdict.Order.allProductLineItems}" var="item" status="itemstat">
-                    <isif condition="${item.product !== null}">
-                        <isif condition="${BVHelper.isProductTypeExcluded(item.product)}">
-                            <iscontinue/>
-                        </isif>
-                        <isif condition="${plicounter > 0}">,</isif>
-                        {
-                            "productId"	:	"${BVHelper.addPrefixPid(BVHelper.replaceIllegalCharacters((item.product.variant && !bvConstants.UseVariantID) ? item.product.variationModel.master.ID : item.product.ID))}",
-                            "name"		:	"${item.product.name}",
-                            "price"		:	"${((item.quantityValue && item.netPrice) ? item.netPrice.divide(item.quantityValue) : item.basePrice).value.toFixed(2)}",
-                            <isif condition="${!empty(BVHelper.getImageURL(item.product, bvConstants.PURCHASE))}">
-                            "imageURL"	:	"${BVHelper.getImageURL(item.product, bvConstants.PURCHASE)}",
-                            </isif>
-                            "quantity"	:	"${item.quantity.value.toFixed()}"
-                        }
-                        <isscript>plicounter++;</isscript>
-                    </isif>
-                </isloop>
-                ],
-                <isif condition="${!empty(pdict.Order.customerNo)}">
-                    "userId"	:	"${pdict.Order.customerNo}", 
-                </isif>
-                "email"			:	"${pdict.Order.customerEmail}",
-                "nickname"		:	"${pdict.Order.customerName}",
-                "partnerSource"	:	"${bvConstants.XML_GENERATOR}",
-                "locale"		:	"${bvdata.locale}",
-                "deploymentZone" :	"${bvdata.zone.toLowerCase().replace(' ', '_', 'g')}"
-            });
+            BV.pixel.trackTransaction(<isprint value="${JSON.stringify(pixelObj)}" encoding="htmlsinglequote" />)
         };
         </script>
     <iselse/>
