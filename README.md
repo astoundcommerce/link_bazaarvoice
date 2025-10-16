@@ -15,4 +15,4 @@ This is the official Salesforce extension for Bazaarvoice.
 
 The cartridge is designed for Salesforce Commerce Cloud API version 24.1 (Compatibility Mode: 22.7) with SFRA version 6.3.0 or SiteGenesis version 105.2.0.
 
-Please go to https://knowledge.bazaarvoice.com/wp-content/partnerintegrations/en_US/ecommerce.html#salesforce-commerce-cloud if you are looking for the Bazaarvoice Salesforce extension compatible with the older Salesforce platform.
+Please go to https://docs.bazaarvoice.com/articles/#!portal-basics/ecommerce/a/salesforce-commerce-cloud if you are looking for the Bazaarvoice Salesforce extension compatible with the older Salesforce platform.
