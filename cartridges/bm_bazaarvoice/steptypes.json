@@ -88,7 +88,13 @@
 		          	"@required":"false",
 		          	"@trim":"false",
 		          	"description":"Enable Import of Rating Feed."
-		          	}]
+				}, {
+					"@name":"RemoveOldRatings",
+		          	"@type":"boolean",
+		          	"@required":"false",
+		          	"@trim":"false",
+		          	"description":"Remove outdated product ratings."
+		        }]
 		    },
 		    "status-codes": {
 		    	"status":  [{

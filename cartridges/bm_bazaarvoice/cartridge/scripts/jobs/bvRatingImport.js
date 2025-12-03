@@ -69,14 +69,127 @@ function saveRatingToProduct(product, bzvProduct, bvLocaleMap) {
     }
 }
 
+function ProductRatingCleaner(enable) {
+    var localeHelper = require('./util/localeHelper');
+    var localeMap = localeHelper.getLocaleMap('product');
+
+    this.enable = (enable === true);
+    this.dwLocales = localeMap.keySet().toArray();
+    this.productItr = null;
+    this.fileName = [File.TEMP, 'bv', 'ratings', 'ratings_removed.xml'].join(File.SEPARATOR);;
+    this.fileWriter = null;
+    this.fileXMLWriter = null;
+}
+
+ProductRatingCleaner.prototype.open = function () {
+    if (!this.enable) return;
+
+    const FileWriter = require('dw/io/FileWriter');
+    const XMLStreamWriter = require('dw/io/XMLStreamWriter');
+    const BVHelper = require('*/cartridge/scripts/lib/libBazaarvoice').getBazaarVoiceHelper()
+
+    var now = new Date();
+    var tempFile = new File(this.fileName);
+
+    try {
+        this.fileWriter = new FileWriter(tempFile, 'UTF-8');
+        this.fileXMLWriter = new XMLStreamWriter(this.fileWriter);
+
+        this.fileXMLWriter.writeStartDocument();
+        this.fileXMLWriter.writeStartElement('RemovedItems');
+        this.fileXMLWriter.writeAttribute('name', BVHelper.getCustomerName());
+        this.fileXMLWriter.writeAttribute('extractDate', now.toISOString());
+    } catch (e) {
+        Logger.info('Can not open file for writing removed ratings: ', e.message);
+        this.enable = false;
+        return;
+    }
+
+    this.productItr = ProductMgr.queryAllSiteProductsSorted();
+}
+
+ProductRatingCleaner.prototype.close = function () {
+    if (!this.enable) return;
+
+    if (this.productItr) {
+        this.productItr.close();
+        this.productItr = null;
+    }
+
+    if (this.fileXMLWriter) {
+        this.fileXMLWriter.writeEndElement();
+        this.fileXMLWriter.writeEndDocument();
+        this.fileXMLWriter.close();
+        this.fileXMLWriter = null;
+    }
+
+    if (this.fileWriter) {
+        this.fileWriter.close();
+        this.fileWriter = null;
+    }
+}
+
+ProductRatingCleaner.prototype.clean = function (product) {
+    if (!this.enable) return;
+
+    var pid = product ? product.ID : null;
+
+    while (this.productItr.hasNext()) {
+        var prod = this.productItr.next();
+        var obj = {};
+
+        if (pid && prod.ID >= pid) { break; }
+
+        this.dwLocales.forEach(function (dwLocale) {
+            request.setLocale(dwLocale);
+
+            if (Object.hasOwnProperty.call(prod.custom, 'bvAverageRating')) {
+                if (empty(obj[dwLocale])) { obj[dwLocale] = [{name:'bvAverageRating', value: prod.custom.bvAverageRating}]; }
+                else { obj[dwLocale].push({name:'bvAverageRating', value: prod.custom.bvAverageRating}); }
+                delete prod.custom.bvAverageRating;
+            }
+            if (Object.hasOwnProperty.call(prod.custom, 'bvReviewCount')) {
+                if (empty(obj[dwLocale])) { obj[dwLocale] = [{name:'bvReviewCount', value: prod.custom.bvReviewCount}]; }
+                else { obj[dwLocale].push({name:'bvReviewCount', value: prod.custom.bvReviewCount}); }
+                delete prod.custom.bvReviewCount;
+            }
+            if (Object.hasOwnProperty.call(prod.custom, 'bvRatingRange')) {
+                if (empty(obj[dwLocale])) { obj[dwLocale] = [{name:'bvRatingRange', value: prod.custom.bvRatingRange}]; }
+                else { obj[dwLocale].push({name:'bvRatingRange', value: prod.custom.bvRatingRange}); }
+                delete prod.custom.bvRatingRange;
+            }
+        });
+
+        if (Object.keys(obj).length > 0) {
+            var that = this;
+
+            that.fileXMLWriter.writeStartElement('Product');
+            that.fileXMLWriter.writeAttribute('id', prod.ID);
+
+            Object.keys(obj).forEach(function (dwLocale) {
+                var fields = obj[dwLocale];
+                fields.forEach(function (field) {
+                    that.fileXMLWriter.writeStartElement(field.name);
+                    that.fileXMLWriter.writeAttribute('locale', dwLocale);
+                    that.fileXMLWriter.writeCharacters(field.value);
+                    that.fileXMLWriter.writeEndElement();
+                });
+            });
+
+            that.fileXMLWriter.writeEndElement();
+        }
+    }
+}
+
 module.exports.execute = function (parameters) {
     var enabled = parameters.Enabled;
-    var bzvProduct = {};
 
     if (!enabled) {
         Logger.info('Import Ratings Enable Parameter is not true!');
         return new Status(Status.OK);
     }
+
+    var productRatingCleaner = new ProductRatingCleaner(parameters.RemoveOldRatings);
 
     try {
         // generate a locale map
@@ -96,6 +209,8 @@ module.exports.execute = function (parameters) {
         if (!tempFile.exists()) {
             throw new Error('TEMP/bv/ratings/ratings.xml does not exist!');
         }
+
+        productRatingCleaner.open();
 
         // open the feed and start stream reading
         var fileReader = new FileReader(tempFile, 'UTF-8');
@@ -152,22 +267,34 @@ module.exports.execute = function (parameters) {
 
                 if (blrProduct && blrProduct.id && closeTagName === 'Product') {
                     var product = ProductMgr.getProduct(blrProduct.id);
-                    saveRatingToProduct(product, blrProduct, bvLocaleMap);
+                    if (product) { 
+                        productRatingCleaner.clean(product);
+                        saveRatingToProduct(product, blrProduct, bvLocaleMap);
+                    }
 
                     if (useCaseInsensitivePid) {
                         product = ProductMgr.getProduct(productId.toLowerCase());
-                        saveRatingToProduct(product, blrProduct, bvLocaleMap);
+                        if (product) { 
+                            productRatingCleaner.clean(product);
+                            saveRatingToProduct(product, blrProduct, bvLocaleMap);
+                        }
 
                         product = ProductMgr.getProduct(productId.toUpperCase());
-                        saveRatingToProduct(product, blrProduct, bvLocaleMap);
+                        if (product) { 
+                            productRatingCleaner.clean(product);
+                            saveRatingToProduct(product, blrProduct, bvLocaleMap);
+                        }
                     }
                 }
             }
         }
 
+        productRatingCleaner.clean();
+        productRatingCleaner.close();
         xmlReader.close();
         fileReader.close();
     } catch (e) {
+        productRatingCleaner.close();
         Logger.error('Exception caught: ' + e.message);
         return new Status(Status.ERROR, 'ERROR', e.message);
     }
