@@ -16,7 +16,7 @@ if(quickviewPref && quickviewPref.value && !quickviewPref.value.equals('none')) 
         var Product = pdict.Product;
         ratingTemplate = 'bv/display/rr/ratings';
     } else if(quickviewPref.value.equals('pdpsummary')) {
-        ratingTemplate = 'bv/display/pdpSummary';
+        ratingTemplate = 'bv/display/pdpsummary';
     }
 }
 </isscript>

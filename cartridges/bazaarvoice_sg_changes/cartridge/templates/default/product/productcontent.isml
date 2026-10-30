@@ -52,7 +52,7 @@
     </iscomment>
 
     <isif condition="${!isQuickView}">
-        <isinclude template="bv/display/pdpSummary"/>
+        <isinclude template="bv/display/pdpsummary"/>
     <iselse/>
         <isinclude template="bv/display/rr/qvRatings"/>
     </isif>

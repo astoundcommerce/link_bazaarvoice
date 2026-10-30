@@ -4,4 +4,4 @@
         assets.addJs(pdict.bvScout);
     }
 </isscript>
-<isinclude template="bv/display/pdpSummary"/>
+<isinclude template="bv/display/pdpsummary"/>
