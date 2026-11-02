@@ -37,6 +37,6 @@
         <isinclude template="checkout/pt_orderconfirmation_VARS"/>
 
     </div>
-    <isinclude template="bv/bvpixel/trackTransaction"/>
+    <isinclude template="bv/bvpixel/tracktransaction"/>
 </body>
 </html>

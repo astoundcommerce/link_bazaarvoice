@@ -11,6 +11,15 @@ This is the official Salesforce extension for Bazaarvoice.
 4. Find the __/documentation__ directory within the cloned repository.
 5. Follow the SFRA or Site Genesis document (depending on the architecture of your project) to integrate and upload the cartridges, import environment data, and configure site preferences
 
+## Order confirmation template casing
+
+Order-confirmation pixel includes must use `bv/bvpixel/tracktransaction`,
+matching the tracked `tracktransaction.isml` filename exactly. The include is
+unconditional; disabling BV Pixel suppresses tracking inside that template,
+but does not skip template lookup. A casing mismatch can therefore break the
+confirmation page even with BV Pixel disabled, after the order is placed.
+Verify the existing order before retrying checkout to avoid duplicates.
+
 ## Compatibility
 
 The cartridge is designed for Salesforce Commerce Cloud API version 24.1 (Compatibility Mode: 22.7) with SFRA version 7.0.1 or SiteGenesis version 105.2.0.
